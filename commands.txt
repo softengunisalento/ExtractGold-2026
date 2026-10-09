@@ -1,0 +1,51 @@
+COMMANDS
+
+Notes
+- Run every command from the repository root unless stated otherwise.
+- Replace the values in <angle brackets>.
+- Flags of llama-server change between builds: check them with `./build/bin/llama-server --help`.
+
+1. Activate the virtual environment
+	source venv/bin/activate
+
+2. Start MongoDB (skip it if it already runs as a service)
+	sudo systemctl start mongod
+
+3. Start llama-server, ONE model at a time
+	
+	./build/bin/llama-server -m ../models/folderName/modelName --host 127.0.0.1 --port 8080 -c 32768 -ngl 99 -np 1
+
+	- -c 32768   context size: it must be the same for all models.
+	- -ngl 99    offloads all layers to the GPUs. Check in the start-up log how many layers
+	             are offloaded and, with nvidia-smi, that the three GPUs are in use.
+	- -np 1      a single slot, so that the whole context belongs to one conversation.
+	- The chat template is taken from the GGUF file: do not force it with --chat-template.
+	- Sampling (--temp, --top-p, --top-k, ...): use the values recommended on the model card,
+	  identical for baseline and GE, and write them down. `request_params` in logs/turns.jsonl
+	  shows what Chat UI actually sends; whatever it does not send comes from these flags.
+	- Prompt cache: it is enabled by default (the KV cache of the common prefix is reused
+	  between turns). To disable it, so that every turn reprocesses the whole history, add
+	  --no-cache-prompt. Decide it once for the whole experiment.
+	- Optional, to make the split over the GPUs explicit: --split-mode layer --tensor-split 1,1,1
+	- Reasoning models: check how the reasoning is returned (separate field or inline in the
+	  text), because it affects the context sent at the following turns and the logs.
+
+	Check the server and its configuration:
+	curl http://127.0.0.1:8080/props
+
+4. Start the energy_api proxy
+	uvicorn energy_api:app --host 127.0.0.1 --port 9000
+
+	Optional environment variables (see README.md), for example:
+	TRACKING_MODE=machine uvicorn energy_api:app --host 127.0.0.1 --port 9000
+
+5. Start the Chat UI application, from the chat-ui directory
+	npm run dev
+
+6. Before each session: set the session metadata
+	curl -X POST http://127.0.0.1:9000/experiment/session -H "Content-Type: application/json" \
+	     -d '{"participant_id": "P01", "task_id": "T1", "condition": "GE", "model": "<model label>"}'
+
+7. After each session: close it
+	curl -X POST http://127.0.0.1:9000/experiment/session/end -H "Content-Type: application/json" \
+	     -d '{"task_completed": false, "notes": "..."}'

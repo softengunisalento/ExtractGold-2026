@@ -1,4 +1,4 @@
-COMMANDS...
+COMMANDS
 
 Notes
 - Run every command from the repository root unless stated otherwise.

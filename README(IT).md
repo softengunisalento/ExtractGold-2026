@@ -24,7 +24,9 @@ Hugging Face Chat UI  ──►  energy_api.py (proxy)  ──►  llama-server 
 File di configurazione di Chat UI (ereditati dal lavoro precedente):
 
 - `.env.local` contiene la configurazione locale di Chat UI. Va collocato nella cartella `chat-ui` con il nome `.env.local`. Due impostazioni sono essenziali: l'URL di base deve puntare al proxy (porta 9000) e la memoria della conversazione deve essere attiva (`ENABLE_CONVERSATIONS=true`, `DISABLE_CONVERSATION_MEMORY=false`); con i modelli locali, infatti, Chat UI funziona per impostazione predefinita in modalità stateless e non conserva il contesto.
-- `package.json` è uno dei file della cartella `chat-ui`. Deve essere configurato come indicato, in modo che l'applicazione possa tracciare il contesto tramite il server MongoDB.
+- - package.json è uno dei file della cartella chat-ui. Affinché l'applicazione tracci correttamente il contesto salvandolo sul server MongoDB (rendendolo accessibile al proxy), devi aprire il file e aggiungere \"--experimental-modules\" oppure accertarti che il database sia forzato all'avvio. Aggiungi/modifica la riga di avvio in scripts:
+"dev": "vite dev --host 127.0.0.1" (assicurati che non ci siano parametri che disabilitano il DB in sviluppo).
+(Nota: a seconda della versione esatta di Chat UI clonata, potrebbe essere sufficiente il .env.local con ENABLE_CONVERSATIONS=true)
 - `commands.txt` elenca i comandi che avviano l'intera architettura.
 
 Esempio di avvio di un modello (la dimensione del contesto deve essere la stessa per tutti i modelli):
@@ -98,7 +100,7 @@ python conversation_stats.py --tokenizer Qwen/Qwen3-Coder-30B-A3B-Instruct --min
 python conversation_stats.py --dataset allenai/WildChat-1M --lang English
 ```
 
-Si consiglia di eseguire prima `--inspect`, che mostra le colonne del dataset e verifica che il formato sia riconosciuto. Per i dataset ad accesso condizionato (ad es. `lmsys/lmsys-chat-1m`) occorre accettare le condizioni sulla pagina del dataset e impostare `HF_TOKEN`.
+Si consiglia di eseguire prima `--inspect`, che mostra le colonne del dataset e verifica che il formato sia riconosciuto. Per eventuali dataset ad accesso condizionato (Gated Datasets) occorre accettare le condizioni sulla rispettiva pagina di Hugging Face e assicurarsi che la variabile d'ambiente HF_TOKEN sia impostata correttamente.
 
 Output in `stats_out/` (modificabile con `--out`):
 
@@ -188,4 +190,4 @@ Questi file vanno conservati insieme ai risultati.
 ## Dati personali e licenze
 
 - I log delle sessioni contengono testi scritti dai partecipanti: si usano identificativi pseudonimi (P01, P02, …), il modulo di consenso va aggiornato in modo da includere la registrazione delle conversazioni, e prima di pubblicare i log vanno rimossi i dati identificativi (ad es. nome utente e nome della macchina nell'output del terminale).
-- CodeChat e WildChat sono distribuiti con licenza ODC-BY: vanno citati e non si deve tentare di identificare le persone. LMSYS-Chat-1M richiede l'accettazione di condizioni d'uso che ne vietano la ridistribuzione. Le licenze dei singoli modelli vanno verificate sulle rispettive schede.
+- CodeChat e WildChat sono distribuiti con licenza ODC-BY: vanno citati e non si deve tentare di identificare le persone. 

@@ -55,7 +55,7 @@ def get_messages(row: dict) -> list[tuple[str, str]] | None:
 def make_counter(tokenizer: str | None):
     """Restituisce (funzione che conta i token di un testo, descrizione del metodo)."""
     if not tokenizer:
-        return (lambda text: max(1, len(text) // 4) if text else 0), "stima: 1 token ogni 4 caratteri"
+        sys.exit("Errore: Specify a real tokenizer using --tokenizer")
     try:
         from tokenizers import Tokenizer
     except ImportError:
@@ -117,6 +117,10 @@ def print_shares(title: str, shares: dict) -> None:
 def open_dataset(args):
     ds = load_dataset(args.dataset, args.config, split=args.split, streaming=not args.no_streaming)
     if args.lang:
+        first_row = next(iter(ds))
+        if "language" not in first_row:
+            sys.exit(f"Error: '{args.dataset}' does not have a column named 'language'. Remove the flag --lang ")
+        ds = load_dataset(args.dataset, args.config, split=args.split, streaming=not args.no_streaming)
         ds = ds.filter(lambda r: r.get("language") == args.lang)
     if args.no_streaming:
         ds = ds.shuffle(seed=args.seed)
@@ -192,9 +196,9 @@ def main() -> int:
     ap.add_argument("--shuffle-buffer", type=int, default=10_000, help="buffer del rimescolamento in streaming")
     ap.add_argument("--no-streaming", action="store_true", help="scarica tutto il dataset (campione davvero casuale)")
     ap.add_argument("--lang", help="tiene solo le conversazioni con questo valore della colonna 'language' (es. English)")
-    ap.add_argument("--tokenizer", help="repo Hugging Face del tokenizer da usare (es. Qwen/Qwen3-Coder-30B-A3B-Instruct)")
-    ap.add_argument("--min-turns", type=int, default=10, help="turn minimi per una conversazione candidata al replay")
-    ap.add_argument("--min-tokens", type=int, default=4000, help="token minimi di contesto finale per una candidata")
+    ap.add_argument("--tokenizer", required=True, help="repo Hugging Face del tokenizer da usare (es. Qwen/Qwen3-Coder-30B-A3B-Instruct)")
+    ap.add_argument("--min-turns", type=int, required=True, help="turn minimi per una conversazione candidata al replay")
+    ap.add_argument("--min-tokens", type=int, required=True, help="token minimi di contesto finale per una candidata")
     ap.add_argument("--out", default="stats_out", help="cartella di output (default: stats_out)")
     ap.add_argument("--plot", action="store_true", help="salva un grafico delle distribuzioni (richiede matplotlib)")
     ap.add_argument("--inspect", action="store_true", help="mostra le colonne del primo record ed esce")

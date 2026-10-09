@@ -9,7 +9,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from statistics import median
-
+import hashlib
 try:
     from datasets import load_dataset
     from conversation_stats import analyze, dataset_commit, get_messages, make_counter
@@ -23,16 +23,16 @@ def main() -> int:
     ap.add_argument("--dataset", default="Suzhen/CodeChat", help="dataset su Hugging Face (default: Suzhen/CodeChat)")
     ap.add_argument("--config", default=None, help="configurazione del dataset, se prevista")
     ap.add_argument("--split", default="train")
-    ap.add_argument("--min-turns", type=int, default=10, help="turn minimi (default: 10)")
-    ap.add_argument("--min-tokens", type=int, default=4000, help="token minimi di contesto finale (default: 4000)")
+    ap.add_argument("--min-turns", type=int, required=True, help="turn minimi")
+    ap.add_argument("--min-tokens", type=int, required=True, help="token minimi di contesto finale")
     ap.add_argument("--max-tokens", type=int, default=0,
                     help="token massimi di contesto finale, per restare nella finestra dei modelli (0 = nessun limite)")
-    ap.add_argument("--model-regex", default="^gpt-4",
+    ap.add_argument("--model-regex", default="",
                     help='tiene solo i modelli della colonna "model" che corrispondono (default: ^gpt-4; "" = tutti)')
-    ap.add_argument("--n", type=int, default=100, help="conversazioni da esportare (0 = tutte le idonee)")
+    ap.add_argument("--n", type=int, required=True, help="conversazioni da esportare (0 = tutte le idonee)")
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--scan", type=int, default=0, help="legge solo le prime N conversazioni (0 = tutte; utile per prove)")
-    ap.add_argument("--tokenizer", help="repo Hugging Face del tokenizer da usare (default: stima a caratteri/4)")
+    ap.add_argument("--tokenizer", required=True, help="repo Hugging Face del tokenizer da usare (default: stima a caratteri/4)")
     ap.add_argument("--out", default="replay_set", help="cartella di output (default: replay_set)")
     args = ap.parse_args()
 
@@ -42,6 +42,7 @@ def main() -> int:
 
     rng = random.Random(args.seed)
     reservoir: list[dict] = []
+    seen_hashes = set()
     scanned = matching = 0
     for i, row in enumerate(ds):
         if args.scan and scanned >= args.scan:
@@ -54,6 +55,12 @@ def main() -> int:
         msgs = get_messages(row)
         if not msgs:
             continue
+        concat_msgs = "".join(text for role, text in msgs).encode("utf-8")
+        msg_hash = hashlib.sha256(concat_msgs).hexdigest()
+
+        if msg_hash in seen_hashes:
+            continue #salta se è un duplicato esatto
+        seen_hashes.add(msg_hash)
         st = analyze(msgs, count)
         if st["turns"] < args.min_turns or st["context_last_turn"] < args.min_tokens:
             continue
@@ -97,8 +104,8 @@ def main() -> int:
         "turn_mediana": median(r["turns"] for r in reservoir),
         "contesto_finale_mediana": median(r["context_last_turn"] for r in reservoir),
         "data_estrazione": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "attribuzione": "Dati derivati da CodeChat (Zhong, Zou, Adams, 2025) e WildChat (Zhao et al., 2024), "
-                        "licenza ODC-BY: citare le fonti e non tentare di identificare le persone.",
+        "attribuzione": f"Data extracted from the {args.dataset} repository. You are responsible for "
+                        f"complying with the dataset-specific license and attribution terms. "
     }
     (out_dir / "selezione.json").write_text(json.dumps(meta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 

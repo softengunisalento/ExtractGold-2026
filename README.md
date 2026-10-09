@@ -22,7 +22,8 @@ Hugging Face Chat UI  ──►  energy_api.py (proxy)  ──►  llama-server 
 Configuration files of Chat UI (inherited from the previous work):
 
 - `.env.local` contains the local configuration of Chat UI. It must be placed in the `chat-ui` directory as `.env.local`. Two settings are essential: the base URL must point to the proxy (port 9000), and conversation memory must be enabled (`ENABLE_CONVERSATIONS=true`, `DISABLE_CONVERSATION_MEMORY=false`); by default, with local models, Chat UI runs in stateless mode and does not keep the context.
-- `package.json` is one of the files in the `chat-ui` directory. It must be configured as reported, so that the application can track the context through the MongoDB server.
+- package.json is located in the chat-ui directory. To ensure the application correctly tracks the context and saves it to the MongoDB server (making it accessible to the proxy), you may need to check the scripts section. Ensure the dev startup script looks similar to "dev": "vite dev --host 127.0.0.1" and does not contain flags that mock or disable the database in development mode.
+(Note: depending on the exact version of the cloned Chat UI, a .env.local file with ENABLE_CONVERSATIONS=true might be sufficient.)
 - `commands.txt` lists the commands that start the whole architecture.
 
 Example of how to serve a model (the context size must be the same for all models):
@@ -96,7 +97,7 @@ python conversation_stats.py --tokenizer Qwen/Qwen3-Coder-30B-A3B-Instruct --min
 python conversation_stats.py --dataset allenai/WildChat-1M --lang English
 ```
 
-It is advisable to run `--inspect` first: it shows the columns of the dataset and checks that the format is recognised. Gated datasets (e.g. `lmsys/lmsys-chat-1m`) require accepting the conditions on the dataset page and setting `HF_TOKEN`.
+It is advisable to run `--inspect` first: it shows the columns of the dataset and checks that the format is recognised. Gated datasets require accepting the specific terms on their Hugging Face repository page and ensuring the HF_TOKEN environment variable is set."
 
 Output in `stats_out/` (configurable with `--out`):
 
@@ -186,4 +187,4 @@ These files should be kept together with the results.
 ## Personal data and licences
 
 - Session logs contain texts written by the participants: pseudonymous identifiers are used (P01, P02, …), the consent form must be updated to include the recording of the conversations, and identifying data (e.g. user name and machine name in terminal output) must be removed before the logs are published.
-- CodeChat and WildChat are distributed under the ODC-BY licence: they must be cited and no attempt may be made to identify individuals. LMSYS-Chat-1M requires accepting terms of use that forbid redistribution. The licences of the individual models must be checked on their model cards.
+- CodeChat and WildChat are distributed under the ODC-BY licence: they must be cited and no attempt may be made to identify individuals. The licences of the individual models must be checked on their model cards.

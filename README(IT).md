@@ -128,6 +128,8 @@ python download_models.py --dry-run
 python download_models.py --only gpt-oss-20b,qwen3-coder-30b-a3b
 python download_models.py --only laguna-xs-2.1 --quant I-Balanced
 python download_models.py --no-verify      # salta il calcolo dello SHA-256 locale
+python download_models.py --update         # usa l'ultimo commit anche se il manifest ne fissa un altro (i pesi cambiano)
+python download_models.py --force          # prosegue anche se lo spazio libero non basta per tutti i modelli selezionati
 ```
 
 Output: `models/manifest.json`, con repository, quantizzazione, commit, data del download e, per ciascun file, nome, dimensione e SHA-256. Va conservato insieme ai risultati e riportato nella metodologia per indicare esattamente quali pesi sono stati usati. La lista dei modelli si modifica nella variabile `MODELS` all'inizio dello script.

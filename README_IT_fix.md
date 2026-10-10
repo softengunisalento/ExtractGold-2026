@@ -30,23 +30,9 @@ File di configurazione di Chat UI:
 
 Chat UI, llama.cpp, i modelli e l'ambiente virtuale non fanno parte del repository: vedi Setup da zero.
 
-## Requisiti
-
-- Python 3.9 o superiore.
-- `download_models.py`: `pip install -U huggingface_hub`
-- `conversation_stats.py` e `export_conversations.py`: `pip install -U datasets` (opzionali: `tokenizers` per `--tokenizer`, `matplotlib` per `--plot`)
-- `energy_api.py`: `pip install fastapi uvicorn requests codecarbon`; in esecuzione servono anche llama-server, MongoDB e Hugging Face Chat UI.
-- Un token Hugging Face di tipo **Read**, impostato nella variabile d'ambiente `HF_TOKEN`:
-
-  ```bash
-  export HF_TOKEN="hf_..."
-  ```
-
-  Il token non deve comparire negli script, nei commit o nei file di output.
-
 ## Setup da zero
 
-Il repository contiene solo il codice di questo lavoro. Chat UI, llama.cpp, i modelli e l'ambiente virtuale non sono inclusi: si installano una volta, seguendo questi passi. I comandi sono per la workstation Linux (Ubuntu 24.04); su Windows i passi sono gli stessi, tranne i percorsi e l'attivazione dell'ambiente virtuale. Si esegue tutto dalla radice del repository, salvo diversa indicazione.
+Il repository contiene solo il codice di questo lavoro. Chat UI, llama.cpp, i modelli e l'ambiente virtuale non sono inclusi: si installano una volta, seguendo questi passi. Si esegue tutto dalla radice del repository, salvo diversa indicazione.
 
 Struttura dopo il setup (tutto ciò che non è codice è ignorato da Git):
 
@@ -153,13 +139,6 @@ Si apre una sessione di prova (vedi Sessione sperimentale), si scrivono due mess
   echo; uname -a
 } > environment.txt
 ```
-
-## Flusso di lavoro
-
-1. `download_models.py` scarica i modelli e produce `models/manifest.json`.
-2. `conversation_stats.py` analizza la lunghezza delle conversazioni reali, per scegliere la soglia di contesto che attiva la GE.
-3. `export_conversations.py` estrae il campione di conversazioni per il replay offline.
-4. `energy_api.py` misura l'energia e registra turn e sessioni durante le sessioni sperimentali con i partecipanti.
 
 ## `download_models.py`
 

@@ -57,9 +57,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-`requirements.txt` fissa la versione di CodeCarbon, la libreria di misura, e lascia libere le altre. Dopo un'installazione funzionante conviene registrare le versioni esatte (passo 8).
-
-**3. MongoDB.** Chat UI vi conserva le conversazioni.
+**3. MongoDB.** Chat UI conserva le conversazioni.
 
 ```bash
 sudo systemctl enable --now mongod
@@ -89,8 +87,6 @@ LLM_SUMMARIZATION=false
 MONGODB_URL=mongodb://127.0.0.1:27017/chatui
 ```
 
-Il file può contenere altre variabili ereditate dal lavoro precedente (come `MODELS` e `DEFAULT_MODEL`): nelle prove non hanno cambiato il nome del modello inviato al proxy, che viene da `energy_api.py` (`MODEL_ID`).
-
 **5. llama.cpp.** Si compila con il supporto CUDA:
 
 ```bash
@@ -102,7 +98,7 @@ cmake --build build --config Release -j
 cd ..
 ```
 
-I nomi delle opzioni cambiano tra le versioni: si controlla `docs/build.md` della versione in uso. Senza il supporto CUDA la compilazione gira su CPU e `-ngl 99` non ha effetto: all'avvio il log del server deve elencare le GPU. Alcuni modelli richiedono una compilazione recente (per esempio Laguna-XS, che richiede l'architettura `laguna`). L'identificativo della compilazione è registrato da `energy_api.py` in `sessions.jsonl` (`build_info`).
+I nomi delle opzioni cambiano tra le versioni: si controlla `docs/build.md` della versione in uso. Senza il supporto CUDA la compilazione gira su CPU e `-ngl 99` non ha effetto: all'avvio il log del server deve elencare le GPU.
 
 **6. Modelli.** Prima si controlla lo spazio libero: ogni modello pesa decine di GB.
 
@@ -111,12 +107,9 @@ read -rs HF_TOKEN && export HF_TOKEN
 python download_models.py --list
 python download_models.py --dry-run
 python download_models.py                                   # scarica tutti i modelli
-python download_models.py --only laguna-xs-2.1 --quant <etichetta>
 ```
 
-Laguna-XS non ha un'etichetta di quantizzazione standard: senza `--quant` lo script la salta ed elenca i file disponibili. L'output è `models/<nome>/<file>.gguf` e `models/manifest.json`.
-
-**7. Verifica dell'intera catena.** Si avviano i servizi come in `commands.txt`, con una cartella di log di prova (vedi Avvertenze) e, per il modello, `--alias <nome>`. Poi:
+**7. Verifica dell'intera catena.** Si avviano i servizi come in `commands.txt`, con una cartella di log di prova (vedi Avvertenze) e, per il modello, `--alias <folder_name>`. Poi:
 
 ```bash
 curl http://127.0.0.1:8080/props                # il modello e la dimensione del contesto
@@ -125,20 +118,6 @@ curl http://127.0.0.1:9000/v1/models            # deve mostrare l'id assistente-
 
 Si apre una sessione di prova (vedi Sessione sperimentale), si scrivono due messaggi in una conversazione nuova di Chat UI e si chiude la sessione. Nella cartella di log di prova `turns.jsonl` deve contenere due record con `auxiliary: false`, e il record di chiusura di `sessions.jsonl` deve mostrare `"turns": 2` e `"aux_requests": 0`. Si elimina la cartella di prova prima delle sessioni vere.
 
-**8. Registrare l'ambiente.** All'inizio della campagna sperimentale, e dopo ogni modifica, si salvano le versioni in uso insieme ai risultati:
-
-```bash
-{
-  echo "repository: $(git rev-parse HEAD)"
-  echo "chat-ui:    $(git -C chat-ui rev-parse HEAD)"
-  echo "llama.cpp:  $(git -C llama.cpp rev-parse HEAD)"
-  echo "python:     $(python --version)"
-  echo "node:       $(node --version)"
-  echo; pip freeze
-  echo; nvidia-smi
-  echo; uname -a
-} > environment.txt
-```
 
 ## `download_models.py`
 

@@ -204,7 +204,7 @@ curl -X POST http://127.0.0.1:9000/experiment/session/end -H "Content-Type: appl
 ### File di log
 
 - `turns.jsonl`, un record per turn: `session_id`, `participant_id`, `task_id`, `condition`, `model_label`, `segment`, `turn_index`, `turn_in_segment`, `conversation_id`, `is_ge_request`, `n_messages`, `request_params`, `messages_sha256`, `request_messages`, `response`, `reasoning`, `finish_reason`, `completed`, `error`, `prompt_tokens`, `prompt_tokens_evaluated`, `prompt_tokens_cached`, `completion_tokens`, `usage`, `timings`, `ttft_ms`, `wall_ms`, `energy_wh` (`cpu`, `gpu`, `ram`, `total`, `duration_s`, `emissions_kg`), `tracking_mode`, `codecarbon_run_id`.
-- `sessions.jsonl`, eventi di sessione (`start`, `end`, `auto_start`): metadati, proprietà di llama-server (modello caricato, contesto, build), versione di CodeCarbon, esito del task (`task_completed`) e numero di richieste GE.
+- `sessions.jsonl`, eventi di sessione (`start`, `end`, `auto_start`): metadati, etichetta del modello (dichiarata e ricavata dal server) e avvisi, proprietà di llama-server (modello caricato, contesto, build), versione di CodeCarbon, esito del task (`task_completed`) e numero di richieste GE e ausiliarie.
 
 ### Avvertenze
 

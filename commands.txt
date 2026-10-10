@@ -13,7 +13,7 @@ Notes
 
 3. Start llama-server, ONE model at a time
 	
-	./llama.cpp/build/bin/llama-server -m ../models/<folderName>/<modelName> --host 127.0.0.1 --port 8080 -c 32768 -ngl 99 -np 1
+	./llama.cpp/build/bin/llama-server -m ../models/<folderName>/<modelName> --alias <folderName>--host 127.0.0.1 --port 8080 -c 32768 -ngl 99 -np 1
 
 	- -c 32768   context size: it must be the same for all models.
 	- -ngl 99    offloads all layers to the GPUs. Check in the start-up log how many layers

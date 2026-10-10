@@ -14,19 +14,10 @@ Hugging Face Chat UI  ──►  energy_api.py (proxy)  ──►  llama-server 
 - MongoDB è in esecuzione sulla porta 27017 e conserva le conversazioni di Chat UI. È usato solo da Chat UI.
 - L'intera architettura viene eseguita in un ambiente virtuale Python (`venv`).
 
-File di configurazione di Chat UI (ereditati dal lavoro precedente):
+File di configurazione di Chat UI:
 
 - `.env.local` contiene la configurazione locale di Chat UI. Va collocato nella cartella `chat-ui` con il nome `.env.local`. Tre impostazioni sono essenziali: l'URL di base deve puntare al proxy (porta 9000); la memoria della conversazione deve essere attiva (`ENABLE_CONVERSATIONS=true`, `DISABLE_CONVERSATION_MEMORY=false`), perché con i modelli locali Chat UI funziona per impostazione predefinita in modalità stateless e non conserva il contesto; e la generazione dei titoli delle conversazioni deve essere disattivata (`LLM_SUMMARIZATION=false`), altrimenti Chat UI invia una richiesta in più al modello al primo messaggio di ogni conversazione (vedi Avvertenze).
-- `package.json` è uno dei file della cartella `chat-ui`. Deve essere configurato come indicato, in modo che l'applicazione possa tracciare il contesto tramite il server MongoDB.
 - `commands.txt` elenca i comandi che avviano l'intera architettura.
-
-Esempio di avvio di un modello (la dimensione del contesto deve essere la stessa per tutti i modelli; `commands.txt` contiene il comando completo):
-
-```bash
-llama-server -m models/<folder_name>/<model_name>.gguf --alias <folder_name> --host 127.0.0.1 --port 8080 -c 32768 -ngl 99 -np 1
-```
-
-`--alias <folder_name>` imposta il nome del modello che `energy_api.py` scrive nei log (`model_label`): si usa il nome del modello nella lista `MODELS` di `download_models.py`, che è anche la chiave in `models/manifest.json` e il nome della cartella `models/<folder_name>/`. Senza alias il nome viene ricavato dalla cartella (`models/<folder_name>/<file>.gguf`) o, in mancanza, dal nome del file.
 
 ## Contenuto
 

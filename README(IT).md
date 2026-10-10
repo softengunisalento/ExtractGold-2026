@@ -208,5 +208,5 @@ curl -X POST http://127.0.0.1:9000/experiment/session/end -H "Content-Type: appl
 
 ### Avvertenze
 
-- Perimetro della misura.Con `TRACKING_MODE=process` CodeCarbon cerca di isolare il consumo del processo corrente, cioè del proxy, mentre l'inferenza avviene nel processo di llama-server; con `machine` (impostazione predefinita di CodeCarbon) si misura l'intera macchina, comprese le attività di fondo, il cui consumo a riposo va misurato e sottratto. Prima delle misure definitive si consiglia di confrontare i valori con una misura indipendente (NVML per le GPU, RAPL per la CPU o un wattmetro).
+- Perimetro della misura.Con `TRACKING_MODE=process` CodeCarbon cerca di isolare il consumo del processo corrente, cioè del proxy, mentre l'inferenza avviene nel processo di llama-server; con `machine` (impostazione predefinita di CodeCarbon) si misura l'intera macchina, comprese le attività di fondo, il cui consumo a riposo va misurato e sottratto.
 - Riconoscimento della richiesta GE. Si basa su `GE_MARKER`: va verificato che il prompt standardizzato fornito ai partecipanti lo contenga.

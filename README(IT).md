@@ -198,6 +198,8 @@ curl -X POST http://127.0.0.1:9000/experiment/session/end -H "Content-Type: appl
 | `GE_MARKER` | frase che identifica la richiesta di riepilogo GE, senza distinzione tra maiuscole e minuscole (`riepilogo conciso del contesto`) |
 | `LOG_FULL_REQUEST` | `1` = salva tutti i messaggi inviati al modello, `0` = solo l'ultimo (`1`) |
 | `REQUEST_USAGE` | `1` = aggiunge `stream_options.include_usage` alla richiesta, così llama-server restituisce sempre token e tempi (`1`) |
+| `AUX_NO_CONV_ID` | `1` = le richieste senza identificativo di conversazione (ad es. il titolo generato da Chat UI) sono ausiliarie: inoltrate, registrate con `auxiliary: true`, non contate come turn e non misurate (`1`) |
+| `MODEL_ID` | nome del modello esposto a Chat UI in `/v1/models` e mostrato ai partecipanti; volutamente neutro, il modello vero è in `model_label` (`assistente-locale`) |
 
 ### File di log
 

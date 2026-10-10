@@ -14,7 +14,7 @@ Hugging Face Chat UI  ──►  energy_api.py (proxy)  ──►  llama-server 
 ```
 
 - Hugging Face Chat UI è in esecuzione sulla porta 5173 ed è l'interfaccia usata dai partecipanti.
-- `energy_api.py` è il proxy sulla porta 9000. Inoltra ogni richiesta al modello, misura l'energia di ciascun turn con CodeCarbon e registra le conversazioni. Ricostruisce la cronologia della conversazione dal server MongoDB, usando l'identificativo di conversazione inviato da Chat UI.
+- `energy_api.py` è il proxy sulla porta 9000. Inoltra ogni richiesta al modello, misura l'energia di ciascun turn con CodeCarbon e registra le conversazioni. Inoltra i messaggi esattamente come li invia Chat UI (che manda già l'intera cronologia); `logs/turns.jsonl` registra il testo effettivamente inviato al modello. Non accede a MongoDB.
 - `llama-server` (llama.cpp) esegue il modello sulla porta 8080.
 - MongoDB è in esecuzione sulla porta 27017 e conserva le conversazioni di Chat UI.
 - L'intera architettura viene eseguita in un ambiente virtuale Python (`venv`).

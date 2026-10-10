@@ -23,10 +23,10 @@ File di configurazione di Chat UI (ereditati dal lavoro precedente):
 Esempio di avvio di un modello (la dimensione del contesto deve essere la stessa per tutti i modelli; `commands.txt` contiene il comando completo):
 
 ```bash
-llama-server -m models/<nome>/<file>.gguf --alias <nome> --host 127.0.0.1 --port 8080 -c 32768 -ngl 99 -np 1
+llama-server -m models/<folder_name>/<model_name>.gguf --alias <folder_name> --host 127.0.0.1 --port 8080 -c 32768 -ngl 99 -np 1
 ```
 
-`--alias <nome>` imposta il nome del modello che `energy_api.py` scrive nei log (`model_label`): si usa il nome del modello nella lista `MODELS` di `download_models.py`, che è anche la chiave in `models/manifest.json` e il nome della cartella `models/<nome>/`. Senza alias il nome viene ricavato dalla cartella (`models/<nome>/<file>.gguf`) o, in mancanza, dal nome del file.
+`--alias <folder_name>` imposta il nome del modello che `energy_api.py` scrive nei log (`model_label`): si usa il nome del modello nella lista `MODELS` di `download_models.py`, che è anche la chiave in `models/manifest.json` e il nome della cartella `models/<folder_name>/`. Senza alias il nome viene ricavato dalla cartella (`models/<folder_name>/<file>.gguf`) o, in mancanza, dal nome del file.
 
 ## Contenuto
 
@@ -190,24 +190,12 @@ Output: `models/manifest.json`, con repository, quantizzazione, commit, data del
 
 Legge in streaming un campione di conversazioni da Hugging Face e calcola, per ciascuna, il numero di turn e di token.
 
-Definizioni:
-
-- turn: un messaggio dell'utente (prompt) con la relativa risposta.
-- contesto finale: token di tutti i messaggi fino all'ultimo messaggio dell'utente incluso, cioè la quantità di testo che il modello deve elaborare all'ultimo turn.
-- prefill totale: somma, su tutti i turn, dei token elaborati nella fase di prefill, nell'ipotesi che la cronologia sia rielaborata per intero a ogni turn (assenza di prompt cache).
-
-Senza `--tokenizer` il numero di token è una stima (1 token ogni 4 caratteri), che per il codice sorgente tende a sottostimare. Per valori confrontabili con i modelli della tesi si indica il tokenizer di uno di essi (`--tokenizer`).
-
-Il campione è pseudo-casuale: in streaming il rimescolamento avviene solo all'interno di un buffer (`--shuffle-buffer`). Con `--no-streaming` l'intero dataset viene scaricato e il campione è casuale.
-
 ```bash
 python conversation_stats.py --inspect
 python conversation_stats.py --sample 5000 --plot
 python conversation_stats.py --tokenizer Qwen/Qwen3-Coder-30B-A3B-Instruct --min-turns 10 --min-tokens 8000
 python conversation_stats.py --dataset allenai/WildChat-1M --lang English
 ```
-
-Si consiglia di eseguire prima `--inspect`, che mostra le colonne del dataset e verifica che il formato sia riconosciuto. Per i dataset ad accesso condizionato (ad es. `lmsys/lmsys-chat-1m`) occorre accettare le condizioni sulla pagina del dataset e impostare `HF_TOKEN`.
 
 Output in `stats_out/` (modificabile con `--out`):
 
@@ -219,15 +207,11 @@ Output in `stats_out/` (modificabile con `--out`):
 
 Seleziona le conversazioni lunghe (per numero di turn, token e modello) ed estrae un campione casuale riproducibile, salvato in formato JSONL (una conversazione per riga), con i messaggi nel formato `{"role": ..., "content": ...}`. Richiede `conversation_stats.py` nella stessa cartella.
 
-Il dataset è letto per intero in streaming; il campione è scelto con reservoir sampling ed è quindi uniforme tra tutte le conversazioni idonee. A parità di dataset (commit), parametri, tokenizer e `--seed` il risultato è identico.
-
 ```bash
 python export_conversations.py
 python export_conversations.py --n 50 --tokenizer Qwen/Qwen3-Coder-30B-A3B-Instruct --max-tokens 24000
 python export_conversations.py --dataset allenai/WildChat-1M --model-regex "" --n 100
 ```
-
-Con dataset privi della colonna `model` si usa `--model-regex ""` (nessun filtro).
 
 Output in `replay_set/` (modificabile con `--out`):
 
@@ -237,8 +221,6 @@ Output in `replay_set/` (modificabile con `--out`):
 ## `energy_api.py`
 
 Proxy tra Hugging Face Chat UI e llama-server. Ogni richiesta di chat viene inoltrata a llama-server; al termine della risposta viene scritta una riga in `logs/turns.jsonl` con: messaggi inviati al modello, risposta, token (totali, valutati e riusati dalla prompt cache, se llama-server li fornisce), tempi, energia del turn in Wh e metadati della sessione. La scrittura avviene dopo `tracker.stop()`, quindi fuori dalla finestra di misura dell'energia.
-
-Avvio (porta 9000, come nella configurazione di Chat UI):
 
 ```bash
 uvicorn energy_api:app --host 127.0.0.1 --port 9000
@@ -255,8 +237,6 @@ curl http://127.0.0.1:9000/experiment/session
 curl -X POST http://127.0.0.1:9000/experiment/session/end -H "Content-Type: application/json" \
      -d '{"task_completed": false, "notes": "..."}'
 ```
-
-Campi obbligatori: `participant_id`, `task_id` e `condition` (`"baseline"` o `"GE"`). Il campo `model` è facoltativo ed è solo un'etichetta dichiarata: l'etichetta salvata nei log (`model_label`) viene ricavata da llama-server, dall'alias impostato con `--alias` oppure, in mancanza, dal nome della cartella `models/<nome>/<file>.gguf` (lo stesso nome di `manifest.json`). Se l'etichetta dichiarata non coincide, compare un avviso nella risposta e in `sessions.jsonl`. Alla chiusura della sessione il proxy interroga di nuovo llama-server e registra se il modello o la sua configurazione sono cambiati (`model_changed`, `config_changed`). Il nome mostrato ai partecipanti in Chat UI (`MODEL_ID`) è neutro e non identifica il modello: nell'analisi si usa `model_label`, non `request_params.model`. Gli altri campi (ad es. `notes`) sono salvati in `sessions.jsonl`. Senza una sessione impostata i turn sono registrati comunque, con `session_id` `unassigned-...`.
 
 ### Variabili d'ambiente (valori predefiniti tra parentesi)
 
@@ -278,26 +258,7 @@ Campi obbligatori: `participant_id`, `task_id` e `condition` (`"baseline"` o `"G
 - `turns.jsonl`, un record per turn: `session_id`, `participant_id`, `task_id`, `condition`, `model_label`, `segment`, `turn_index`, `turn_in_segment`, `conversation_id`, `is_ge_request`, `auxiliary`, `n_messages`, `request_params`, `messages_sha256`, `request_messages`, `response`, `reasoning`, `finish_reason`, `completed`, `error`, `prompt_tokens`, `prompt_tokens_evaluated`, `prompt_tokens_cached`, `completion_tokens`, `usage`, `timings`, `ttft_ms`, `wall_ms`, `started_at`, `overlapped`, `energy_wh` (`cpu`, `gpu`, `ram`, `total`, `duration_s`, `emissions_kg`), `tracking_mode`, `codecarbon_run_id`.
 - `sessions.jsonl`, eventi di sessione (`start`, `end`, `auto_start`): metadati, etichetta del modello (dichiarata e ricavata dal server) e avvisi, proprietà di llama-server (modello caricato, contesto, build), versione di CodeCarbon, esito del task (`task_completed`) e numero di richieste GE e ausiliarie.
 
-Un nuovo *segmento* inizia con la richiesta successiva a quella di riepilogo GE, cioè quando il partecipante avvia la nuova conversazione. Un `finish_reason` pari a `length` indica che la risposta è stata interrotta dal limite di token, tipico dei cicli ripetitivi (cycling).
-
 ### Avvertenze
 
 - Perimetro della misura.Con `TRACKING_MODE=process` CodeCarbon cerca di isolare il consumo del processo corrente, cioè del proxy, mentre l'inferenza avviene nel processo di llama-server; con `machine` (impostazione predefinita di CodeCarbon) si misura l'intera macchina, comprese le attività di fondo, il cui consumo a riposo va misurato e sottratto. Prima delle misure definitive si consiglia di confrontare i valori con una misura indipendente (NVML per le GPU, RAPL per la CPU o un wattmetro).
-- Richieste ausiliarie. Chat UI invia anche richieste che non sono turn dell'utente, come la generazione del titolo della conversazione (senza identificativo di conversazione). Il proxy le inoltra e le registra con `auxiliary: true`, ma non ne misura l'energia e non le conta come turn. Il campo `overlapped` indica se una richiesta è stata eseguita insieme a un'altra: in tal caso l'energia di quel turn può includere quella dell'altra richiesta. Per evitare le richieste ausiliarie, imposta `LLM_SUMMARIZATION=false` nel `.env.local` di Chat UI (provato con la versione di Chat UI usata in questo lavoro). Una richiesta che deve contare come turn ma non ha identificativo di conversazione (ad es. un replay offline) deve inviare l'intestazione `x-experiment-turn: 1`.
 - Riconoscimento della richiesta GE. Si basa su `GE_MARKER`: va verificato che il prompt standardizzato fornito ai partecipanti lo contenga.
-- Cartelle dei log. `LOG_DIR` ed `EMISSIONS_DIR` sono relative alla cartella da cui si avvia `uvicorn`, e una variabile d'ambiente vale solo nel terminale in cui è impostata. Vanno impostate entrambe con un percorso assoluto, nello stesso terminale di `uvicorn` (PowerShell: `$env:LOG_DIR = "C:\percorso\dei\log"`; bash: `export LOG_DIR=/percorso/dei/log`); si usa una cartella distinta per ogni esperimento o prova (i file vengono sempre aggiunti in coda, mai sovrascritti) e si controllano i percorsi stampati dal proxy all'avvio (la risposta di `POST /experiment/session` contiene anche `log_dir`).
-
-## Riproducibilità
-
-- `models/manifest.json`: quali pesi (repository, commit, SHA-256).
-- `summary.json` e `selezione.json`: quali dati (dataset, commit, seed, parametri, data).
-- `sessions.jsonl`: quale configurazione (build di llama.cpp, contesto, versione di CodeCarbon, modalità di tracking, GE marker).
-- `environment.txt`: commit del repository, di Chat UI e di llama.cpp, pacchetti Python, driver (vedi Setup, passo 8).
-- il log di avvio di `llama-server` per ogni modello (`... 2>&1 | tee llama_<nome>.log`), che di norma elenca il tipo di file, i tipi di tensore, le GPU trovate e il numero di strati portati su di esse.
-
-Questi file vanno conservati insieme ai risultati.
-
-## Dati personali e licenze
-
-- I log delle sessioni contengono testi scritti dai partecipanti: si usano identificativi pseudonimi (P01, P02, …), il modulo di consenso va aggiornato in modo da includere la registrazione delle conversazioni, e prima di pubblicare i log vanno rimossi i dati identificativi (ad es. nome utente e nome della macchina nell'output del terminale).
-- CodeChat e WildChat sono distribuiti con licenza ODC-BY: vanno citati e non si deve tentare di identificare le persone. LMSYS-Chat-1M richiede l'accettazione di condizioni d'uso che ne vietano la ridistribuzione. Le licenze dei singoli modelli vanno verificate sulle rispettive schede.

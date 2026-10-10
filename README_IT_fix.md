@@ -1,9 +1,3 @@
-# Gold Extraction – strumenti per l'esperimento
-
-*English version: [README.md](README.md)*
-
-Questo repository raccoglie gli strumenti usati nella tesi sulla Gold Extraction (GE), una tecnica di prompt engineering in cui si chiede al modello di riassumere la conversazione in un prompt conciso, da cui avviare una nuova sessione, allo scopo di ridurre il consumo energetico dell'inferenza di modelli linguistici (LLM) eseguiti in locale.
-
 ## Architettura
 
 ```

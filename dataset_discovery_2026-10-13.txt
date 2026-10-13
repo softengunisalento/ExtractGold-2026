@@ -1,0 +1,53 @@
+=== REPORT DISCOVERY DATASET ===
+Data: 2026-10-13
+Filtri applicati: Download >= 10k, Licenza Open (MIT, Apache, CC-BY, ecc.), Tag Conversazionali.
+
+Istruzioni: Copia e incolla il comando di ispezione nel terminale.
+Se lo script rileva correttamente le colonne 'role' e 'content'/'text', puoi procedere al campionamento.
+========================================================================================
+
+1. anon8231489123/ShareGPT_Vicuna_unfiltered
+   Downloads: 439,320 | Licenza: apache-2.0
+   CMD Ispezione: python conversation_stats.py --dataset anon8231489123/ShareGPT_Vicuna_unfiltered --inspect --tokenizer Qwen/Qwen2.5-32B-Instruct --min-turns 10 --min-tokens 4000
+   CMD Test 1k:   python conversation_stats.py --dataset anon8231489123/ShareGPT_Vicuna_unfiltered --tokenizer Qwen/Qwen2.5-32B-Instruct --sample 1000 --min-turns 10 --min-tokens 4000
+------------------------------------------------------------------------------------------
+2. HuggingFaceH4/ultrachat_200k
+   Downloads: 89,743 | Licenza: mit
+   CMD Ispezione: python conversation_stats.py --dataset HuggingFaceH4/ultrachat_200k --inspect --tokenizer Qwen/Qwen2.5-32B-Instruct --min-turns 10 --min-tokens 4000
+   CMD Test 1k:   python conversation_stats.py --dataset HuggingFaceH4/ultrachat_200k --tokenizer Qwen/Qwen2.5-32B-Instruct --sample 1000 --min-turns 10 --min-tokens 4000
+------------------------------------------------------------------------------------------
+3. rl-llm-wiki/knowledge-base
+   Downloads: 70,363 | Licenza: cc-by-4.0
+   CMD Ispezione: python conversation_stats.py --dataset rl-llm-wiki/knowledge-base --inspect --tokenizer Qwen/Qwen2.5-32B-Instruct --min-turns 10 --min-tokens 4000
+   CMD Test 1k:   python conversation_stats.py --dataset rl-llm-wiki/knowledge-base --tokenizer Qwen/Qwen2.5-32B-Instruct --sample 1000 --min-turns 10 --min-tokens 4000
+------------------------------------------------------------------------------------------
+4. OpenGVLab/VideoChat-Flash-Training-Data
+   Downloads: 40,963 | Licenza: apache-2.0
+   CMD Ispezione: python conversation_stats.py --dataset OpenGVLab/VideoChat-Flash-Training-Data --inspect --tokenizer Qwen/Qwen2.5-32B-Instruct --min-turns 10 --min-tokens 4000
+   CMD Test 1k:   python conversation_stats.py --dataset OpenGVLab/VideoChat-Flash-Training-Data --tokenizer Qwen/Qwen2.5-32B-Instruct --sample 1000 --min-turns 10 --min-tokens 4000
+------------------------------------------------------------------------------------------
+5. allenai/WildChat-1M
+   Downloads: 35,746 | Licenza: odc-by
+   CMD Ispezione: python conversation_stats.py --dataset allenai/WildChat-1M --inspect --tokenizer Qwen/Qwen2.5-32B-Instruct --min-turns 10 --min-tokens 4000
+   CMD Test 1k:   python conversation_stats.py --dataset allenai/WildChat-1M --tokenizer Qwen/Qwen2.5-32B-Instruct --sample 1000 --min-turns 10 --min-tokens 4000
+------------------------------------------------------------------------------------------
+6. Anthropic/hh-rlhf
+   Downloads: 30,644 | Licenza: mit
+   CMD Ispezione: python conversation_stats.py --dataset Anthropic/hh-rlhf --inspect --tokenizer Qwen/Qwen2.5-32B-Instruct --min-turns 10 --min-tokens 4000
+   CMD Test 1k:   python conversation_stats.py --dataset Anthropic/hh-rlhf --tokenizer Qwen/Qwen2.5-32B-Instruct --sample 1000 --min-turns 10 --min-tokens 4000
+------------------------------------------------------------------------------------------
+7. Scicom-intl/semantic-vad-eot
+   Downloads: 28,838 | Licenza: cc-by-4.0
+   CMD Ispezione: python conversation_stats.py --dataset Scicom-intl/semantic-vad-eot --inspect --tokenizer Qwen/Qwen2.5-32B-Instruct --min-turns 10 --min-tokens 4000
+   CMD Test 1k:   python conversation_stats.py --dataset Scicom-intl/semantic-vad-eot --tokenizer Qwen/Qwen2.5-32B-Instruct --sample 1000 --min-turns 10 --min-tokens 4000
+------------------------------------------------------------------------------------------
+8. MCG-NJU/VideoChat3-LV116k
+   Downloads: 19,689 | Licenza: apache-2.0
+   CMD Ispezione: python conversation_stats.py --dataset MCG-NJU/VideoChat3-LV116k --inspect --tokenizer Qwen/Qwen2.5-32B-Instruct --min-turns 10 --min-tokens 4000
+   CMD Test 1k:   python conversation_stats.py --dataset MCG-NJU/VideoChat3-LV116k --tokenizer Qwen/Qwen2.5-32B-Instruct --sample 1000 --min-turns 10 --min-tokens 4000
+------------------------------------------------------------------------------------------
+9. argilla/distilabel-capybara-dpo-7k-binarized
+   Downloads: 18,561 | Licenza: apache-2.0
+   CMD Ispezione: python conversation_stats.py --dataset argilla/distilabel-capybara-dpo-7k-binarized --inspect --tokenizer Qwen/Qwen2.5-32B-Instruct --min-turns 10 --min-tokens 4000
+   CMD Test 1k:   python conversation_stats.py --dataset argilla/distilabel-capybara-dpo-7k-binarized --tokenizer Qwen/Qwen2.5-32B-Instruct --sample 1000 --min-turns 10 --min-tokens 4000
+------------------------------------------------------------------------------------------

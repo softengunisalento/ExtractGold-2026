@@ -21,3 +21,5 @@ stats_out/
 # selezioni/: the frozen selection documents (candidati_*.json and .txt) are kept in Git.
 # The outcome of a download contains local paths and stays on the machine.
 selezioni/esito_download_*.txt
+
+.env.local

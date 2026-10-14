@@ -11,7 +11,7 @@ def main():
     
     print("Ricerca di dataset conversazionali open-source in corso...")
     
-    # Interroghiamo l'API per i dataset più popolari.
+    # Interroga l'API per i dataset più popolari.
     try:
         datasets = api.list_datasets(sort="downloads", limit=2000)
     except Exception as e:
@@ -28,7 +28,7 @@ def main():
         ds_id = ds.id.lower()
         downloads = getattr(ds, 'downloads', 0)
         
-        # 1. Filtro rumore: ignoriamo dataset con meno di 10.000 download (poco affidabili)
+        # 1. Filtro rumore: ignora dataset con meno di 10.000 download (poco affidabili)
         if downloads < 10000:
             continue
             
@@ -42,11 +42,11 @@ def main():
         if not is_chat:
             continue
             
-        # 4. Filtro manuale preventivo (escludiamo lmsys perché già scartato per licenza)
+        # 4. Filtro manuale preventivo
         if "lmsys" in ds_id:
             continue
             
-        # Raccogliamo i metadati utili
+        # Raccoglie i metadati utili
         licenze_trovate = [t.replace("license:", "") for t in tags if t.startswith("license:")]
         
         candidati.append({
@@ -55,7 +55,7 @@ def main():
             "license": licenze_trovate[0] if licenze_trovate else "Sconosciuta"
         })
         
-        # Limitiamo ai top 25 per avere un pool gestibile manualmente
+        # Limita ai top 25 per avere un pool gestibile manualmente
         if len(candidati) >= 25:
             break
 
@@ -72,7 +72,6 @@ def main():
             fh.write(f"{i}. {c['id']}\n")
             fh.write(f"   Downloads: {c['downloads']:,} | Licenza: {c['license']}\n")
             fh.write(f"   CMD Ispezione: python conversation_stats.py --dataset {c['id']} --inspect --tokenizer Qwen/Qwen2.5-32B-Instruct --min-turns 10 --min-tokens 4000\n")
-            # Aggiungiamo anche il comando di test completo (con valori dummy) nel caso l'ispezione passi
             fh.write(f"   CMD Test 1k:   python conversation_stats.py --dataset {c['id']} --tokenizer Qwen/Qwen2.5-32B-Instruct --sample 1000 --min-turns 10 --min-tokens 4000\n")
             fh.write("-" * 90 + "\n")
 

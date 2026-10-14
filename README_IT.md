@@ -93,7 +93,17 @@ MONGODB_URL=mongodb://127.0.0.1:27017/chatui
 ```bash
 git clone https://github.com/ggml-org/llama.cpp
 cd llama.cpp
-git checkout <commit-o-tag>          # va annotato: fa parte dell'assetto sperimentale
+git checkout <commit-o-tag>    #per verificare il numero di build da sostituire: git -C llama.cpp describe --tags
+`#----------------------------------------------------------------------*`
+#Verifica se CUDA-toolkit è  installato:
+nvcc --version
+#Se è installato indica il percorso a CMake:
+export PATH=/usr/local/cuda/bin:$PATH
+#Se non è installato:
+sudo apt update
+sudo apt install nvidia-cuda-toolkit #il nome potrebbe cambiare a seconda della versione di linux in uso
+rm -rf build
+#---------------------------------------------------------------------------
 cmake -B build -DGGML_CUDA=ON
 cmake --build build --config Release -j
 cd ..
@@ -105,6 +115,7 @@ I nomi delle opzioni cambiano tra le versioni: si controlla `docs/build.md` dell
 
 ```bash
 read -rs HF_TOKEN && export HF_TOKEN
+#dopo aver lanciato questo comando incolla il token HF e premi invio, per verificare lancia echo $HF_TOKEN
 python download_models.py --dry-run                         # seleziona, scrive i documenti congelati, mostra il piano di download
 python download_models.py                                   # seleziona, scrive i documenti congelati e scarica
 ```
@@ -223,3 +234,4 @@ curl -X POST http://127.0.0.1:9000/experiment/session/end -H "Content-Type: appl
 
 - Perimetro della misura. Con `TRACKING_MODE=process` CodeCarbon cerca di isolare il consumo del processo corrente, cioè del proxy, mentre l'inferenza avviene nel processo di llama-server; con `machine` (impostazione predefinita di CodeCarbon) si misura l'intera macchina, comprese le attività di fondo, il cui consumo a riposo va misurato e sottratto.
 - Riconoscimento della richiesta GE. Si basa su `GE_MARKER`: va verificato che il prompt standardizzato fornito ai partecipanti lo contenga.
+s

@@ -93,7 +93,17 @@ MONGODB_URL=mongodb://127.0.0.1:27017/chatui
 ```bash
 git clone https://github.com/ggml-org/llama.cpp
 cd llama.cpp
-git checkout <commit-or-tag>          # write it down: it is part of the experimental setup
+git checkout <commit-or-tag>          # in order to check your build number type: git -C llama.cpp describe --tags
+#----------------------------------------------------------------------
+#Check if the CUDA toolkit is installed::
+nvcc --version
+#If installed, specify the path to CMake:
+export PATH=/usr/local/cuda/bin:$PATH
+#Se non è installato:
+sudo apt update
+sudo apt install nvidia-cuda-toolkit #The name may vary depending on the Linux version in use.
+rm -rf build
+#---------------------------------------------------------------------------
 cmake -B build -DGGML_CUDA=ON
 cmake --build build --config Release -j
 cd ..
@@ -105,6 +115,7 @@ The option names change between versions: check `docs/build.md` of the version i
 
 ```bash
 read -rs HF_TOKEN && export HF_TOKEN
+#After running this command, paste the HF token and press Enter; to verify, run `echo $HF_TOKEN`
 python download_models.py --dry-run                         # selects, writes the frozen documents, shows the download plan
 python download_models.py                                   # selects, writes the frozen documents and downloads
 ```

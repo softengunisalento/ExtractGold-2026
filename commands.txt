@@ -27,8 +27,15 @@ Notes
 	  between turns). To disable it, so that every turn reprocesses the whole history, add
 	  --no-cache-prompt. Decide it once for the whole experiment.
 	- Optional, to make the split over the GPUs explicit: --split-mode layer --tensor-split 1,1,1
-	- Reasoning models: check how the reasoning is returned (separate field or inline in the
-	  text), because it affects the context sent at the following turns and the logs.
+	- Reasoning models: the selection admits only models whose chat template can turn reasoning off.
+	  Start them with reasoning disabled, using the switch of the template, and keep it identical for
+	  baseline and GE. Check the frozen selection (`reasoning.interruttori`): for enable_thinking use
+	  `--reasoning off` (recent builds; it sets enable_thinking=false) or
+	  `--chat-template-kwargs '{"enable_thinking": false}'`; for thinking_budget use
+	  `--reasoning-budget 0` or `--chat-template-kwargs '{"thinking_budget": 0}'`. Check the flag with
+	  `./build/bin/llama-server --help` and the server log. Also check how the reasoning is returned
+	  (separate field or inline in the text), because it affects the context sent at the following
+	  turns and the logs.
 
 	Check the server and its configuration:
 	curl http://127.0.0.1:8080/props

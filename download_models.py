@@ -5,7 +5,8 @@ Lanciato senza argomenti fa, in sequenza:
   1. SELEZIONE dai metadati del Hugging Face Hub: nessun criterio dipende dal nome del modello (parametri,
      chat template, lingue, data, contesto, relazioni con altri modelli, download); l'organizzazione che pubblica
      è l'unica scelta umana (ORG_PREDEFINITE o --orgs-file). Un modello è candidato solo se esiste un GGUF a 4 bit
-     da un quantizzatore fidato.
+     da un quantizzatore fidato. Sono esclusi i modelli non autoregressivi (diffusione) e i modelli reasoning
+     il cui chat template non espone un interruttore per disattivare il ragionamento.
   2. CONGELAMENTO in selezioni/, con la data nel nome e senza mai sovrascrivere:
        candidati_<AAAA-MM-GG>.json   criteri, versioni, contatori, candidati con il piano di download
                                      (repository GGUF, commit, etichetta, nome) ed esclusi con il motivo
@@ -51,7 +52,7 @@ try:
 except ImportError:
     sys.exit("huggingface_hub non installato: pip install -U huggingface_hub")
 
-VERSIONE = "2.0"
+VERSIONE = "2.1"
 
 
 # Organizzazioni che pubblicano i modelli "ufficiali". È una scelta del gruppo: da rivedere.
@@ -86,6 +87,41 @@ RE_ETICHETTA = re.compile(r"(?<![A-Za-z0-9])((?:UD-)?I?Q\d[A-Za-z0-9_]*|BF16|F16
 QUANT_PREFERITE = ["Q4_K_M", "UD-Q4_K_M", "UD-Q4_K_XL", "Q4_K_S", "IQ4_XS"]
 
 
+# Marcatori di architetture non autoregressive (diffusione). Si confrontano model_type, architectures e
+# auto_map di config.json (normalizzati in minuscolo, senza separatori) e i tag del Hub. I modelli a
+# diffusione generano il testo in parallelo: la misura dell'energia per turn non sarebbe confrontabile
+# con quella dei modelli autoregressivi, quindi vanno esclusi.
+MARCATORI_DIFFUSIONE = ("llada", "dream", "dllm", "mdlm", "sedd", "semd", "diffusion", "diffullama", "diffugpt")
+
+TAG_DIFFUSIONE = {"diffusion", "dllm", "llada", "llada2", "dream", "text-diffusion", "non-autoregressive"}
+
+
+# Segnali che il chat template è di un modello reasoning (ragionamento prima della risposta).
+SEGNALI_REASONING = (
+    "enable_thinking", "thinking_budget", "reasoning_effort", "reasoning_content",
+    "enable_reasoning", "disable_thinking", "disable_reasoning", "thinking_option",
+    "<think", "</think", "<|channel|>analysis", "analysis<|message|>",
+)
+
+
+# Interruttori riconosciuti nel chat template: (variabile, valore, espressione che la disattiva). Un modello
+# reasoning è ammesso solo se almeno uno di questi compare nel template; reasoning_effort non basta,
+# perché riduce il ragionamento ma non lo disattiva.
+INTERRUTTORI_REASONING = (
+    ("enable_thinking", "false", re.compile(
+        r"\bnot\s+enable_thinking\b|\benable_thinking\s+(?:is\s+)?(?:false|not\s+true)\b"
+        r"|\benable_thinking\s*(?:==|=)\s*false\b|\benable_thinking\s*!=\s*true\b", re.IGNORECASE)),
+    ("thinking", "false", re.compile(
+        r"\bnot\s+thinking\b|\bthinking\s+(?:is\s+)?(?:false|not\s+true)\b|\bthinking\s*(?:==|=)\s*false\b",
+        re.IGNORECASE)),
+    ("thinking_budget", "0", re.compile(r"\bthinking_budget\s*(?:==|<=|=)\s*0\b", re.IGNORECASE)),
+    ("enable_reasoning", "false", re.compile(
+        r"\bnot\s+enable_reasoning\b|\benable_reasoning\s+(?:is\s+)?(?:false|not\s+true)\b", re.IGNORECASE)),
+    ("disable_thinking", "true", re.compile(r"\bdisable_thinking\b", re.IGNORECASE)),
+    ("disable_reasoning", "true", re.compile(r"\bdisable_reasoning\b", re.IGNORECASE)),
+)
+
+
 TOKEN = None  # token Hugging Face letto dall'ambiente in main(); None = richieste anonime
 
 
@@ -96,6 +132,12 @@ def leggi_token():
 
 # Motivi di esclusione (stringhe stabili: finiscono nei contatori e nel file congelato)
 R_RELAZIONE = "quantizzazione, adapter o merge di un altro modello"
+
+
+R_DIFFUSIONE = "modello non autoregressivo (diffusione)"
+
+
+R_REASONING = "modello reasoning senza interruttore per disattivare il ragionamento"
 
 
 R_PRESELEZIONE = "download propri sotto la soglia di pre-selezione"
@@ -253,28 +295,100 @@ def scarica_json(repo_id: str, nome_file: str):
         return None
 
 
+def scarica_testo(repo_id: str, nome_file: str):
+    try:
+        percorso = hf_hub_download(repo_id=repo_id, filename=nome_file, token=TOKEN)
+        return Path(percorso).read_text(encoding="utf-8")
+    except Exception:
+        return None
+
+
+def testo_template(valore) -> str:
+    """Testo del chat template, scegliendo quello predefinito quando ce ne sono più di uno."""
+    if isinstance(valore, str):
+        return valore
+    if isinstance(valore, dict):
+        if isinstance(valore.get("template"), (str, dict, list, tuple)):
+            return testo_template(valore["template"])
+        if isinstance(valore.get("default"), (str, dict, list, tuple)):
+            return testo_template(valore["default"])
+        return "\n".join(testo_template(v) for v in valore.values())
+    if isinstance(valore, (list, tuple)):
+        predefiniti = [v for v in valore
+                       if isinstance(v, dict) and str(v.get("name", "")).lower() == "default"]
+        return "\n".join(testo_template(v) for v in (predefiniti or valore))
+    return ""
+
+
 def chat_template(api, info, repo_id):
-    """Il segnale che dimostra un chat template nel repository, o None."""
+    """(segnale, testo) del chat template nel repository, o (None, None) se non c'è."""
     config = get(info, "config") or {}
     tc = config.get("tokenizer_config") if isinstance(config, dict) else None
     if isinstance(tc, dict) and tc.get("chat_template"):
-        return "config.tokenizer_config"
+        testo = testo_template(tc["chat_template"])
+        if testo.strip():
+            return "config.tokenizer_config", testo
+    if isinstance(config, dict) and config.get("chat_template_jinja"):
+        testo = testo_template(config["chat_template_jinja"])
+        if testo.strip():
+            return "config.chat_template_jinja", testo
     if get(get(info, "gguf"), "chat_template"):
-        return "gguf"
+        testo = testo_template(get(get(info, "gguf"), "chat_template"))
+        if testo.strip():
+            return "gguf", testo
     tc = scarica_json(repo_id, "tokenizer_config.json")
     if isinstance(tc, dict) and tc.get("chat_template"):
-        return "tokenizer_config.json"
+        testo = testo_template(tc["chat_template"])
+        if testo.strip():
+            return "tokenizer_config.json", testo
     for nome in ("chat_template.jinja", "chat_template.json"):
         try:
-            if api.file_exists(repo_id, nome):
-                return nome
+            if not api.file_exists(repo_id, nome):
+                continue
         except Exception:
-            pass
-    return None
+            continue
+        contenuto = scarica_testo(repo_id, nome) if nome.endswith(".jinja") else scarica_json(repo_id, nome)
+        testo = testo_template(contenuto)
+        if testo.strip():
+            return nome, testo
+    return None, None
 
 
-def contesto_dichiarato(repo_id: str):
-    config = scarica_json(repo_id, "config.json")
+def segnale_diffusione(info, config) -> list[str]:
+    """Segnali che il modello non è autoregressivo (diffusione), da config.json o dai tag del Hub."""
+    valori = []
+    for sorgente in (config, get(info, "config")):
+        if not isinstance(sorgente, dict):
+            continue
+        valori.append(sorgente.get("model_type"))
+        architetture = sorgente.get("architectures")
+        if isinstance(architetture, str):
+            valori.append(architetture)
+        elif isinstance(architetture, (list, tuple)):
+            valori += list(architetture)
+        auto_map = sorgente.get("auto_map")
+        if isinstance(auto_map, dict):
+            valori += list(auto_map.values())
+    segnali = set()
+    for valore in valori:
+        normalizzato = re.sub(r"[^a-z0-9]", "", str(valore).lower())
+        if any(marcatore in normalizzato for marcatore in MARCATORI_DIFFUSIONE):
+            segnali.add(str(valore))
+    tags = {str(t).lower() for t in (get(info, "tags") or [])}
+    segnali.update(f"tag:{t}" for t in sorted(tags & TAG_DIFFUSIONE))
+    return sorted(segnali)
+
+
+def analizza_reasoning(testo: str) -> dict:
+    """Segnali di ragionamento nel chat template e interruttori che lo disattivano."""
+    basso = (testo or "").lower()
+    segnali = sorted({s for s in SEGNALI_REASONING if s.lower() in basso})
+    interruttori = sorted({f"{variabile}={valore}" for variabile, valore, espressione in INTERRUTTORI_REASONING
+                          if espressione.search(testo or "")})
+    return {"segnali": segnali, "interruttori": interruttori}
+
+
+def contesto_dichiarato(config):
     if not isinstance(config, dict):
         return None
     for blocco in (config, config.get("text_config"), config.get("llm_config"), config.get("language_config")):
@@ -677,9 +791,18 @@ def analizza(api, m, args, conta, esclusi):
     if not (args.min_b <= miliardi <= args.max_b):
         return escludi(R_PARAM_FUORI, parametri_b=miliardi)
 
-    segnale_template = chat_template(api, info, m.id)
+    config = scarica_json(m.id, "config.json")  # serve anche per il contesto dichiarato
+    segnali_diffusione = segnale_diffusione(info, config)
+    if segnali_diffusione:
+        return escludi(R_DIFFUSIONE, segnali=segnali_diffusione)
+
+    segnale_template, testo_template_ = chat_template(api, info, m.id)
     if not segnale_template:
         return escludi(R_TEMPLATE)
+
+    reasoning = analizza_reasoning(testo_template_)
+    if reasoning["segnali"] and not reasoning["interruttori"]:
+        return escludi(R_REASONING, segnali_reasoning=reasoning["segnali"])
 
     lingue = lingue_di(info)
     if lingue and "en" not in lingue:
@@ -694,7 +817,7 @@ def analizza(api, m, args, conta, esclusi):
         elif creato.date().isoformat() < args.creati_dopo:
             return escludi(R_DATA, creato=creato.date().isoformat())
 
-    contesto = contesto_dichiarato(m.id)
+    contesto = contesto_dichiarato(config)
     if contesto is None:
         conta["non valutabile: contesto"] += 1
     elif contesto < args.min_contesto:
@@ -726,6 +849,7 @@ def analizza(api, m, args, conta, esclusi):
         "fonte_parametri": fonte_param,
         "contesto": contesto,
         "chat_template": segnale_template,
+        "reasoning": reasoning,
         "lingue": lingue,
         "derivato_da": rel["finetune"],
         "downloads_30d": dl_propri,
@@ -814,9 +938,12 @@ def riga_candidato(c) -> str:
     s = c.get("scarica") or {}
     piano = (f"scarica {s.get('repo')}@{str(s.get('commit'))[:10]} [{s.get('etichetta')}] in models/{s.get('nome')}/"
              if s else "nessun GGUF scelto")
+    r = c.get("reasoning") or {}
+    reasoning = (f"reasoning sì, disattivabile con {', '.join(r['interruttori'])}" if r.get("segnali")
+                 else "reasoning no")
     return (f"- {c['id']} | {c['parametri_miliardi']:g}B | contesto {c['contesto'] or 'n/d'} | creato {c['creato'] or 'n/d'} | "
             f"DL {c['downloads_30d']:,} (+{quant:,} quantizzazioni) | lingue {','.join(c['lingue']) or 'n/d'} | "
-            f"commit {str(c['commit'])[:10]} | {piano} ({len(c.get('gguf') or [])} repository GGUF fidati)")
+            f"{reasoning} | commit {str(c['commit'])[:10]} | {piano} ({len(c.get('gguf') or [])} repository GGUF fidati)")
 
 
 def scrivi_report(percorso: Path, dati: dict) -> None:
@@ -832,6 +959,10 @@ def scrivi_report(percorso: Path, dati: dict) -> None:
         f"- Universo: modelli delle organizzazioni elencate, compiti {', '.join(cr['compiti'])}, "
         f"con download propri >= {cr['soglia_preselezione']:,} (pre-selezione = 10% della soglia)",
         f"- Relazioni: esclusi i repository che dichiarano di essere quantizzazione, adapter o merge di un altro modello",
+        "- Architettura: esclusi i modelli non autoregressivi (diffusione), riconosciuti da model_type, architectures, "
+        "auto_map o tag del Hub",
+        "- Reasoning: ammessi solo i modelli con un interruttore nel chat template per disattivare il ragionamento "
+        "(enable_thinking, thinking_budget o simili); reasoning_effort da solo non basta",
         f"- Parametri (IN-5): da safetensors/gguf, tra {cr['min_b']:g}B e {cr['max_b']:g}B; assenti nei metadati = escluso",
         "- Instruct/chat (IN-3): chat template presente (tokenizer_config, GGUF o file dedicato)",
         "- Lingua (EX-4): se le lingue sono dichiarate, 'en' deve esserci; se non lo sono, il criterio non è valutabile",
@@ -1144,6 +1275,8 @@ def seleziona(api, args, orgs):
             "max_per_org": args.max_per_org, "ordine_famiglia": args.ordine_famiglia,
             "max_modelli": args.max_modelli, "max_coding": args.max_coding,
             "quant_preferite": args.quant, "quantizzatori_fidati": QUANTIZZATORI_FIDATI,
+            "architetture_escluse": "non autoregressive (diffusione)",
+            "reasoning": "ammesso solo con interruttore nel chat template",
         },
         "conteggi": {"esaminati": len(elenco), "per_motivo": motivi, "non_valutabili": non_valutabili,
                      "elenchi_falliti": conta.get("elenchi_falliti", 0)},

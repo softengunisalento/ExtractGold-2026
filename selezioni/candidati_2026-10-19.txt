@@ -1,0 +1,700 @@
+=== SELEZIONE MODELLI (da metadati del Hub) ===
+Data di esecuzione (UTC): 2026-10-19T09:42:08+00:00
+Script: download_models.py versione 2.1 (sha256 4d87e0ce87ade871)
+huggingface_hub 2.2.0 | Python 3.11.2
+I download sono quelli restituiti dal Hub (ultimi 30 giorni).
+
+Criteri applicati (nessuno usa il nome del modello):
+- Universo: modelli delle organizzazioni elencate, compiti text-generation, image-text-to-text, con download propri >= 10,000 (pre-selezione = 10% della soglia)
+- Relazioni: esclusi i repository che dichiarano di essere quantizzazione, adapter o merge di un altro modello
+- Architettura: esclusi i modelli non autoregressivi (diffusione), riconosciuti da model_type, architectures, auto_map o tag del Hub
+- Reasoning: ammessi solo i modelli con un interruttore nel chat template per disattivare il ragionamento (enable_thinking, thinking_budget o simili); reasoning_effort da solo non basta
+- Parametri (IN-5): da safetensors/gguf, tra 14B e 85B; assenti nei metadati = escluso
+- Instruct/chat (IN-3): chat template presente (tokenizer_config, GGUF o file dedicato)
+- Lingua (EX-4): se le lingue sono dichiarate, 'en' deve esserci; se non lo sono, il criterio non è valutabile
+- Data (EX-1): nessun limite (la data è nel report)
+- Contesto (IN-8): dichiarato >= 32,768 (config.json); se non dichiarato, non valutabile
+- Adozione (IN-6): download propri + quelli delle quantizzazioni >= 100,000
+- Famiglia (EX-3): al massimo 2 per organizzazione, scelti per ordine 'recenti'
+- Priorità al coding: fino a 5 modelli coding entrano per primi (anche nel tetto per organizzazione)
+- Limite finale: 10 modelli in tutto, poi per download totali (propri + quantizzazioni)
+- Scaricabile: un GGUF con una di queste etichette, nell'ordine: Q4_K_M, UD-Q4_K_M, UD-Q4_K_XL, Q4_K_S, IQ4_XS; pubblicato da un quantizzatore fidato (bartowski, unsloth, lmstudio-community, ggml-org) o dall'organizzazione; tra più repository, quello con più download
+- Dominio: coding se i tag dichiarano 'code' o 'coding' (euristica non vincolante)
+Organizzazioni (21): meta-llama, Qwen, google, openai, deepseek-ai, nvidia, microsoft, mistralai, ibm-granite, moonshotai, CohereLabs, allenai, HuggingFaceTB, zai-org, MiniMaxAI, tiiuae, LGAI-EXAONE, 01-ai, internlm, tencent, ByteDance-Seed
+
+Conteggi:
+  modelli esaminati: 634 | candidati: 10 | esclusi: 624
+  - parametri fuori dall'intervallo: 355
+  - quantizzazione, adapter o merge di un altro modello: 148
+  - download totali sotto la soglia: 32
+  - oltre il massimo per organizzazione: 23
+  - modello reasoning senza interruttore per disattivare il ragionamento: 21
+  - parametri non presenti nei metadati: 14
+  - nessun chat template: 13
+  - nessun GGUF a 4 bit da quantizzatori fidati: 8
+  - contesto dichiarato sotto il minimo: 7
+  - modello non autoregressivo (diffusione): 1
+  - inglese assente tra le lingue dichiarate: 1
+  - fuori dai 10 posti disponibili (priorità al coding, poi download totali): 1
+  - non valutabile: contesto: 8 (accettati senza il dato)
+  - non valutabile: lingue: 43 (accettati senza il dato)
+
+Diagnostica coding (dominio = tag 'code', 'coding' dichiarati dal pubblicatore):
+  modelli esaminati con tag coding: 44 | nella lista finale: 2
+  - esclusi per «parametri fuori dall'intervallo»: 24
+  - esclusi per «quantizzazione, adapter o merge di un altro modello»: 15
+  - esclusi per «contesto dichiarato sotto il minimo»: 1
+  - esclusi per «inglese assente tra le lingue dichiarate»: 1
+  - esclusi per «modello reasoning senza interruttore per disattivare il ragionamento»: 1
+
+--- CANDIDATI SPECIALIZZATI (CODING) (2) ---
+- Qwen/Qwen2.5-Coder-14B-Instruct | 14.77B | contesto 32768 | creato 2024-11-06 | DL 1,738,212 (+822,043 quantizzazioni) | lingue en | reasoning no | commit aedcc2d42b | scarica lmstudio-community/Qwen2.5-Coder-14B-Instruct-GGUF@aa6da833ce [Q4_K_M] in models/qwen2.5-coder-14b-instruct/ (6 repository GGUF fidati)
+- Qwen/Qwen2.5-Coder-32B-Instruct | 32.76B | contesto 32768 | creato 2024-11-06 | DL 653,160 (+1,220,770 quantizzazioni) | lingue en | reasoning no | commit 381fc969f7 | scarica bartowski/Qwen2.5-Coder-32B-Instruct-GGUF@40b525506a [Q4_K_M] in models/qwen2.5-coder-32b-instruct/ (6 repository GGUF fidati)
+
+--- CANDIDATI GENERALISTI (8) ---
+- zai-org/GLM-4.7-Flash | 31.22B | contesto 202752 | creato 2026-01-19 | DL 1,125,508 (+1,155,092 quantizzazioni) | lingue en,zh | reasoning sì, disattivabile con enable_thinking=false | commit 7dd20894a6 | scarica unsloth/GLM-4.7-Flash-GGUF@0d32489ecb [Q4_K_M] in models/glm-4.7-flash/ (4 repository GGUF fidati)
+- google/gemma-4-31B-it-qat-q4_0-unquantized | 31.27B | contesto 262144 | creato 2026-04-28 | DL 317,698 (+1,072,986 quantizzazioni) | lingue n/d | reasoning sì, disattivabile con enable_thinking=false | commit 1e4d8beeca | scarica unsloth/gemma-4-31B-it-qat-GGUF@43cc1aeb31 [UD-Q4_K_XL] in models/gemma-4-31b-it-qat-q4-0-unquantized/ (3 repository GGUF fidati)
+- google/gemma-4-26B-A4B-it-qat-q4_0-unquantized | 25.81B | contesto 262144 | creato 2026-04-29 | DL 14,509 (+804,061 quantizzazioni) | lingue n/d | reasoning sì, disattivabile con enable_thinking=false | commit f1e06dc520 | scarica unsloth/gemma-4-26B-A4B-it-qat-GGUF@7b92b5b288 [UD-Q4_K_XL] in models/gemma-4-26b-a4b-it-qat-q4-0-unquantized/ (3 repository GGUF fidati)
+- meta-llama/Llama-3.3-70B-Instruct | 70.55B | contesto n/d | creato 2024-11-26 | DL 239,043 (+512,411 quantizzazioni) | lingue en,fr,it,pt,hi,es,th,de | reasoning no | commit 6f6073b423 | scarica bartowski/Llama-3.3-70B-Instruct-GGUF@b6c5c9f176 [Q4_K_M] in models/llama-3.3-70b-instruct/ (3 repository GGUF fidati)
+- deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct | 15.71B | contesto 163840 | creato 2024-06-14 | DL 551,620 (+32,845 quantizzazioni) | lingue n/d | reasoning no | commit e434a23f91 | scarica lmstudio-community/DeepSeek-Coder-V2-Lite-Instruct-GGUF@81793aca58 [Q4_K_M] in models/deepseek-coder-v2-lite-instruct/ (1 repository GGUF fidati)
+- meta-llama/Llama-3.1-70B-Instruct | 70.55B | contesto n/d | creato 2024-07-16 | DL 87,315 (+338,548 quantizzazioni) | lingue en,de,fr,it,pt,hi,es,th | reasoning no | commit 1605565b47 | scarica bartowski/Meta-Llama-3.1-70B-Instruct-GGUF@83fb6e83d0 [Q4_K_M] in models/llama-3.1-70b-instruct/ (2 repository GGUF fidati)
+- moonshotai/Kimi-Linear-48B-A3B-Instruct | 49.12B | contesto 1048576 | creato 2025-10-30 | DL 171,840 (+24,244 quantizzazioni) | lingue n/d | reasoning no | commit e1df551a44 | scarica bartowski/moonshotai_Kimi-Linear-48B-A3B-Instruct-GGUF@228dbe476e [Q4_K_M] in models/kimi-linear-48b-a3b-instruct/ (1 repository GGUF fidati)
+- ByteDance-Seed/Seed-OSS-36B-Instruct | 36.15B | contesto 524288 | creato 2025-08-20 | DL 48,079 (+98,422 quantizzazioni) | lingue n/d | reasoning sì, disattivabile con thinking_budget=0 | commit 497f1dca95 | scarica unsloth/Seed-OSS-36B-Instruct-GGUF@6403aa019f [Q4_K_M] in models/seed-oss-36b-instruct/ (3 repository GGUF fidati)
+
+--- ESCLUSI, PER MOTIVO ---
+[contesto dichiarato sotto il minimo] (7)
+  01-ai/Yi-1.5-34B-Chat
+  01-ai/Yi-34B-Chat
+  Qwen/Qwen1.5-MoE-A2.7B
+  deepseek-ai/deepseek-moe-16b-chat
+  microsoft/phi-4 [coding]
+  moonshotai/Moonlight-16B-A3B
+  moonshotai/Moonlight-16B-A3B-Instruct
+[download totali sotto la soglia] (32)
+  CohereLabs/c4ai-command-r-v01
+  LGAI-EXAONE/EXAONE-3.5-32B-Instruct
+  LGAI-EXAONE/EXAONE-3.5-32B-Instruct-AWQ
+  Qwen/Qwen-Image-Bench
+  Qwen/Qwen1.5-14B-Chat
+  Qwen/Qwen1.5-32B
+  Qwen/Qwen1.5-32B-Chat
+  Qwen/Qwen1.5-72B
+  Qwen/Qwen1.5-72B-Chat
+  Qwen/Qwen1.5-MoE-A2.7B-Chat
+  Qwen/Qwen2-57B-A14B
+  Qwen/Qwen2-57B-A14B-Instruct
+  Qwen/Qwen2-72B
+  Qwen/Qwen2-72B-Instruct
+  Qwen/Qwen2-VL-72B-Instruct
+  Qwen/Qwen2.5-14B-Instruct-1M
+  Qwen/Qwen2.5-32B
+  Qwen/Qwen3-30B-A3B-Base
+  Qwen/Qwen3.5-27B-GPTQ-Int4
+  allenai/Olmo-3.1-32B-Instruct
+  google/medgemma-27b-it
+  google/medgemma-27b-text-it
+  ibm-granite/granite-4.0-h-small
+  ibm-granite/granite-4.1-30b
+  internlm/internlm2-chat-20b
+  meta-llama/Meta-Llama-3-70B-Instruct
+  moonshotai/Kimi-VL-A3B-Thinking
+  nvidia/Llama-3.1-Nemotron-70B-Instruct-HF
+  nvidia/Llama-3_3-Nemotron-Super-49B-v1_5-FP8
+  nvidia/Llama-3_3-Nemotron-Super-49B-v1_5-NVFP4
+  nvidia/NVLM-D-72B
+  tencent/Hunyuan-A13B-Instruct
+[fuori dai 10 posti disponibili (priorità al coding, poi download totali)] (1)
+  nvidia/Llama-3_3-Nemotron-Super-49B-v1_5
+[inglese assente tra le lingue dichiarate] (1)
+  microsoft/Phi-3.5-MoE-instruct [coding]
+[modello non autoregressivo (diffusione)] (1)
+  google/diffusiongemma-26B-A4B-it
+[modello reasoning senza interruttore per disattivare il ragionamento] (21)
+  LGAI-EXAONE/EXAONE-4.0-32B
+  LGAI-EXAONE/EXAONE-4.5-33B
+  Qwen/QwQ-32B
+  Qwen/Qwen3-30B-A3B-Thinking-2507
+  Qwen/Qwen3-Next-80B-A3B-Thinking
+  Qwen/Qwen3-VL-30B-A3B-Thinking
+  allenai/Olmo-3-32B-Think
+  allenai/Olmo-3-32B-Think-SFT
+  allenai/Olmo-3.1-32B-Think
+  deepseek-ai/DeepSeek-R1-Distill-Llama-70B
+  deepseek-ai/DeepSeek-R1-Distill-Qwen-14B
+  deepseek-ai/DeepSeek-R1-Distill-Qwen-32B
+  ibm-granite/granite-4.2-30b
+  microsoft/Phi-4-reasoning [coding]
+  nvidia/Llama-3_3-Nemotron-Super-49B-v1
+  nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16
+  nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4
+  nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16
+  nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4
+  openai/gpt-oss-20b
+  openai/gpt-oss-safeguard-20b
+[nessun GGUF a 4 bit da quantizzatori fidati] (8)
+  Qwen/Qwen2.5-14B
+  Qwen/Qwen3-14B-Base
+  Qwen/Qwen3-Coder-30B-A3B-Instruct-FP8
+  Qwen/Qwen3-Coder-Next-FP8
+  Qwen/Qwen3.5-35B-A3B-Base
+  deepseek-ai/DeepSeek-V2-Lite
+  deepseek-ai/DeepSeek-V2-Lite-Chat
+  moonshotai/Kimi-VL-A3B-Instruct
+[nessun chat template] (13)
+  01-ai/Yi-1.5-34B
+  01-ai/Yi-34B
+  Qwen/Qwen-72B
+  allenai/Olmo-3-1125-32B
+  google/gemma-3-27b-pt
+  google/gemma-4-26B-A4B
+  google/gemma-4-31B
+  meta-llama/Llama-2-70b-hf
+  meta-llama/Llama-3.1-70B
+  meta-llama/Meta-Llama-3-70B
+  nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-Base-BF16
+  nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-Base-BF16
+  nvidia/Nemotron-H-56B-Base-8K
+[oltre il massimo per organizzazione] (23)
+  Qwen/Qwen2.5-14B-Instruct
+  Qwen/Qwen2.5-32B-Instruct
+  Qwen/Qwen2.5-72B-Instruct
+  Qwen/Qwen2.5-VL-32B-Instruct
+  Qwen/Qwen2.5-VL-72B-Instruct
+  Qwen/Qwen3-14B
+  Qwen/Qwen3-30B-A3B
+  Qwen/Qwen3-30B-A3B-Instruct-2507
+  Qwen/Qwen3-32B
+  Qwen/Qwen3-Coder-30B-A3B-Instruct
+  Qwen/Qwen3-Coder-Next
+  Qwen/Qwen3-Next-80B-A3B-Instruct
+  Qwen/Qwen3-VL-30B-A3B-Instruct
+  Qwen/Qwen3-VL-32B-Instruct
+  Qwen/Qwen3.5-27B
+  Qwen/Qwen3.5-35B-A3B
+  Qwen/Qwen3.6-27B
+  Qwen/Qwen3.6-35B-A3B
+  Qwen/Qwen3.8-27B
+  google/gemma-2-27b-it
+  google/gemma-3-27b-it
+  google/gemma-4-26B-A4B-it
+  google/gemma-4-31B-it
+[parametri fuori dall'intervallo] (355)
+  01-ai/Yi-1.5-6B
+  01-ai/Yi-1.5-9B
+  01-ai/Yi-1.5-9B-Chat
+  01-ai/Yi-6B
+  01-ai/Yi-6B-200K
+  01-ai/Yi-6B-Chat
+  ByteDance-Seed/UI-TARS-1.5-7B
+  ByteDance-Seed/academic-ds-9B
+  CohereLabs/North-Micro-Vision-Instruct
+  CohereLabs/aya-expanse-8b
+  CohereLabs/command-a-plus-05-2026-bf16
+  CohereLabs/command-a-vision-07-2025
+  HuggingFaceTB/SmolLM-1.7B
+  HuggingFaceTB/SmolLM-135M
+  HuggingFaceTB/SmolLM-360M
+  HuggingFaceTB/SmolLM2-1.7B
+  HuggingFaceTB/SmolLM2-135M
+  HuggingFaceTB/SmolLM2-360M
+  HuggingFaceTB/SmolLM3-3B
+  HuggingFaceTB/SmolLM3-3B-Base
+  HuggingFaceTB/SmolVLM2-2.2B-Instruct
+  LGAI-EXAONE/EXAONE-3.0-7.8B-Instruct
+  LGAI-EXAONE/EXAONE-3.5-2.4B-Instruct
+  LGAI-EXAONE/EXAONE-3.5-7.8B-Instruct
+  LGAI-EXAONE/EXAONE-3.5-7.8B-Instruct-AWQ
+  LGAI-EXAONE/EXAONE-4.0-1.2B
+  LGAI-EXAONE/K-EXAONE-236B-A23B
+  MiniMaxAI/MiniMax-M1-40k
+  MiniMaxAI/MiniMax-M2
+  MiniMaxAI/MiniMax-M2.1
+  MiniMaxAI/MiniMax-M2.5
+  MiniMaxAI/MiniMax-M2.7
+  MiniMaxAI/MiniMax-M3 [coding]
+  MiniMaxAI/MiniMax-Text-01-hf
+  MiniMaxAI/MiniMax-VL-01
+  Qwen/Qwen-7B
+  Qwen/Qwen-7B-Chat
+  Qwen/Qwen1.5-0.5B
+  Qwen/Qwen1.5-0.5B-Chat
+  Qwen/Qwen1.5-1.8B
+  Qwen/Qwen1.5-1.8B-Chat
+  Qwen/Qwen1.5-4B
+  Qwen/Qwen1.5-4B-Chat
+  Qwen/Qwen1.5-7B
+  Qwen/Qwen1.5-7B-Chat
+  Qwen/Qwen2-0.5B
+  Qwen/Qwen2-0.5B-Instruct
+  Qwen/Qwen2-1.5B
+  Qwen/Qwen2-1.5B-Instruct
+  Qwen/Qwen2-7B
+  Qwen/Qwen2-7B-Instruct
+  Qwen/Qwen2-VL-2B-Instruct
+  Qwen/Qwen2-VL-7B-Instruct
+  Qwen/Qwen2.5-0.5B
+  Qwen/Qwen2.5-0.5B-Instruct
+  Qwen/Qwen2.5-1.5B
+  Qwen/Qwen2.5-1.5B-Instruct
+  Qwen/Qwen2.5-3B
+  Qwen/Qwen2.5-3B-Instruct
+  Qwen/Qwen2.5-7B
+  Qwen/Qwen2.5-7B-Instruct
+  Qwen/Qwen2.5-7B-Instruct-1M
+  Qwen/Qwen2.5-Coder-0.5B [coding]
+  Qwen/Qwen2.5-Coder-0.5B-Instruct [coding]
+  Qwen/Qwen2.5-Coder-1.5B [coding]
+  Qwen/Qwen2.5-Coder-1.5B-Instruct [coding]
+  Qwen/Qwen2.5-Coder-3B [coding]
+  Qwen/Qwen2.5-Coder-3B-Instruct [coding]
+  Qwen/Qwen2.5-Coder-7B [coding]
+  Qwen/Qwen2.5-Coder-7B-Instruct [coding]
+  Qwen/Qwen2.5-Math-1.5B
+  Qwen/Qwen2.5-Math-1.5B-Instruct
+  Qwen/Qwen2.5-Math-7B
+  Qwen/Qwen2.5-Math-7B-Instruct
+  Qwen/Qwen2.5-VL-3B-Instruct
+  Qwen/Qwen2.5-VL-7B-Instruct
+  Qwen/Qwen3-0.6B
+  Qwen/Qwen3-0.6B-Base
+  Qwen/Qwen3-1.7B
+  Qwen/Qwen3-1.7B-Base
+  Qwen/Qwen3-235B-A22B
+  Qwen/Qwen3-235B-A22B-Instruct-2507
+  Qwen/Qwen3-235B-A22B-Thinking-2507
+  Qwen/Qwen3-4B
+  Qwen/Qwen3-4B-Base
+  Qwen/Qwen3-4B-Instruct-2507
+  Qwen/Qwen3-4B-Thinking-2507
+  Qwen/Qwen3-8B
+  Qwen/Qwen3-8B-Base
+  Qwen/Qwen3-Coder-480B-A35B-Instruct
+  Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8
+  Qwen/Qwen3-VL-235B-A22B-Instruct
+  Qwen/Qwen3-VL-235B-A22B-Thinking
+  Qwen/Qwen3-VL-2B-Instruct
+  Qwen/Qwen3-VL-2B-Thinking
+  Qwen/Qwen3-VL-4B-Instruct
+  Qwen/Qwen3-VL-4B-Thinking
+  Qwen/Qwen3-VL-8B-Instruct
+  Qwen/Qwen3-VL-8B-Thinking
+  Qwen/Qwen3.5-0.8B
+  Qwen/Qwen3.5-0.8B-Base
+  Qwen/Qwen3.5-122B-A10B
+  Qwen/Qwen3.5-122B-A10B-GPTQ-Int4
+  Qwen/Qwen3.5-2B
+  Qwen/Qwen3.5-2B-Base
+  Qwen/Qwen3.5-397B-A17B
+  Qwen/Qwen3.5-4B
+  Qwen/Qwen3.5-4B-Base
+  Qwen/Qwen3.5-9B
+  Qwen/Qwen3.5-9B-Base
+  Qwen/Qwen3.8-2.4T-A95B
+  Qwen/Qwen3.8-Flash-Next
+  Qwen/Qwen3Guard-Gen-0.6B
+  Qwen/Qwen3Guard-Gen-4B
+  Qwen/Qwen3Guard-Gen-8B
+  allenai/Molmo-7B-D-0924
+  allenai/Molmo2-4B
+  allenai/Molmo2-8B
+  allenai/Molmo2-ER
+  allenai/Molmo2-O-7B
+  allenai/OLMo-1B-hf
+  allenai/OLMo-2-0425-1B
+  allenai/OLMo-2-0425-1B-Instruct
+  allenai/OLMo-2-1124-7B-Instruct
+  allenai/OLMo-7B-0724-hf
+  allenai/OLMo-7B-hf
+  allenai/OLMoE-1B-7B-0125-Instruct
+  allenai/OLMoE-1B-7B-0924
+  allenai/OLMoE-1B-7B-0924-Instruct
+  allenai/Olmo-3-1025-7B
+  allenai/Olmo-3-7B-Instruct
+  allenai/Olmo-3-7B-Instruct-DPO
+  allenai/Olmo-3-7B-Instruct-SFT
+  allenai/Olmo-3-7B-Think
+  allenai/Olmo-Hybrid-7B
+  allenai/olmOCR-2-7B-1025
+  allenai/olmOCR-7B-0225-preview
+  allenai/wildguard
+  deepseek-ai/DeepSeek-OCR
+  deepseek-ai/DeepSeek-OCR-2
+  deepseek-ai/DeepSeek-R1
+  deepseek-ai/DeepSeek-R1-0528
+  deepseek-ai/DeepSeek-R1-0528-Qwen3-8B
+  deepseek-ai/DeepSeek-R1-Distill-Llama-8B
+  deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
+  deepseek-ai/DeepSeek-R1-Distill-Qwen-7B
+  deepseek-ai/DeepSeek-V2
+  deepseek-ai/DeepSeek-V2-Chat
+  deepseek-ai/DeepSeek-V3
+  deepseek-ai/DeepSeek-V3-0324
+  deepseek-ai/DeepSeek-V3.1-Base
+  deepseek-ai/DeepSeek-V3.2
+  deepseek-ai/DeepSeek-V3.2-Exp
+  deepseek-ai/DeepSeek-V4-Flash
+  deepseek-ai/DeepSeek-V4-Flash-0731
+  deepseek-ai/DeepSeek-V4-Flash-DSpark
+  deepseek-ai/DeepSeek-V4-Flash-Vision-Exp
+  deepseek-ai/DeepSeek-V4-Pro
+  deepseek-ai/DeepSeek-V4-Pro-0813
+  deepseek-ai/DeepSeek-V4.1-Flash
+  deepseek-ai/DeepSeek-V4.1-Flash-1017
+  deepseek-ai/deepseek-coder-1.3b-instruct
+  deepseek-ai/deepseek-coder-6.7b-base
+  deepseek-ai/deepseek-coder-6.7b-instruct
+  deepseek-ai/deepseek-coder-7b-instruct-v1.5
+  deepseek-ai/deepseek-vl2-tiny
+  google/codegemma-7b-it
+  google/functiongemma-270m-it
+  google/gemma-1.1-2b-it
+  google/gemma-2-2b
+  google/gemma-2-2b-it
+  google/gemma-2-9b
+  google/gemma-2-9b-it
+  google/gemma-3-12b-it
+  google/gemma-3-12b-pt
+  google/gemma-3-1b-it
+  google/gemma-3-1b-pt
+  google/gemma-3-270m
+  google/gemma-3-270m-it
+  google/gemma-3-4b-it
+  google/gemma-3-4b-pt
+  google/gemma-3n-E2B-it
+  google/gemma-3n-E4B-it
+  google/medgemma-1.5-4b-it
+  google/medgemma-4b-it
+  google/paligemma-3b-ft-cococap-448
+  google/paligemma-3b-mix-224
+  google/paligemma-3b-pt-224
+  google/paligemma2-3b-ft-docci-448
+  google/paligemma2-3b-mix-224
+  google/paligemma2-3b-mix-448
+  google/t5gemma-2-1b-1b
+  google/t5gemma-2-270m-270m
+  google/t5gemma-2-4b-4b
+  google/t5gemma-2b-2b-ul2-it
+  google/t5gemma-b-b-ul2
+  google/t5gemma-s-s-prefixlm
+  google/translategemma-4b-it
+  ibm-granite/granite-3.0-1b-a400m-base
+  ibm-granite/granite-3.0-1b-a400m-instruct
+  ibm-granite/granite-3.0-8b-instruct
+  ibm-granite/granite-3.1-1b-a400m-instruct
+  ibm-granite/granite-3.1-2b-instruct
+  ibm-granite/granite-3.1-8b-instruct
+  ibm-granite/granite-3.2-8b-instruct
+  ibm-granite/granite-3.3-2b-instruct
+  ibm-granite/granite-3.3-8b-instruct
+  ibm-granite/granite-3b-code-base-2k [coding]
+  ibm-granite/granite-4.0-1b
+  ibm-granite/granite-4.0-1b-base
+  ibm-granite/granite-4.0-350m
+  ibm-granite/granite-4.0-3b-vision
+  ibm-granite/granite-4.0-h-tiny
+  ibm-granite/granite-4.0-micro
+  ibm-granite/granite-4.0-tiny-preview
+  ibm-granite/granite-4.1-3b
+  ibm-granite/granite-4.1-3b-base
+  ibm-granite/granite-4.1-8b
+  ibm-granite/granite-4.2-3b
+  ibm-granite/granite-4.2-8b
+  ibm-granite/granite-docling-258M [coding]
+  ibm-granite/granite-guardian-4.1-8b
+  ibm-granite/granite-swash-2b
+  ibm-granite/granite-swash-3b-a600m
+  ibm-granite/granite-vision-4.1-4b
+  internlm/Intern-S1
+  internlm/Intern-S1-mini
+  internlm/internlm2-chat-7b
+  internlm/internlm2_5-7b-chat
+  internlm/internlm3-8b-instruct
+  meta-llama/Llama-2-13b-chat-hf
+  meta-llama/Llama-2-13b-hf
+  meta-llama/Llama-2-7b-chat-hf
+  meta-llama/Llama-2-7b-hf
+  meta-llama/Llama-3.1-405B
+  meta-llama/Llama-3.1-405B-FP8
+  meta-llama/Llama-3.1-8B
+  meta-llama/Llama-3.1-8B-Instruct
+  meta-llama/Llama-3.2-11B-Vision
+  meta-llama/Llama-3.2-11B-Vision-Instruct
+  meta-llama/Llama-3.2-1B
+  meta-llama/Llama-3.2-1B-Instruct
+  meta-llama/Llama-3.2-3B
+  meta-llama/Llama-3.2-3B-Instruct
+  meta-llama/Llama-4-Scout-17B-16E-Instruct
+  meta-llama/Llama-Guard-3-1B
+  meta-llama/Llama-Guard-3-8B
+  meta-llama/Llama-Guard-3-8B-INT8
+  meta-llama/Llama-Guard-4-12B
+  meta-llama/Meta-Llama-3-8B
+  meta-llama/Meta-Llama-3-8B-Instruct
+  microsoft/DialoGPT-small
+  microsoft/Florence-2-base
+  microsoft/Florence-2-base-ft
+  microsoft/Florence-2-large
+  microsoft/Florence-2-large-ft
+  microsoft/Phi-3-medium-128k-instruct [coding]
+  microsoft/Phi-3-medium-4k-instruct [coding]
+  microsoft/Phi-3-mini-128k-instruct [coding]
+  microsoft/Phi-3-mini-4k-instruct [coding]
+  microsoft/Phi-3-small-8k-instruct [coding]
+  microsoft/Phi-3-vision-128k-instruct [coding]
+  microsoft/Phi-3.5-mini-instruct [coding]
+  microsoft/Phi-3.5-vision-instruct [coding]
+  microsoft/Phi-4-mini-instruct [coding]
+  microsoft/Phi-4-mini-reasoning [coding]
+  microsoft/Phi-mini-MoE-instruct
+  microsoft/Phi-tiny-MoE-instruct
+  microsoft/bitnet-b1.58-2B-4T
+  microsoft/kosmos-2.5
+  microsoft/maira-2
+  microsoft/phi-1 [coding]
+  microsoft/phi-1_5 [coding]
+  microsoft/phi-2 [coding]
+  microsoft/udop-large
+  mistralai/Mistral-7B-Instruct-v0.1
+  mistralai/Mistral-7B-Instruct-v0.2
+  mistralai/Mistral-7B-v0.1
+  moonshotai/Kimi-K2-Base
+  moonshotai/Kimi-K2-Instruct
+  moonshotai/Kimi-K2-Instruct-0905
+  moonshotai/Kimi-K2-Thinking
+  moonshotai/Kimi-K2.5
+  moonshotai/Kimi-K2.6
+  moonshotai/Kimi-K2.7-Code
+  moonshotai/Kimi-K3
+  nvidia/Cosmos-Reason1-7B
+  nvidia/Cosmos-Reason2-2B
+  nvidia/Cosmos-Reason2-8B
+  nvidia/DeepSeek-R1-0528-NVFP4-v2
+  nvidia/DeepSeek-V3-0324-NVFP4
+  nvidia/Llama-3.1-8B-Instruct-FP8
+  nvidia/Llama-3.1-Nemotron-Nano-VL-8B-V1
+  nvidia/Llama3-ChatQA-1.5-8B
+  nvidia/LocateAnything-3B
+  nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16
+  nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16
+  nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8
+  nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16
+  nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4
+  nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16
+  nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-BF16
+  nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-FP8
+  nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-NVFP4-QAD
+  nvidia/NVIDIA-Nemotron-Nano-9B-v2
+  nvidia/NVIDIA-Nemotron-Nano-9B-v2-FP8
+  nvidia/NVIDIA-Nemotron-Nano-9B-v2-NVFP4
+  nvidia/NVIDIA-Nemotron-Parse-2.0
+  nvidia/NVIDIA-Nemotron-Parse-v1.1
+  nvidia/NVIDIA-Nemotron-Parse-v1.2
+  nvidia/Nemotron-3-Content-Safety
+  nvidia/Nemotron-H-8B-Base-8K
+  nvidia/Nemotron-Labs-Diffusion-14B
+  nvidia/Nemotron-Labs-Diffusion-3B
+  nvidia/Nemotron-Labs-Diffusion-8B-Base
+  nvidia/Qwen3-235B-A22B-NVFP4
+  nvidia/gpt-oss-120b-Eagle3-short-context
+  nvidia/gpt-oss-120b-Eagle3-v3
+  openai/gpt-oss-120b
+  tencent/Hunyuan-7B-Instruct
+  tencent/HunyuanOCR
+  tencent/Hy3
+  tencent/Hy3-FP8
+  tencent/Hy3-preview
+  tencent/Hy4-preview
+  tencent/Hy4-preview-FP8
+  tencent/Youtu-LLM-2B
+  tiiuae/Falcon-H1-0.5B-Base
+  tiiuae/Falcon-H1-3B-Instruct
+  tiiuae/Falcon-H1-7B-Instruct
+  tiiuae/Falcon3-7B-Instruct
+  tiiuae/falcon-7b
+  tiiuae/falcon-7b-instruct
+  tiiuae/falcon-mamba-7b
+  tiiuae/falcon-mamba-tiny-dev
+  zai-org/GLM-4-9B-0414
+  zai-org/GLM-4.1V-9B-Thinking
+  zai-org/GLM-4.5
+  zai-org/GLM-4.5-Air
+  zai-org/GLM-4.5-Air-FP8
+  zai-org/GLM-4.5V
+  zai-org/GLM-4.6
+  zai-org/GLM-4.6V-Flash
+  zai-org/GLM-4.7
+  zai-org/GLM-4.7-FP8
+  zai-org/GLM-5
+  zai-org/GLM-5-FP8
+  zai-org/GLM-5.1
+  zai-org/GLM-5.1-FP8
+  zai-org/GLM-5.2
+  zai-org/GLM-5.2-FP8
+  zai-org/GLM-5.3
+  zai-org/GLM-5.3-BF16
+  zai-org/GLM-5.3-Flash
+  zai-org/GLM-5.3-Flash-BF16
+[parametri non presenti nei metadati] (14)
+  Qwen/Qwen-VL-Chat
+  deepseek-ai/deepseek-coder-1.3b-base
+  deepseek-ai/deepseek-llm-7b-base
+  deepseek-ai/deepseek-llm-7b-chat
+  google/reformer-crime-and-punishment
+  internlm/internlm-chat-7b
+  internlm/internlm2-20b
+  internlm/internlm2-7b
+  internlm/internlm2-base-20b
+  internlm/internlm2-base-7b
+  microsoft/DialoGPT-medium
+  microsoft/biogpt
+  nvidia/DAM-3B
+  nvidia/Nemotron-Mini-4B-Instruct
+[quantizzazione, adapter o merge di un altro modello] (148)
+  HuggingFaceTB/SmolLM-135M-Instruct
+  HuggingFaceTB/SmolLM2-1.7B-Instruct
+  HuggingFaceTB/SmolLM2-1.7B-Instruct-GGUF
+  HuggingFaceTB/SmolLM2-135M-Instruct
+  HuggingFaceTB/SmolLM2-360M-Instruct
+  HuggingFaceTB/SmolVLM-256M-Instruct
+  HuggingFaceTB/SmolVLM-500M-Instruct
+  HuggingFaceTB/SmolVLM-Instruct
+  HuggingFaceTB/SmolVLM2-256M-Video-Instruct
+  HuggingFaceTB/SmolVLM2-500M-Video-Instruct
+  MiniMaxAI/MiniMax-M3-MXFP8 [coding]
+  Qwen/QwQ-32B-GGUF
+  Qwen/Qwen1.5-0.5B-Chat-GGUF
+  Qwen/Qwen2-0.5B-Instruct-GGUF
+  Qwen/Qwen2-1.5B-Instruct-GGUF
+  Qwen/Qwen2-VL-2B-Instruct-AWQ
+  Qwen/Qwen2-VL-7B-Instruct-AWQ
+  Qwen/Qwen2.5-0.5B-Instruct-GGUF
+  Qwen/Qwen2.5-1.5B-Instruct-AWQ
+  Qwen/Qwen2.5-1.5B-Instruct-GGUF
+  Qwen/Qwen2.5-14B-Instruct-AWQ
+  Qwen/Qwen2.5-14B-Instruct-GGUF
+  Qwen/Qwen2.5-14B-Instruct-GPTQ-Int4
+  Qwen/Qwen2.5-32B-Instruct-AWQ
+  Qwen/Qwen2.5-32B-Instruct-GPTQ-Int4
+  Qwen/Qwen2.5-3B-Instruct-AWQ
+  Qwen/Qwen2.5-3B-Instruct-GGUF
+  Qwen/Qwen2.5-72B-Instruct-AWQ
+  Qwen/Qwen2.5-7B-Instruct-AWQ
+  Qwen/Qwen2.5-7B-Instruct-GGUF
+  Qwen/Qwen2.5-7B-Instruct-GPTQ-Int4
+  Qwen/Qwen2.5-Coder-0.5B-Instruct-GGUF [coding]
+  Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF [coding]
+  Qwen/Qwen2.5-Coder-14B-Instruct-AWQ [coding]
+  Qwen/Qwen2.5-Coder-14B-Instruct-GGUF [coding]
+  Qwen/Qwen2.5-Coder-14B-Instruct-GPTQ-Int4 [coding]
+  Qwen/Qwen2.5-Coder-32B-Instruct-AWQ [coding]
+  Qwen/Qwen2.5-Coder-32B-Instruct-GGUF [coding]
+  Qwen/Qwen2.5-Coder-3B-Instruct-AWQ [coding]
+  Qwen/Qwen2.5-Coder-3B-Instruct-GGUF [coding]
+  Qwen/Qwen2.5-Coder-7B-Instruct-AWQ [coding]
+  Qwen/Qwen2.5-Coder-7B-Instruct-GGUF [coding]
+  Qwen/Qwen2.5-Coder-7B-Instruct-GPTQ-Int4 [coding]
+  Qwen/Qwen2.5-VL-32B-Instruct-AWQ
+  Qwen/Qwen2.5-VL-3B-Instruct-AWQ
+  Qwen/Qwen2.5-VL-72B-Instruct-AWQ
+  Qwen/Qwen2.5-VL-7B-Instruct-AWQ
+  Qwen/Qwen3-0.6B-FP8
+  Qwen/Qwen3-0.6B-GGUF
+  Qwen/Qwen3-1.7B-FP8
+  Qwen/Qwen3-1.7B-GGUF
+  Qwen/Qwen3-14B-AWQ
+  Qwen/Qwen3-14B-FP8
+  Qwen/Qwen3-14B-GGUF
+  Qwen/Qwen3-235B-A22B-FP8
+  Qwen/Qwen3-235B-A22B-Instruct-2507-FP8
+  Qwen/Qwen3-235B-A22B-Thinking-2507-FP8
+  Qwen/Qwen3-30B-A3B-FP8
+  Qwen/Qwen3-30B-A3B-GGUF
+  Qwen/Qwen3-30B-A3B-GPTQ-Int4
+  Qwen/Qwen3-30B-A3B-Instruct-2507-FP8
+  Qwen/Qwen3-30B-A3B-Thinking-2507-FP8
+  Qwen/Qwen3-32B-AWQ
+  Qwen/Qwen3-32B-FP8
+  Qwen/Qwen3-32B-GGUF
+  Qwen/Qwen3-4B-AWQ
+  Qwen/Qwen3-4B-FP8
+  Qwen/Qwen3-4B-GGUF
+  Qwen/Qwen3-4B-Instruct-2507-FP8
+  Qwen/Qwen3-4B-Thinking-2507-FP8
+  Qwen/Qwen3-8B-AWQ
+  Qwen/Qwen3-8B-FP8
+  Qwen/Qwen3-8B-GGUF
+  Qwen/Qwen3-Coder-Next-GGUF
+  Qwen/Qwen3-Next-80B-A3B-Instruct-FP8
+  Qwen/Qwen3-Next-80B-A3B-Instruct-GGUF
+  Qwen/Qwen3-VL-235B-A22B-Instruct-FP8
+  Qwen/Qwen3-VL-2B-Instruct-GGUF
+  Qwen/Qwen3-VL-30B-A3B-Instruct-FP8
+  Qwen/Qwen3-VL-30B-A3B-Instruct-GGUF
+  Qwen/Qwen3-VL-32B-Instruct-FP8
+  Qwen/Qwen3-VL-32B-Instruct-GGUF
+  Qwen/Qwen3-VL-4B-Instruct-FP8
+  Qwen/Qwen3-VL-4B-Instruct-GGUF
+  Qwen/Qwen3-VL-8B-Instruct-FP8
+  Qwen/Qwen3-VL-8B-Instruct-GGUF
+  Qwen/Qwen3-VL-8B-Thinking-FP8
+  Qwen/Qwen3.5-122B-A10B-FP8
+  Qwen/Qwen3.5-27B-FP8
+  Qwen/Qwen3.5-35B-A3B-FP8
+  Qwen/Qwen3.5-35B-A3B-GPTQ-Int4
+  Qwen/Qwen3.5-397B-A17B-FP8
+  Qwen/Qwen3.6-27B-FP8
+  Qwen/Qwen3.6-35B-A3B-FP8
+  Qwen/Qwen3.8-27B-FP8
+  Qwen/Qwen3.8-Flash-Next-FP8
+  allenai/olmOCR-2-7B-1025-FP8
+  allenai/olmOCR-7B-0825-FP8
+  deepseek-ai/DeepSeek-V3.1
+  deepseek-ai/DeepSeek-V3.1-Terminus
+  google/gemma-2b
+  google/gemma-2b-it
+  google/gemma-4-26B-A4B-it-qat-q4_0-gguf
+  google/gemma-4-31B-it-qat-q4_0-gguf
+  google/gemma-4-31B-it-qat-w4a16-ct
+  google/gemma-7b-it
+  ibm-granite/granite-4.1-8b-fp8
+  meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8
+  microsoft/Phi-3-mini-4k-instruct-gguf [coding]
+  microsoft/bitnet-b1.58-2B-4T-gguf
+  microsoft/phi-4-gguf [coding]
+  nvidia/DeepSeek-V4-Flash-NVFP4
+  nvidia/DeepSeek-V4-Pro-NVFP4
+  nvidia/DeepSeek-V4.1-Flash-NVFP4
+  nvidia/Eagle2.5-8B
+  nvidia/GLM-5.2-NVFP4
+  nvidia/GLM-5.3-Flash-NVFP4
+  nvidia/GLM-5.3-NVFP4
+  nvidia/Gemma-4-26B-A4B-NVFP4
+  nvidia/Gemma-4-31B-IT-NVFP4
+  nvidia/Kimi-K2-Thinking-NVFP4
+  nvidia/Kimi-K2.5-NVFP4
+  nvidia/Kimi-K2.6-NVFP4
+  nvidia/Kimi-K3-NVFP4
+  nvidia/MiniMax-M3-NVFP4
+  nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-FP8
+  nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4
+  nvidia/NVIDIA-Nemotron-3-Nano-4B-GGUF
+  nvidia/NVIDIA-Nemotron-3.5-Bolt-74B-A9B-24GB-GGUF
+  nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark
+  nvidia/NVIDIA-Nemotron-Labs-3-Puzzle-75B-A9B-NVFP4
+  nvidia/Qwen2.5-VL-7B-Instruct-NVFP4
+  nvidia/Qwen3-14B-FP8
+  nvidia/Qwen3-14B-NVFP4
+  nvidia/Qwen3-30B-A3B-NVFP4
+  nvidia/Qwen3-32B-NVFP4
+  nvidia/Qwen3-8B-NVFP4
+  nvidia/Qwen3-Next-80B-A3B-Instruct-NVFP4
+  nvidia/Qwen3.5-122B-A10B-NVFP4
+  nvidia/Qwen3.5-397B-A17B-NVFP4
+  nvidia/Qwen3.5-397B-A17B-NVFP4-V2
+  nvidia/Qwen3.6-27B-NVFP4
+  nvidia/Qwen3.6-35B-A3B-NVFP4
+  nvidia/Qwen3.8-2.4T-A95B-NVFP4
+  nvidia/Qwen3.8-27B-NVFP4
+  nvidia/Qwen3.8-Flash-Next-NVFP4
+  nvidia/diffusiongemma-26B-A4B-it-NVFP4
+  zai-org/glm-edge-4b-chat-gguf

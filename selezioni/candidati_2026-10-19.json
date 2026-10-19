@@ -1,0 +1,5271 @@
+{
+  "esecuzione": {
+    "data_ora_utc": "2026-10-19T09:42:08+00:00",
+    "script": "download_models.py",
+    "versione": "2.1",
+    "sha256_script": "4d87e0ce87ade871",
+    "huggingface_hub": "2.2.0",
+    "python": "3.11.2",
+    "token_usato": true
+  },
+  "criteri": {
+    "organizzazioni": [
+      "meta-llama",
+      "Qwen",
+      "google",
+      "openai",
+      "deepseek-ai",
+      "nvidia",
+      "microsoft",
+      "mistralai",
+      "ibm-granite",
+      "moonshotai",
+      "CohereLabs",
+      "allenai",
+      "HuggingFaceTB",
+      "zai-org",
+      "MiniMaxAI",
+      "tiiuae",
+      "LGAI-EXAONE",
+      "01-ai",
+      "internlm",
+      "tencent",
+      "ByteDance-Seed"
+    ],
+    "compiti": [
+      "text-generation",
+      "image-text-to-text"
+    ],
+    "soglia_preselezione": 10000,
+    "min_downloads": 100000,
+    "min_b": 14.0,
+    "max_b": 85.0,
+    "min_contesto": 32768,
+    "creati_dopo": null,
+    "max_per_org": 2,
+    "ordine_famiglia": "recenti",
+    "max_modelli": 10,
+    "max_coding": 5,
+    "quant_preferite": [
+      "Q4_K_M",
+      "UD-Q4_K_M",
+      "UD-Q4_K_XL",
+      "Q4_K_S",
+      "IQ4_XS"
+    ],
+    "quantizzatori_fidati": [
+      "bartowski",
+      "unsloth",
+      "lmstudio-community",
+      "ggml-org"
+    ],
+    "architetture_escluse": "non autoregressive (diffusione)",
+    "reasoning": "ammesso solo con interruttore nel chat template"
+  },
+  "conteggi": {
+    "esaminati": 634,
+    "per_motivo": {
+      "parametri fuori dall'intervallo": 355,
+      "nessun chat template": 13,
+      "download totali sotto la soglia": 32,
+      "quantizzazione, adapter o merge di un altro modello": 148,
+      "nessun GGUF a 4 bit da quantizzatori fidati": 8,
+      "contesto dichiarato sotto il minimo": 7,
+      "modello reasoning senza interruttore per disattivare il ragionamento": 21,
+      "parametri non presenti nei metadati": 14,
+      "modello non autoregressivo (diffusione)": 1,
+      "inglese assente tra le lingue dichiarate": 1,
+      "oltre il massimo per organizzazione": 23,
+      "fuori dai 10 posti disponibili (priorità al coding, poi download totali)": 1
+    },
+    "non_valutabili": {
+      "non valutabile: contesto": 8,
+      "non valutabile: lingue": 43
+    },
+    "elenchi_falliti": 0
+  },
+  "diagnostica_coding": {
+    "tag_usati": [
+      "code",
+      "coding"
+    ],
+    "esaminati_con_tag_coding": 44,
+    "nella_lista_finale": 2,
+    "esclusi_per_motivo": {
+      "parametri fuori dall'intervallo": 24,
+      "quantizzazione, adapter o merge di un altro modello": 15,
+      "contesto dichiarato sotto il minimo": 1,
+      "inglese assente tra le lingue dichiarate": 1,
+      "modello reasoning senza interruttore per disattivare il ragionamento": 1
+    }
+  },
+  "candidati": [
+    {
+      "id": "Qwen/Qwen2.5-Coder-14B-Instruct",
+      "organizzazione": "Qwen",
+      "compito": "text-generation",
+      "multimodale": false,
+      "dominio": "coding",
+      "commit": "aedcc2d42b622764e023cf882b6652e646b95671",
+      "creato": "2024-11-06",
+      "ultima_modifica": "2025-01-12",
+      "parametri_miliardi": 14.77,
+      "fonte_parametri": "safetensors",
+      "contesto": 32768,
+      "chat_template": "config.tokenizer_config",
+      "reasoning": {
+        "segnali": [],
+        "interruttori": []
+      },
+      "lingue": [
+        "en"
+      ],
+      "derivato_da": [
+        "Qwen/Qwen2.5-Coder-14B"
+      ],
+      "downloads_30d": 1738212,
+      "downloads_quantizzazioni_30d": 822043,
+      "downloads_totali": 2560255,
+      "gguf": [
+        {
+          "repo": "Qwen/Qwen2.5-Coder-14B-Instruct-GGUF",
+          "autore": "Qwen",
+          "downloads_30d": 139034,
+          "file": [
+            "qwen2.5-coder-14b-instruct-fp16-00001-of-00004.gguf",
+            "qwen2.5-coder-14b-instruct-fp16-00002-of-00004.gguf",
+            "qwen2.5-coder-14b-instruct-fp16-00003-of-00004.gguf",
+            "qwen2.5-coder-14b-instruct-fp16-00004-of-00004.gguf",
+            "qwen2.5-coder-14b-instruct-fp16.gguf",
+            "qwen2.5-coder-14b-instruct-q2_k.gguf",
+            "qwen2.5-coder-14b-instruct-q3_k_m.gguf",
+            "qwen2.5-coder-14b-instruct-q4_0.gguf",
+            "qwen2.5-coder-14b-instruct-q4_k_m-00001-of-00002.gguf",
+            "qwen2.5-coder-14b-instruct-q4_k_m-00002-of-00002.gguf",
+            "qwen2.5-coder-14b-instruct-q4_k_m.gguf",
+            "qwen2.5-coder-14b-instruct-q5_0-00001-of-00002.gguf",
+            "qwen2.5-coder-14b-instruct-q5_0-00002-of-00002.gguf",
+            "qwen2.5-coder-14b-instruct-q5_0.gguf",
+            "qwen2.5-coder-14b-instruct-q5_k_m-00001-of-00002.gguf",
+            "qwen2.5-coder-14b-instruct-q5_k_m-00002-of-00002.gguf",
+            "qwen2.5-coder-14b-instruct-q5_k_m.gguf",
+            "qwen2.5-coder-14b-instruct-q6_k-00001-of-00002.gguf",
+            "qwen2.5-coder-14b-instruct-q6_k-00002-of-00002.gguf",
+            "qwen2.5-coder-14b-instruct-q6_k.gguf",
+            "qwen2.5-coder-14b-instruct-q8_0-00001-of-00002.gguf",
+            "qwen2.5-coder-14b-instruct-q8_0-00002-of-00002.gguf",
+            "qwen2.5-coder-14b-instruct-q8_0.gguf"
+          ],
+          "etichette": []
+        },
+        {
+          "repo": "lmstudio-community/Qwen2.5-Coder-14B-Instruct-GGUF",
+          "autore": "lmstudio-community",
+          "downloads_30d": 41194,
+          "file": [
+            "Qwen2.5-Coder-14B-Instruct-Q3_K_L.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q4_K_M.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q6_K.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q8_0.gguf"
+          ],
+          "etichette": [
+            "Q3_K_L",
+            "Q4_K_M",
+            "Q6_K",
+            "Q8_0"
+          ]
+        },
+        {
+          "repo": "bartowski/Qwen2.5-Coder-14B-Instruct-GGUF",
+          "autore": "bartowski",
+          "downloads_30d": 41063,
+          "file": [
+            "Qwen2.5-Coder-14B-Instruct-IQ2_M.gguf",
+            "Qwen2.5-Coder-14B-Instruct-IQ2_S.gguf",
+            "Qwen2.5-Coder-14B-Instruct-IQ2_XS.gguf",
+            "Qwen2.5-Coder-14B-Instruct-IQ3_M.gguf",
+            "Qwen2.5-Coder-14B-Instruct-IQ3_XS.gguf",
+            "Qwen2.5-Coder-14B-Instruct-IQ4_NL.gguf",
+            "Qwen2.5-Coder-14B-Instruct-IQ4_XS.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q2_K.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q2_K_L.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q3_K_L.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q3_K_M.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q3_K_S.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q3_K_XL.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q4_0.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q4_0_4_4.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q4_0_4_8.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q4_0_8_8.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q4_K_L.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q4_K_M.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q4_K_S.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q5_K_L.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q5_K_M.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q5_K_S.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q6_K.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q6_K_L.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q8_0.gguf",
+            "Qwen2.5-Coder-14B-Instruct-f16.gguf"
+          ],
+          "etichette": [
+            "IQ2_M",
+            "IQ2_S",
+            "IQ2_XS",
+            "IQ3_M",
+            "IQ3_XS",
+            "IQ4_NL",
+            "IQ4_XS",
+            "Q2_K",
+            "Q2_K_L",
+            "Q3_K_L",
+            "Q3_K_M",
+            "Q3_K_S",
+            "Q3_K_XL",
+            "Q4_0",
+            "Q4_0_4_4",
+            "Q4_0_4_8",
+            "Q4_0_8_8",
+            "Q4_K_L",
+            "Q4_K_M",
+            "Q4_K_S",
+            "Q5_K_L",
+            "Q5_K_M",
+            "Q5_K_S",
+            "Q6_K",
+            "Q6_K_L",
+            "Q8_0"
+          ]
+        },
+        {
+          "repo": "unsloth/Qwen2.5-Coder-14B-Instruct-128K-GGUF",
+          "autore": "unsloth",
+          "downloads_30d": 8576,
+          "file": [
+            "Qwen2.5-Coder-14B-Instruct-F16.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q2_K.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q3_K_M.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q4_K_M.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q5_K_M.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q6_K.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q8_0.gguf"
+          ],
+          "etichette": [
+            "F16",
+            "Q2_K",
+            "Q3_K_M",
+            "Q4_K_M",
+            "Q5_K_M",
+            "Q6_K",
+            "Q8_0"
+          ]
+        },
+        {
+          "repo": "unsloth/Qwen2.5-Coder-14B-Instruct-GGUF",
+          "autore": "unsloth",
+          "downloads_30d": 4217,
+          "file": [
+            "Qwen2.5-Coder-14B-Instruct-F16.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q2_K.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q3_K_M.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q4_K_M.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q5_K_M.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q6_K.gguf",
+            "Qwen2.5-Coder-14B-Instruct-Q8_0.gguf"
+          ],
+          "etichette": [
+            "F16",
+            "Q2_K",
+            "Q3_K_M",
+            "Q4_K_M",
+            "Q5_K_M",
+            "Q6_K",
+            "Q8_0"
+          ]
+        },
+        {
+          "repo": "ggml-org/Qwen2.5-Coder-14B-Instruct-Q8_0-GGUF",
+          "autore": "ggml-org",
+          "downloads_30d": 497,
+          "file": [
+            "qwen2.5-coder-14b-instruct-q8_0.gguf"
+          ],
+          "etichette": []
+        }
+      ],
+      "scarica": {
+        "repo": "lmstudio-community/Qwen2.5-Coder-14B-Instruct-GGUF",
+        "autore": "lmstudio-community",
+        "etichetta": "Q4_K_M",
+        "file": [
+          "Qwen2.5-Coder-14B-Instruct-Q4_K_M.gguf"
+        ],
+        "downloads_30d": 41194,
+        "commit": "aa6da833ce5258d28435474d241249d7917498d6",
+        "nome": "qwen2.5-coder-14b-instruct",
+        "nota": "etichetta Q4_K_M richiesta al repository lmstudio-community: il tipo reale dei tensori è nel manifest (files[].gguf)"
+      }
+    },
+    {
+      "id": "Qwen/Qwen2.5-Coder-32B-Instruct",
+      "organizzazione": "Qwen",
+      "compito": "text-generation",
+      "multimodale": false,
+      "dominio": "coding",
+      "commit": "381fc969f78efac66bc87ff7ddeadb7e73c218a7",
+      "creato": "2024-11-06",
+      "ultima_modifica": "2025-01-12",
+      "parametri_miliardi": 32.76,
+      "fonte_parametri": "safetensors",
+      "contesto": 32768,
+      "chat_template": "config.tokenizer_config",
+      "reasoning": {
+        "segnali": [],
+        "interruttori": []
+      },
+      "lingue": [
+        "en"
+      ],
+      "derivato_da": [
+        "Qwen/Qwen2.5-Coder-32B"
+      ],
+      "downloads_30d": 653160,
+      "downloads_quantizzazioni_30d": 1220770,
+      "downloads_totali": 1873930,
+      "gguf": [
+        {
+          "repo": "Qwen/Qwen2.5-Coder-32B-Instruct-GGUF",
+          "autore": "Qwen",
+          "downloads_30d": 40957,
+          "file": [
+            "qwen2.5-coder-32b-instruct-fp16-00001-of-00009.gguf",
+            "qwen2.5-coder-32b-instruct-fp16-00002-of-00009.gguf",
+            "qwen2.5-coder-32b-instruct-fp16-00003-of-00009.gguf",
+            "qwen2.5-coder-32b-instruct-fp16-00004-of-00009.gguf",
+            "qwen2.5-coder-32b-instruct-fp16-00005-of-00009.gguf",
+            "qwen2.5-coder-32b-instruct-fp16-00006-of-00009.gguf",
+            "qwen2.5-coder-32b-instruct-fp16-00007-of-00009.gguf",
+            "qwen2.5-coder-32b-instruct-fp16-00008-of-00009.gguf",
+            "qwen2.5-coder-32b-instruct-fp16-00009-of-00009.gguf",
+            "qwen2.5-coder-32b-instruct-q2_k-00001-of-00002.gguf",
+            "qwen2.5-coder-32b-instruct-q2_k-00002-of-00002.gguf",
+            "qwen2.5-coder-32b-instruct-q2_k.gguf",
+            "qwen2.5-coder-32b-instruct-q3_k_m-00001-of-00002.gguf",
+            "qwen2.5-coder-32b-instruct-q3_k_m-00002-of-00002.gguf",
+            "qwen2.5-coder-32b-instruct-q3_k_m.gguf",
+            "qwen2.5-coder-32b-instruct-q4_0-00001-of-00003.gguf",
+            "qwen2.5-coder-32b-instruct-q4_0-00002-of-00003.gguf",
+            "qwen2.5-coder-32b-instruct-q4_0-00003-of-00003.gguf",
+            "qwen2.5-coder-32b-instruct-q4_0.gguf",
+            "qwen2.5-coder-32b-instruct-q4_k_m-00001-of-00003.gguf",
+            "qwen2.5-coder-32b-instruct-q4_k_m-00002-of-00003.gguf",
+            "qwen2.5-coder-32b-instruct-q4_k_m-00003-of-00003.gguf",
+            "qwen2.5-coder-32b-instruct-q4_k_m.gguf",
+            "qwen2.5-coder-32b-instruct-q5_0-00001-of-00003.gguf",
+            "qwen2.5-coder-32b-instruct-q5_0-00002-of-00003.gguf",
+            "qwen2.5-coder-32b-instruct-q5_0-00003-of-00003.gguf",
+            "qwen2.5-coder-32b-instruct-q5_0.gguf",
+            "qwen2.5-coder-32b-instruct-q5_k_m-00001-of-00003.gguf",
+            "qwen2.5-coder-32b-instruct-q5_k_m-00002-of-00003.gguf",
+            "qwen2.5-coder-32b-instruct-q5_k_m-00003-of-00003.gguf",
+            "qwen2.5-coder-32b-instruct-q5_k_m.gguf",
+            "qwen2.5-coder-32b-instruct-q6_k-00001-of-00004.gguf",
+            "qwen2.5-coder-32b-instruct-q6_k-00002-of-00004.gguf",
+            "qwen2.5-coder-32b-instruct-q6_k-00003-of-00004.gguf",
+            "qwen2.5-coder-32b-instruct-q6_k-00004-of-00004.gguf",
+            "qwen2.5-coder-32b-instruct-q6_k.gguf",
+            "qwen2.5-coder-32b-instruct-q8_0-00001-of-00005.gguf",
+            "qwen2.5-coder-32b-instruct-q8_0-00002-of-00005.gguf",
+            "qwen2.5-coder-32b-instruct-q8_0-00003-of-00005.gguf",
+            "qwen2.5-coder-32b-instruct-q8_0-00004-of-00005.gguf",
+            "qwen2.5-coder-32b-instruct-q8_0-00005-of-00005.gguf",
+            "qwen2.5-coder-32b-instruct-q8_0.gguf"
+          ],
+          "etichette": []
+        },
+        {
+          "repo": "bartowski/Qwen2.5-Coder-32B-Instruct-GGUF",
+          "autore": "bartowski",
+          "downloads_30d": 34578,
+          "file": [
+            "Qwen2.5-Coder-32B-Instruct-IQ2_M.gguf",
+            "Qwen2.5-Coder-32B-Instruct-IQ2_S.gguf",
+            "Qwen2.5-Coder-32B-Instruct-IQ2_XS.gguf",
+            "Qwen2.5-Coder-32B-Instruct-IQ2_XXS.gguf",
+            "Qwen2.5-Coder-32B-Instruct-IQ3_M.gguf",
+            "Qwen2.5-Coder-32B-Instruct-IQ3_XS.gguf",
+            "Qwen2.5-Coder-32B-Instruct-IQ3_XXS.gguf",
+            "Qwen2.5-Coder-32B-Instruct-IQ4_NL.gguf",
+            "Qwen2.5-Coder-32B-Instruct-IQ4_XS.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q2_K.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q2_K_L.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q3_K_L.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q3_K_M.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q3_K_S.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q3_K_XL.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q4_0.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q4_0_4_4.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q4_0_4_8.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q4_0_8_8.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q4_K_L.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q4_K_M.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q4_K_S.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q5_K_L.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q5_K_M.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q5_K_S.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q6_K.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q6_K_L.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q8_0.gguf"
+          ],
+          "etichette": [
+            "IQ2_M",
+            "IQ2_S",
+            "IQ2_XS",
+            "IQ2_XXS",
+            "IQ3_M",
+            "IQ3_XS",
+            "IQ3_XXS",
+            "IQ4_NL",
+            "IQ4_XS",
+            "Q2_K",
+            "Q2_K_L",
+            "Q3_K_L",
+            "Q3_K_M",
+            "Q3_K_S",
+            "Q3_K_XL",
+            "Q4_0",
+            "Q4_0_4_4",
+            "Q4_0_4_8",
+            "Q4_0_8_8",
+            "Q4_K_L",
+            "Q4_K_M",
+            "Q4_K_S",
+            "Q5_K_L",
+            "Q5_K_M",
+            "Q5_K_S",
+            "Q6_K",
+            "Q6_K_L",
+            "Q8_0"
+          ]
+        },
+        {
+          "repo": "unsloth/Qwen2.5-Coder-32B-Instruct-128K-GGUF",
+          "autore": "unsloth",
+          "downloads_30d": 5560,
+          "file": [
+            "Qwen2.5-Coder-32B-Instruct-Q2_K.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q3_K_M.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q4_K_M.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q5_K_M.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q6_K.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q8_0.gguf"
+          ],
+          "etichette": [
+            "Q2_K",
+            "Q3_K_M",
+            "Q4_K_M",
+            "Q5_K_M",
+            "Q6_K",
+            "Q8_0"
+          ]
+        },
+        {
+          "repo": "unsloth/Qwen2.5-Coder-32B-Instruct-GGUF",
+          "autore": "unsloth",
+          "downloads_30d": 4038,
+          "file": [
+            "Qwen2.5-Coder-32B-Instruct-Q2_K.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q3_K_M.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q4_K_M.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q5_K_M.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q6_K.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q8_0.gguf"
+          ],
+          "etichette": [
+            "Q2_K",
+            "Q3_K_M",
+            "Q4_K_M",
+            "Q5_K_M",
+            "Q6_K",
+            "Q8_0"
+          ]
+        },
+        {
+          "repo": "lmstudio-community/Qwen2.5-Coder-32B-Instruct-GGUF",
+          "autore": "lmstudio-community",
+          "downloads_30d": 3711,
+          "file": [
+            "Qwen2.5-Coder-32B-Instruct-Q3_K_L.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q4_K_M.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q6_K.gguf",
+            "Qwen2.5-Coder-32B-Instruct-Q8_0.gguf"
+          ],
+          "etichette": [
+            "Q3_K_L",
+            "Q4_K_M",
+            "Q6_K",
+            "Q8_0"
+          ]
+        },
+        {
+          "repo": "ggml-org/Qwen2.5-Coder-1.5B-32B-speculative-GGUF",
+          "autore": "ggml-org",
+          "downloads_30d": 131,
+          "file": [
+            "qwen2.5-coder-1.5b-instruct-q4_k_m.gguf",
+            "qwen2.5-coder-32b-instruct-q4_k_m.gguf"
+          ],
+          "etichette": []
+        }
+      ],
+      "scarica": {
+        "repo": "bartowski/Qwen2.5-Coder-32B-Instruct-GGUF",
+        "autore": "bartowski",
+        "etichetta": "Q4_K_M",
+        "file": [
+          "Qwen2.5-Coder-32B-Instruct-Q4_K_M.gguf"
+        ],
+        "downloads_30d": 34578,
+        "commit": "40b525506a4f98ed425882fa6dfc90cc8139065e",
+        "nome": "qwen2.5-coder-32b-instruct",
+        "nota": "etichetta Q4_K_M richiesta al repository bartowski: il tipo reale dei tensori è nel manifest (files[].gguf)"
+      }
+    },
+    {
+      "id": "zai-org/GLM-4.7-Flash",
+      "organizzazione": "zai-org",
+      "compito": "text-generation",
+      "multimodale": false,
+      "dominio": "generalista",
+      "commit": "7dd20894a642a0aa287e9827cb1a1f7f91386b67",
+      "creato": "2026-01-19",
+      "ultima_modifica": "2026-01-29",
+      "parametri_miliardi": 31.22,
+      "fonte_parametri": "safetensors",
+      "contesto": 202752,
+      "chat_template": "config.chat_template_jinja",
+      "reasoning": {
+        "segnali": [
+          "</think",
+          "<think",
+          "enable_thinking",
+          "reasoning_content"
+        ],
+        "interruttori": [
+          "enable_thinking=false"
+        ]
+      },
+      "lingue": [
+        "en",
+        "zh"
+      ],
+      "derivato_da": [],
+      "downloads_30d": 1125508,
+      "downloads_quantizzazioni_30d": 1155092,
+      "downloads_totali": 2280600,
+      "gguf": [
+        {
+          "repo": "unsloth/GLM-4.7-Flash-GGUF",
+          "autore": "unsloth",
+          "downloads_30d": 174557,
+          "file": [
+            "BF16/GLM-4.7-Flash-BF16-00001-of-00002.gguf",
+            "BF16/GLM-4.7-Flash-BF16-00002-of-00002.gguf",
+            "GLM-4.7-Flash-IQ4_NL.gguf",
+            "GLM-4.7-Flash-IQ4_XS.gguf",
+            "GLM-4.7-Flash-MXFP4_MOE.gguf",
+            "GLM-4.7-Flash-Q2_K.gguf",
+            "GLM-4.7-Flash-Q2_K_L.gguf",
+            "GLM-4.7-Flash-Q3_K_M.gguf",
+            "GLM-4.7-Flash-Q3_K_S.gguf",
+            "GLM-4.7-Flash-Q4_0.gguf",
+            "GLM-4.7-Flash-Q4_1.gguf",
+            "GLM-4.7-Flash-Q4_K_M.gguf",
+            "GLM-4.7-Flash-Q4_K_S.gguf",
+            "GLM-4.7-Flash-Q5_K_M.gguf",
+            "GLM-4.7-Flash-Q5_K_S.gguf",
+            "GLM-4.7-Flash-Q6_K.gguf",
+            "GLM-4.7-Flash-Q8_0.gguf",
+            "GLM-4.7-Flash-UD-IQ1_M.gguf",
+            "GLM-4.7-Flash-UD-IQ1_S.gguf",
+            "GLM-4.7-Flash-UD-IQ2_M.gguf",
+            "GLM-4.7-Flash-UD-IQ2_XXS.gguf",
+            "GLM-4.7-Flash-UD-IQ3_XXS.gguf",
+            "GLM-4.7-Flash-UD-Q2_K_XL.gguf",
+            "GLM-4.7-Flash-UD-Q3_K_XL.gguf",
+            "GLM-4.7-Flash-UD-Q4_K_XL.gguf",
+            "GLM-4.7-Flash-UD-Q5_K_XL.gguf",
+            "GLM-4.7-Flash-UD-Q6_K_XL.gguf",
+            "GLM-4.7-Flash-UD-Q8_K_XL.gguf",
+            "GLM-4.7-Flash-UD-TQ1_0.gguf"
+          ],
+          "etichette": [
+            "BF16",
+            "IQ4_NL",
+            "IQ4_XS",
+            "MXFP4",
+            "Q2_K",
+            "Q2_K_L",
+            "Q3_K_M",
+            "Q3_K_S",
+            "Q4_0",
+            "Q4_1",
+            "Q4_K_M",
+            "Q4_K_S",
+            "Q5_K_M",
+            "Q5_K_S",
+            "Q6_K",
+            "Q8_0",
+            "UD-IQ1_M",
+            "UD-IQ1_S",
+            "UD-IQ2_M",
+            "UD-IQ2_XXS",
+            "UD-IQ3_XXS",
+            "UD-Q2_K_XL",
+            "UD-Q3_K_XL",
+            "UD-Q4_K_XL",
+            "UD-Q5_K_XL",
+            "UD-Q6_K_XL",
+            "UD-Q8_K_XL"
+          ]
+        },
+        {
+          "repo": "bartowski/zai-org_GLM-4.7-Flash-GGUF",
+          "autore": "bartowski",
+          "downloads_30d": 29318,
+          "file": [
+            "zai-org_GLM-4.7-Flash-IQ2_M.gguf",
+            "zai-org_GLM-4.7-Flash-IQ2_S.gguf",
+            "zai-org_GLM-4.7-Flash-IQ2_XS.gguf",
+            "zai-org_GLM-4.7-Flash-IQ2_XXS.gguf",
+            "zai-org_GLM-4.7-Flash-IQ3_M.gguf",
+            "zai-org_GLM-4.7-Flash-IQ3_XS.gguf",
+            "zai-org_GLM-4.7-Flash-IQ3_XXS.gguf",
+            "zai-org_GLM-4.7-Flash-IQ4_NL.gguf",
+            "zai-org_GLM-4.7-Flash-IQ4_XS.gguf",
+            "zai-org_GLM-4.7-Flash-Q2_K.gguf",
+            "zai-org_GLM-4.7-Flash-Q2_K_L.gguf",
+            "zai-org_GLM-4.7-Flash-Q3_K_L.gguf",
+            "zai-org_GLM-4.7-Flash-Q3_K_M.gguf",
+            "zai-org_GLM-4.7-Flash-Q3_K_S.gguf",
+            "zai-org_GLM-4.7-Flash-Q3_K_XL.gguf",
+            "zai-org_GLM-4.7-Flash-Q4_0.gguf",
+            "zai-org_GLM-4.7-Flash-Q4_1.gguf",
+            "zai-org_GLM-4.7-Flash-Q4_K_L.gguf",
+            "zai-org_GLM-4.7-Flash-Q4_K_M.gguf",
+            "zai-org_GLM-4.7-Flash-Q4_K_S.gguf",
+            "zai-org_GLM-4.7-Flash-Q5_K_L.gguf",
+            "zai-org_GLM-4.7-Flash-Q5_K_M.gguf",
+            "zai-org_GLM-4.7-Flash-Q5_K_S.gguf",
+            "zai-org_GLM-4.7-Flash-Q6_K.gguf",
+            "zai-org_GLM-4.7-Flash-Q6_K_L.gguf",
+            "zai-org_GLM-4.7-Flash-Q8_0.gguf",
+            "zai-org_GLM-4.7-Flash-bf16/zai-org_GLM-4.7-Flash-bf16-00001-of-00002.gguf",
+            "zai-org_GLM-4.7-Flash-bf16/zai-org_GLM-4.7-Flash-bf16-00002-of-00002.gguf",
+            "zai-org_GLM-4.7-Flash-imatrix.gguf"
+          ],
+          "etichette": [
+            "IQ2_M",
+            "IQ2_S",
+            "IQ2_XS",
+            "IQ2_XXS",
+            "IQ3_M",
+            "IQ3_XS",
+            "IQ3_XXS",
+            "IQ4_NL",
+            "IQ4_XS",
+            "Q2_K",
+            "Q2_K_L",
+            "Q3_K_L",
+            "Q3_K_M",
+            "Q3_K_S",
+            "Q3_K_XL",
+            "Q4_0",
+            "Q4_1",
+            "Q4_K_L",
+            "Q4_K_M",
+            "Q4_K_S",
+            "Q5_K_L",
+            "Q5_K_M",
+            "Q5_K_S",
+            "Q6_K",
+            "Q6_K_L",
+            "Q8_0"
+          ]
+        },
+        {
+          "repo": "ggml-org/GLM-4.7-Flash-GGUF",
+          "autore": "ggml-org",
+          "downloads_30d": 29162,
+          "file": [
+            "GLM-4.7-Flash-Q4_K.gguf",
+            "GLM-4.7-Flash-Q8_0.gguf"
+          ],
+          "etichette": [
+            "Q4_K",
+            "Q8_0"
+          ]
+        },
+        {
+          "repo": "lmstudio-community/GLM-4.7-Flash-GGUF",
+          "autore": "lmstudio-community",
+          "downloads_30d": 29160,
+          "file": [
+            "GLM-4.7-Flash-Q4_K_M.gguf",
+            "GLM-4.7-Flash-Q6_K.gguf",
+            "GLM-4.7-Flash-Q8_0.gguf"
+          ],
+          "etichette": [
+            "Q4_K_M",
+            "Q6_K",
+            "Q8_0"
+          ]
+        }
+      ],
+      "scarica": {
+        "repo": "unsloth/GLM-4.7-Flash-GGUF",
+        "autore": "unsloth",
+        "etichetta": "Q4_K_M",
+        "file": [
+          "GLM-4.7-Flash-Q4_K_M.gguf"
+        ],
+        "downloads_30d": 174557,
+        "commit": "0d32489ecb9db6d2a4fc93bd27ef01519f95474d",
+        "nome": "glm-4.7-flash",
+        "nota": "etichetta Q4_K_M richiesta al repository unsloth: il tipo reale dei tensori è nel manifest (files[].gguf)"
+      }
+    },
+    {
+      "id": "google/gemma-4-31B-it-qat-q4_0-unquantized",
+      "organizzazione": "google",
+      "compito": "image-text-to-text",
+      "multimodale": true,
+      "dominio": "generalista",
+      "commit": "1e4d8beecacb8b7590c1d8bedd7335f687bf311f",
+      "creato": "2026-04-28",
+      "ultima_modifica": "2026-07-20",
+      "parametri_miliardi": 31.27,
+      "fonte_parametri": "safetensors",
+      "contesto": 262144,
+      "chat_template": "config.chat_template_jinja",
+      "reasoning": {
+        "segnali": [
+          "enable_thinking",
+          "reasoning_content"
+        ],
+        "interruttori": [
+          "enable_thinking=false"
+        ]
+      },
+      "lingue": [],
+      "derivato_da": [
+        "google/gemma-4-31B-it"
+      ],
+      "downloads_30d": 317698,
+      "downloads_quantizzazioni_30d": 1072986,
+      "downloads_totali": 1390684,
+      "gguf": [
+        {
+          "repo": "google/gemma-4-31B-it-qat-q4_0-gguf",
+          "autore": "google",
+          "downloads_30d": 145024,
+          "file": [
+            "gemma-4-31B_q4_0-it.gguf"
+          ],
+          "etichette": []
+        },
+        {
+          "repo": "unsloth/gemma-4-31B-it-qat-GGUF",
+          "autore": "unsloth",
+          "downloads_30d": 137353,
+          "file": [
+            "MTP/mtp-gemma-4-31B-it-BF16.gguf",
+            "MTP/mtp-gemma-4-31B-it-F16.gguf",
+            "MTP/mtp-gemma-4-31B-it-Q4_0.gguf",
+            "MTP/mtp-gemma-4-31B-it-Q8_0.gguf",
+            "gemma-4-31B-it-qat-UD-Q4_K_XL.gguf",
+            "mtp-gemma-4-31B-it.gguf"
+          ],
+          "etichette": [
+            "BF16",
+            "F16",
+            "Q4_0",
+            "Q8_0",
+            "UD-Q4_K_XL"
+          ]
+        },
+        {
+          "repo": "lmstudio-community/gemma-4-31B-it-QAT-GGUF",
+          "autore": "lmstudio-community",
+          "downloads_30d": 93832,
+          "file": [
+            "gemma-4-31B-it-QAT-Q4_0.gguf"
+          ],
+          "etichette": [
+            "Q4_0"
+          ]
+        }
+      ],
+      "scarica": {
+        "repo": "unsloth/gemma-4-31B-it-qat-GGUF",
+        "autore": "unsloth",
+        "etichetta": "UD-Q4_K_XL",
+        "file": [
+          "gemma-4-31B-it-qat-UD-Q4_K_XL.gguf"
+        ],
+        "downloads_30d": 137353,
+        "commit": "43cc1aeb31adf47ec06a854507ce552cd9862e6f",
+        "nome": "gemma-4-31b-it-qat-q4-0-unquantized",
+        "nota": "Unsloth Dynamic (repository unsloth): precisione mista per strato, non equivale a un Q4_K_XL uniforme"
+      }
+    },
+    {
+      "id": "google/gemma-4-26B-A4B-it-qat-q4_0-unquantized",
+      "organizzazione": "google",
+      "compito": "image-text-to-text",
+      "multimodale": true,
+      "dominio": "generalista",
+      "commit": "f1e06dc520982d9b9edd76859fdb7ab209449949",
+      "creato": "2026-04-29",
+      "ultima_modifica": "2026-07-20",
+      "parametri_miliardi": 25.81,
+      "fonte_parametri": "safetensors",
+      "contesto": 262144,
+      "chat_template": "config.chat_template_jinja",
+      "reasoning": {
+        "segnali": [
+          "enable_thinking",
+          "reasoning_content"
+        ],
+        "interruttori": [
+          "enable_thinking=false"
+        ]
+      },
+      "lingue": [],
+      "derivato_da": [
+        "google/gemma-4-26B-A4B-it"
+      ],
+      "downloads_30d": 14509,
+      "downloads_quantizzazioni_30d": 804061,
+      "downloads_totali": 818570,
+      "gguf": [
+        {
+          "repo": "unsloth/gemma-4-26B-A4B-it-qat-GGUF",
+          "autore": "unsloth",
+          "downloads_30d": 303418,
+          "file": [
+            "MTP/mtp-gemma-4-26B-A4B-it-BF16.gguf",
+            "MTP/mtp-gemma-4-26B-A4B-it-F16.gguf",
+            "MTP/mtp-gemma-4-26B-A4B-it-Q4_0.gguf",
+            "MTP/mtp-gemma-4-26B-A4B-it-Q8_0.gguf",
+            "gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf",
+            "mtp-gemma-4-26B-A4B-it.gguf"
+          ],
+          "etichette": [
+            "BF16",
+            "F16",
+            "Q4_0",
+            "Q8_0",
+            "UD-Q4_K_XL"
+          ]
+        },
+        {
+          "repo": "google/gemma-4-26B-A4B-it-qat-q4_0-gguf",
+          "autore": "google",
+          "downloads_30d": 219194,
+          "file": [
+            "gemma-4-26B_q4_0-it.gguf"
+          ],
+          "etichette": []
+        },
+        {
+          "repo": "lmstudio-community/gemma-4-26B-A4B-it-QAT-GGUF",
+          "autore": "lmstudio-community",
+          "downloads_30d": 115211,
+          "file": [
+            "gemma-4-26B-A4B-it-QAT-Q4_0.gguf"
+          ],
+          "etichette": [
+            "Q4_0"
+          ]
+        }
+      ],
+      "scarica": {
+        "repo": "unsloth/gemma-4-26B-A4B-it-qat-GGUF",
+        "autore": "unsloth",
+        "etichetta": "UD-Q4_K_XL",
+        "file": [
+          "gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf"
+        ],
+        "downloads_30d": 303418,
+        "commit": "7b92b5b28818151e8669af2e45e88d6086f490dd",
+        "nome": "gemma-4-26b-a4b-it-qat-q4-0-unquantized",
+        "nota": "Unsloth Dynamic (repository unsloth): precisione mista per strato, non equivale a un Q4_K_XL uniforme"
+      }
+    },
+    {
+      "id": "meta-llama/Llama-3.3-70B-Instruct",
+      "organizzazione": "meta-llama",
+      "compito": "text-generation",
+      "multimodale": false,
+      "dominio": "generalista",
+      "commit": "6f6073b423013f6a7d4d9f39144961bfbfbc386b",
+      "creato": "2024-11-26",
+      "ultima_modifica": "2024-12-21",
+      "parametri_miliardi": 70.55,
+      "fonte_parametri": "safetensors",
+      "contesto": null,
+      "chat_template": "config.tokenizer_config",
+      "reasoning": {
+        "segnali": [],
+        "interruttori": []
+      },
+      "lingue": [
+        "en",
+        "fr",
+        "it",
+        "pt",
+        "hi",
+        "es",
+        "th",
+        "de"
+      ],
+      "derivato_da": [
+        "meta-llama/Llama-3.1-70B"
+      ],
+      "downloads_30d": 239043,
+      "downloads_quantizzazioni_30d": 512411,
+      "downloads_totali": 751454,
+      "gguf": [
+        {
+          "repo": "bartowski/Llama-3.3-70B-Instruct-GGUF",
+          "autore": "bartowski",
+          "downloads_30d": 40518,
+          "file": [
+            "Llama-3.3-70B-Instruct-IQ1_M.gguf",
+            "Llama-3.3-70B-Instruct-IQ2_M.gguf",
+            "Llama-3.3-70B-Instruct-IQ2_S.gguf",
+            "Llama-3.3-70B-Instruct-IQ2_XS.gguf",
+            "Llama-3.3-70B-Instruct-IQ2_XXS.gguf",
+            "Llama-3.3-70B-Instruct-IQ3_M.gguf",
+            "Llama-3.3-70B-Instruct-IQ3_XS.gguf",
+            "Llama-3.3-70B-Instruct-IQ3_XXS.gguf",
+            "Llama-3.3-70B-Instruct-IQ4_NL.gguf",
+            "Llama-3.3-70B-Instruct-IQ4_XS.gguf",
+            "Llama-3.3-70B-Instruct-Q2_K.gguf",
+            "Llama-3.3-70B-Instruct-Q2_K_L.gguf",
+            "Llama-3.3-70B-Instruct-Q3_K_L.gguf",
+            "Llama-3.3-70B-Instruct-Q3_K_M.gguf",
+            "Llama-3.3-70B-Instruct-Q3_K_S.gguf",
+            "Llama-3.3-70B-Instruct-Q3_K_XL.gguf",
+            "Llama-3.3-70B-Instruct-Q4_0.gguf",
+            "Llama-3.3-70B-Instruct-Q4_0_4_4.gguf",
+            "Llama-3.3-70B-Instruct-Q4_0_4_8.gguf",
+            "Llama-3.3-70B-Instruct-Q4_0_8_8.gguf",
+            "Llama-3.3-70B-Instruct-Q4_K_L.gguf",
+            "Llama-3.3-70B-Instruct-Q4_K_M.gguf",
+            "Llama-3.3-70B-Instruct-Q4_K_S.gguf",
+            "Llama-3.3-70B-Instruct-Q5_K_L/Llama-3.3-70B-Instruct-Q5_K_L-00001-of-00002.gguf",
+            "Llama-3.3-70B-Instruct-Q5_K_L/Llama-3.3-70B-Instruct-Q5_K_L-00002-of-00002.gguf",
+            "Llama-3.3-70B-Instruct-Q5_K_M/Llama-3.3-70B-Instruct-Q5_K_M-00001-of-00002.gguf",
+            "Llama-3.3-70B-Instruct-Q5_K_M/Llama-3.3-70B-Instruct-Q5_K_M-00002-of-00002.gguf",
+            "Llama-3.3-70B-Instruct-Q5_K_S.gguf",
+            "Llama-3.3-70B-Instruct-Q6_K/Llama-3.3-70B-Instruct-Q6_K-00001-of-00002.gguf",
+            "Llama-3.3-70B-Instruct-Q6_K/Llama-3.3-70B-Instruct-Q6_K-00002-of-00002.gguf",
+            "Llama-3.3-70B-Instruct-Q6_K_L/Llama-3.3-70B-Instruct-Q6_K_L-00001-of-00002.gguf",
+            "Llama-3.3-70B-Instruct-Q6_K_L/Llama-3.3-70B-Instruct-Q6_K_L-00002-of-00002.gguf",
+            "Llama-3.3-70B-Instruct-Q8_0/Llama-3.3-70B-Instruct-Q8_0-00001-of-00002.gguf",
+            "Llama-3.3-70B-Instruct-Q8_0/Llama-3.3-70B-Instruct-Q8_0-00002-of-00002.gguf",
+            "Llama-3.3-70B-Instruct-f16/Llama-3.3-70B-Instruct-f16-00001-of-00004.gguf",
+            "Llama-3.3-70B-Instruct-f16/Llama-3.3-70B-Instruct-f16-00002-of-00004.gguf",
+            "Llama-3.3-70B-Instruct-f16/Llama-3.3-70B-Instruct-f16-00003-of-00004.gguf",
+            "Llama-3.3-70B-Instruct-f16/Llama-3.3-70B-Instruct-f16-00004-of-00004.gguf"
+          ],
+          "etichette": [
+            "IQ1_M",
+            "IQ2_M",
+            "IQ2_S",
+            "IQ2_XS",
+            "IQ2_XXS",
+            "IQ3_M",
+            "IQ3_XS",
+            "IQ3_XXS",
+            "IQ4_NL",
+            "IQ4_XS",
+            "Q2_K",
+            "Q2_K_L",
+            "Q3_K_L",
+            "Q3_K_M",
+            "Q3_K_S",
+            "Q3_K_XL",
+            "Q4_0",
+            "Q4_0_4_4",
+            "Q4_0_4_8",
+            "Q4_0_8_8",
+            "Q4_K_L",
+            "Q4_K_M",
+            "Q4_K_S",
+            "Q5_K_L",
+            "Q5_K_M",
+            "Q5_K_S",
+            "Q6_K",
+            "Q6_K_L",
+            "Q8_0"
+          ]
+        },
+        {
+          "repo": "unsloth/Llama-3.3-70B-Instruct-GGUF",
+          "autore": "unsloth",
+          "downloads_30d": 38412,
+          "file": [
+            "BF16/Llama-3.3-70B-Instruct-BF16-00001-of-00003.gguf",
+            "BF16/Llama-3.3-70B-Instruct-BF16-00002-of-00003.gguf",
+            "BF16/Llama-3.3-70B-Instruct-BF16-00003-of-00003.gguf",
+            "Llama-3.3-70B-Instruct-F16/Llama-3.3-70B-Instruct-F16-00001-of-00004.gguf",
+            "Llama-3.3-70B-Instruct-F16/Llama-3.3-70B-Instruct-F16-00002-of-00004.gguf",
+            "Llama-3.3-70B-Instruct-F16/Llama-3.3-70B-Instruct-F16-00003-of-00004.gguf",
+            "Llama-3.3-70B-Instruct-F16/Llama-3.3-70B-Instruct-F16-00004-of-00004.gguf",
+            "Llama-3.3-70B-Instruct-IQ4_NL.gguf",
+            "Llama-3.3-70B-Instruct-IQ4_XS.gguf",
+            "Llama-3.3-70B-Instruct-Q2_K.gguf",
+            "Llama-3.3-70B-Instruct-Q2_K_L.gguf",
+            "Llama-3.3-70B-Instruct-Q3_K_M.gguf",
+            "Llama-3.3-70B-Instruct-Q3_K_S.gguf",
+            "Llama-3.3-70B-Instruct-Q4_0.gguf",
+            "Llama-3.3-70B-Instruct-Q4_1.gguf",
+            "Llama-3.3-70B-Instruct-Q4_K_M.gguf",
+            "Llama-3.3-70B-Instruct-Q4_K_S.gguf",
+            "Llama-3.3-70B-Instruct-Q5_K_M.gguf",
+            "Llama-3.3-70B-Instruct-Q5_K_S.gguf",
+            "Llama-3.3-70B-Instruct-Q6_K/Llama-3.3-70B-Instruct-Q6_K-00001-of-00002.gguf",
+            "Llama-3.3-70B-Instruct-Q6_K/Llama-3.3-70B-Instruct-Q6_K-00002-of-00002.gguf",
+            "Llama-3.3-70B-Instruct-Q8_0/Llama-3.3-70B-Instruct-Q8_0-00001-of-00002.gguf",
+            "Llama-3.3-70B-Instruct-Q8_0/Llama-3.3-70B-Instruct-Q8_0-00002-of-00002.gguf",
+            "Llama-3.3-70B-Instruct-UD-IQ1_M.gguf",
+            "Llama-3.3-70B-Instruct-UD-IQ1_S.gguf",
+            "Llama-3.3-70B-Instruct-UD-IQ2_M.gguf",
+            "Llama-3.3-70B-Instruct-UD-IQ2_XXS.gguf",
+            "Llama-3.3-70B-Instruct-UD-IQ3_XXS.gguf",
+            "Llama-3.3-70B-Instruct-UD-Q2_K_XL.gguf",
+            "Llama-3.3-70B-Instruct-UD-Q3_K_XL.gguf",
+            "Llama-3.3-70B-Instruct-UD-Q4_K_XL.gguf",
+            "Llama-3.3-70B-Instruct-UD-Q5_K_XL.gguf",
+            "Q6_K/Llama-3.3-70B-Instruct-Q6_K-00001-of-00002.gguf",
+            "Q6_K/Llama-3.3-70B-Instruct-Q6_K-00002-of-00002.gguf",
+            "UD-Q6_K_XL/Llama-3.3-70B-Instruct-UD-Q6_K_XL-00001-of-00002.gguf",
+            "UD-Q6_K_XL/Llama-3.3-70B-Instruct-UD-Q6_K_XL-00002-of-00002.gguf",
+            "UD-Q8_K_XL/Llama-3.3-70B-Instruct-UD-Q8_K_XL-00001-of-00002.gguf",
+            "UD-Q8_K_XL/Llama-3.3-70B-Instruct-UD-Q8_K_XL-00002-of-00002.gguf"
+          ],
+          "etichette": [
+            "BF16",
+            "F16",
+            "IQ4_NL",
+            "IQ4_XS",
+            "Q2_K",
+            "Q2_K_L",
+            "Q3_K_M",
+            "Q3_K_S",
+            "Q4_0",
+            "Q4_1",
+            "Q4_K_M",
+            "Q4_K_S",
+            "Q5_K_M",
+            "Q5_K_S",
+            "Q6_K",
+            "Q8_0",
+            "UD-IQ1_M",
+            "UD-IQ1_S",
+            "UD-IQ2_M",
+            "UD-IQ2_XXS",
+            "UD-IQ3_XXS",
+            "UD-Q2_K_XL",
+            "UD-Q3_K_XL",
+            "UD-Q4_K_XL",
+            "UD-Q5_K_XL",
+            "UD-Q6_K_XL",
+            "UD-Q8_K_XL"
+          ]
+        },
+        {
+          "repo": "lmstudio-community/Llama-3.3-70B-Instruct-GGUF",
+          "autore": "lmstudio-community",
+          "downloads_30d": 14071,
+          "file": [
+            "Llama-3.3-70B-Instruct-Q3_K_L.gguf",
+            "Llama-3.3-70B-Instruct-Q4_K_M.gguf",
+            "Llama-3.3-70B-Instruct-Q6_K-00001-of-00002.gguf",
+            "Llama-3.3-70B-Instruct-Q6_K-00002-of-00002.gguf",
+            "Llama-3.3-70B-Instruct-Q8_0-00001-of-00002.gguf",
+            "Llama-3.3-70B-Instruct-Q8_0-00002-of-00002.gguf"
+          ],
+          "etichette": [
+            "Q3_K_L",
+            "Q4_K_M",
+            "Q6_K",
+            "Q8_0"
+          ]
+        }
+      ],
+      "scarica": {
+        "repo": "bartowski/Llama-3.3-70B-Instruct-GGUF",
+        "autore": "bartowski",
+        "etichetta": "Q4_K_M",
+        "file": [
+          "Llama-3.3-70B-Instruct-Q4_K_M.gguf"
+        ],
+        "downloads_30d": 40518,
+        "commit": "b6c5c9f176f3279204034e1d16d393105e95cb88",
+        "nome": "llama-3.3-70b-instruct",
+        "nota": "etichetta Q4_K_M richiesta al repository bartowski: il tipo reale dei tensori è nel manifest (files[].gguf)"
+      }
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct",
+      "organizzazione": "deepseek-ai",
+      "compito": "text-generation",
+      "multimodale": false,
+      "dominio": "generalista",
+      "commit": "e434a23f91ba5b4923cf6c9d9a238eb4a08e3a11",
+      "creato": "2024-06-14",
+      "ultima_modifica": "2024-07-03",
+      "parametri_miliardi": 15.71,
+      "fonte_parametri": "safetensors",
+      "contesto": 163840,
+      "chat_template": "config.tokenizer_config",
+      "reasoning": {
+        "segnali": [],
+        "interruttori": []
+      },
+      "lingue": [],
+      "derivato_da": [],
+      "downloads_30d": 551620,
+      "downloads_quantizzazioni_30d": 32845,
+      "downloads_totali": 584465,
+      "gguf": [
+        {
+          "repo": "lmstudio-community/DeepSeek-Coder-V2-Lite-Instruct-GGUF",
+          "autore": "lmstudio-community",
+          "downloads_30d": 11977,
+          "file": [
+            "DeepSeek-Coder-V2-Lite-Instruct-IQ3_M.gguf",
+            "DeepSeek-Coder-V2-Lite-Instruct-IQ4_XS.gguf",
+            "DeepSeek-Coder-V2-Lite-Instruct-Q3_K_L.gguf",
+            "DeepSeek-Coder-V2-Lite-Instruct-Q4_K_M.gguf",
+            "DeepSeek-Coder-V2-Lite-Instruct-Q5_K_M.gguf",
+            "DeepSeek-Coder-V2-Lite-Instruct-Q6_K.gguf",
+            "DeepSeek-Coder-V2-Lite-Instruct-Q8_0.gguf"
+          ],
+          "etichette": [
+            "IQ3_M",
+            "IQ4_XS",
+            "Q3_K_L",
+            "Q4_K_M",
+            "Q5_K_M",
+            "Q6_K",
+            "Q8_0"
+          ]
+        }
+      ],
+      "scarica": {
+        "repo": "lmstudio-community/DeepSeek-Coder-V2-Lite-Instruct-GGUF",
+        "autore": "lmstudio-community",
+        "etichetta": "Q4_K_M",
+        "file": [
+          "DeepSeek-Coder-V2-Lite-Instruct-Q4_K_M.gguf"
+        ],
+        "downloads_30d": 11977,
+        "commit": "81793aca588452deb110103ff5400cc32c44e7f9",
+        "nome": "deepseek-coder-v2-lite-instruct",
+        "nota": "etichetta Q4_K_M richiesta al repository lmstudio-community: il tipo reale dei tensori è nel manifest (files[].gguf)"
+      }
+    },
+    {
+      "id": "meta-llama/Llama-3.1-70B-Instruct",
+      "organizzazione": "meta-llama",
+      "compito": "text-generation",
+      "multimodale": false,
+      "dominio": "generalista",
+      "commit": "1605565b47bb9346c5515c34102e054115b4f98b",
+      "creato": "2024-07-16",
+      "ultima_modifica": "2024-12-15",
+      "parametri_miliardi": 70.55,
+      "fonte_parametri": "safetensors",
+      "contesto": null,
+      "chat_template": "config.tokenizer_config",
+      "reasoning": {
+        "segnali": [],
+        "interruttori": []
+      },
+      "lingue": [
+        "en",
+        "de",
+        "fr",
+        "it",
+        "pt",
+        "hi",
+        "es",
+        "th"
+      ],
+      "derivato_da": [
+        "meta-llama/Llama-3.1-70B"
+      ],
+      "downloads_30d": 87315,
+      "downloads_quantizzazioni_30d": 338548,
+      "downloads_totali": 425863,
+      "gguf": [
+        {
+          "repo": "bartowski/Meta-Llama-3.1-70B-Instruct-GGUF",
+          "autore": "bartowski",
+          "downloads_30d": 73556,
+          "file": [
+            "Meta-Llama-3.1-70B-Instruct-IQ1_M.gguf",
+            "Meta-Llama-3.1-70B-Instruct-IQ2_M.gguf",
+            "Meta-Llama-3.1-70B-Instruct-IQ2_S.gguf",
+            "Meta-Llama-3.1-70B-Instruct-IQ2_XS.gguf",
+            "Meta-Llama-3.1-70B-Instruct-IQ2_XXS.gguf",
+            "Meta-Llama-3.1-70B-Instruct-IQ3_M.gguf",
+            "Meta-Llama-3.1-70B-Instruct-IQ3_XS.gguf",
+            "Meta-Llama-3.1-70B-Instruct-IQ4_XS.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q2_K.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q2_K_L.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q3_K_L.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q3_K_M.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q3_K_S.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q3_K_XL.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q4_K_L.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q4_K_M.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q4_K_S.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q5_K_L/Meta-Llama-3.1-70B-Instruct-Q5_K_L-00001-of-00002.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q5_K_L/Meta-Llama-3.1-70B-Instruct-Q5_K_L-00002-of-00002.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q5_K_M/Meta-Llama-3.1-70B-Instruct-Q5_K_M-00001-of-00002.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q5_K_M/Meta-Llama-3.1-70B-Instruct-Q5_K_M-00002-of-00002.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q5_K_S.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q6_K/Meta-Llama-3.1-70B-Instruct-Q6_K-00001-of-00002.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q6_K/Meta-Llama-3.1-70B-Instruct-Q6_K-00002-of-00002.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q6_K_L/Meta-Llama-3.1-70B-Instruct-Q6_K_L-00001-of-00002.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q6_K_L/Meta-Llama-3.1-70B-Instruct-Q6_K_L-00002-of-00002.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q8_0/Meta-Llama-3.1-70B-Instruct-Q8_0-00001-of-00002.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q8_0/Meta-Llama-3.1-70B-Instruct-Q8_0-00002-of-00002.gguf"
+          ],
+          "etichette": [
+            "IQ1_M",
+            "IQ2_M",
+            "IQ2_S",
+            "IQ2_XS",
+            "IQ2_XXS",
+            "IQ3_M",
+            "IQ3_XS",
+            "IQ4_XS",
+            "Q2_K",
+            "Q2_K_L",
+            "Q3_K_L",
+            "Q3_K_M",
+            "Q3_K_S",
+            "Q3_K_XL",
+            "Q4_K_L",
+            "Q4_K_M",
+            "Q4_K_S",
+            "Q5_K_L",
+            "Q5_K_M",
+            "Q5_K_S",
+            "Q6_K",
+            "Q6_K_L",
+            "Q8_0"
+          ]
+        },
+        {
+          "repo": "lmstudio-community/Meta-Llama-3.1-70B-Instruct-GGUF",
+          "autore": "lmstudio-community",
+          "downloads_30d": 14526,
+          "file": [
+            "Meta-Llama-3.1-70B-Instruct-IQ2_M.gguf",
+            "Meta-Llama-3.1-70B-Instruct-IQ3_M.gguf",
+            "Meta-Llama-3.1-70B-Instruct-IQ4_XS.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q2_K.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q3_K_L.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q3_K_M.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q3_K_S.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q4_K_M.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q5_K_M-00001-of-00002.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q5_K_M-00002-of-00002.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q6_K-00001-of-00002.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q6_K-00002-of-00002.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q8_0-00001-of-00002.gguf",
+            "Meta-Llama-3.1-70B-Instruct-Q8_0-00002-of-00002.gguf"
+          ],
+          "etichette": [
+            "IQ2_M",
+            "IQ3_M",
+            "IQ4_XS",
+            "Q2_K",
+            "Q3_K_L",
+            "Q3_K_M",
+            "Q3_K_S",
+            "Q4_K_M",
+            "Q5_K_M",
+            "Q6_K",
+            "Q8_0"
+          ]
+        }
+      ],
+      "scarica": {
+        "repo": "bartowski/Meta-Llama-3.1-70B-Instruct-GGUF",
+        "autore": "bartowski",
+        "etichetta": "Q4_K_M",
+        "file": [
+          "Meta-Llama-3.1-70B-Instruct-Q4_K_M.gguf"
+        ],
+        "downloads_30d": 73556,
+        "commit": "83fb6e83d0a8aada42d499259bc929d922e9a558",
+        "nome": "llama-3.1-70b-instruct",
+        "nota": "etichetta Q4_K_M richiesta al repository bartowski: il tipo reale dei tensori è nel manifest (files[].gguf)"
+      }
+    },
+    {
+      "id": "moonshotai/Kimi-Linear-48B-A3B-Instruct",
+      "organizzazione": "moonshotai",
+      "compito": "text-generation",
+      "multimodale": false,
+      "dominio": "generalista",
+      "commit": "e1df551a447157d4658b573f9a695d57658590e9",
+      "creato": "2025-10-30",
+      "ultima_modifica": "2025-12-16",
+      "parametri_miliardi": 49.12,
+      "fonte_parametri": "safetensors",
+      "contesto": 1048576,
+      "chat_template": "config.chat_template_jinja",
+      "reasoning": {
+        "segnali": [],
+        "interruttori": []
+      },
+      "lingue": [],
+      "derivato_da": [],
+      "downloads_30d": 171840,
+      "downloads_quantizzazioni_30d": 24244,
+      "downloads_totali": 196084,
+      "gguf": [
+        {
+          "repo": "bartowski/moonshotai_Kimi-Linear-48B-A3B-Instruct-GGUF",
+          "autore": "bartowski",
+          "downloads_30d": 11842,
+          "file": [
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-IQ1_M.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-IQ1_S.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-IQ2_M.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-IQ2_S.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-IQ2_XS.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-IQ2_XXS.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-IQ3_M.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-IQ3_XS.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-IQ3_XXS.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-IQ4_NL.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-IQ4_XS.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-Q2_K.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-Q2_K_L.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-Q3_K_L.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-Q3_K_M.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-Q3_K_S.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-Q3_K_XL.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-Q4_0.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-Q4_1.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-Q4_K_L.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-Q4_K_M.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-Q4_K_S.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-Q5_K_L.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-Q5_K_M.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-Q5_K_S.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-Q6_K.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-Q6_K_L.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-Q8_0/moonshotai_Kimi-Linear-48B-A3B-Instruct-Q8_0-00001-of-00002.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-Q8_0/moonshotai_Kimi-Linear-48B-A3B-Instruct-Q8_0-00002-of-00002.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-bf16/moonshotai_Kimi-Linear-48B-A3B-Instruct-bf16-00001-of-00003.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-bf16/moonshotai_Kimi-Linear-48B-A3B-Instruct-bf16-00002-of-00003.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-bf16/moonshotai_Kimi-Linear-48B-A3B-Instruct-bf16-00003-of-00003.gguf",
+            "moonshotai_Kimi-Linear-48B-A3B-Instruct-imatrix.gguf"
+          ],
+          "etichette": [
+            "IQ1_M",
+            "IQ1_S",
+            "IQ2_M",
+            "IQ2_S",
+            "IQ2_XS",
+            "IQ2_XXS",
+            "IQ3_M",
+            "IQ3_XS",
+            "IQ3_XXS",
+            "IQ4_NL",
+            "IQ4_XS",
+            "Q2_K",
+            "Q2_K_L",
+            "Q3_K_L",
+            "Q3_K_M",
+            "Q3_K_S",
+            "Q3_K_XL",
+            "Q4_0",
+            "Q4_1",
+            "Q4_K_L",
+            "Q4_K_M",
+            "Q4_K_S",
+            "Q5_K_L",
+            "Q5_K_M",
+            "Q5_K_S",
+            "Q6_K",
+            "Q6_K_L",
+            "Q8_0"
+          ]
+        }
+      ],
+      "scarica": {
+        "repo": "bartowski/moonshotai_Kimi-Linear-48B-A3B-Instruct-GGUF",
+        "autore": "bartowski",
+        "etichetta": "Q4_K_M",
+        "file": [
+          "moonshotai_Kimi-Linear-48B-A3B-Instruct-Q4_K_M.gguf"
+        ],
+        "downloads_30d": 11842,
+        "commit": "228dbe476e5a02091624a19068f4c962caa8a1c5",
+        "nome": "kimi-linear-48b-a3b-instruct",
+        "nota": "etichetta Q4_K_M richiesta al repository bartowski: il tipo reale dei tensori è nel manifest (files[].gguf)"
+      }
+    },
+    {
+      "id": "ByteDance-Seed/Seed-OSS-36B-Instruct",
+      "organizzazione": "ByteDance-Seed",
+      "compito": "text-generation",
+      "multimodale": false,
+      "dominio": "generalista",
+      "commit": "497f1dca95ebdec98e41d517b9f060ee753c902f",
+      "creato": "2025-08-20",
+      "ultima_modifica": "2025-08-26",
+      "parametri_miliardi": 36.15,
+      "fonte_parametri": "safetensors",
+      "contesto": 524288,
+      "chat_template": "config.chat_template_jinja",
+      "reasoning": {
+        "segnali": [
+          "reasoning_content",
+          "thinking_budget"
+        ],
+        "interruttori": [
+          "thinking_budget=0"
+        ]
+      },
+      "lingue": [],
+      "derivato_da": [],
+      "downloads_30d": 48079,
+      "downloads_quantizzazioni_30d": 98422,
+      "downloads_totali": 146501,
+      "gguf": [
+        {
+          "repo": "unsloth/Seed-OSS-36B-Instruct-GGUF",
+          "autore": "unsloth",
+          "downloads_30d": 6239,
+          "file": [
+            "BF16/Seed-OSS-36B-Instruct-BF16-00001-of-00002.gguf",
+            "BF16/Seed-OSS-36B-Instruct-BF16-00002-of-00002.gguf",
+            "Seed-OSS-36B-Instruct-IQ4_NL.gguf",
+            "Seed-OSS-36B-Instruct-IQ4_XS.gguf",
+            "Seed-OSS-36B-Instruct-Q2_K.gguf",
+            "Seed-OSS-36B-Instruct-Q2_K_L.gguf",
+            "Seed-OSS-36B-Instruct-Q3_K_M.gguf",
+            "Seed-OSS-36B-Instruct-Q3_K_S.gguf",
+            "Seed-OSS-36B-Instruct-Q4_0.gguf",
+            "Seed-OSS-36B-Instruct-Q4_1.gguf",
+            "Seed-OSS-36B-Instruct-Q4_K_M.gguf",
+            "Seed-OSS-36B-Instruct-Q4_K_S.gguf",
+            "Seed-OSS-36B-Instruct-Q5_K_M.gguf",
+            "Seed-OSS-36B-Instruct-Q5_K_S.gguf",
+            "Seed-OSS-36B-Instruct-Q6_K.gguf",
+            "Seed-OSS-36B-Instruct-Q8_0.gguf",
+            "Seed-OSS-36B-Instruct-UD-IQ1_M.gguf",
+            "Seed-OSS-36B-Instruct-UD-IQ1_S.gguf",
+            "Seed-OSS-36B-Instruct-UD-IQ2_M.gguf",
+            "Seed-OSS-36B-Instruct-UD-IQ2_XXS.gguf",
+            "Seed-OSS-36B-Instruct-UD-IQ3_XXS.gguf",
+            "Seed-OSS-36B-Instruct-UD-Q2_K_XL.gguf",
+            "Seed-OSS-36B-Instruct-UD-Q3_K_XL.gguf",
+            "Seed-OSS-36B-Instruct-UD-Q4_K_XL.gguf",
+            "Seed-OSS-36B-Instruct-UD-Q5_K_XL.gguf",
+            "Seed-OSS-36B-Instruct-UD-Q6_K_XL.gguf",
+            "Seed-OSS-36B-Instruct-UD-Q8_K_XL.gguf"
+          ],
+          "etichette": [
+            "BF16",
+            "IQ4_NL",
+            "IQ4_XS",
+            "Q2_K",
+            "Q2_K_L",
+            "Q3_K_M",
+            "Q3_K_S",
+            "Q4_0",
+            "Q4_1",
+            "Q4_K_M",
+            "Q4_K_S",
+            "Q5_K_M",
+            "Q5_K_S",
+            "Q6_K",
+            "Q8_0",
+            "UD-IQ1_M",
+            "UD-IQ1_S",
+            "UD-IQ2_M",
+            "UD-IQ2_XXS",
+            "UD-IQ3_XXS",
+            "UD-Q2_K_XL",
+            "UD-Q3_K_XL",
+            "UD-Q4_K_XL",
+            "UD-Q5_K_XL",
+            "UD-Q6_K_XL",
+            "UD-Q8_K_XL"
+          ]
+        },
+        {
+          "repo": "bartowski/ByteDance-Seed_Seed-OSS-36B-Instruct-GGUF",
+          "autore": "bartowski",
+          "downloads_30d": 2666,
+          "file": [
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-IQ2_M.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-IQ2_S.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-IQ2_XS.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-IQ2_XXS.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-IQ3_M.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-IQ3_XS.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-IQ3_XXS.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-IQ4_NL.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-IQ4_XS.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-Q2_K.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-Q2_K_L.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-Q3_K_L.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-Q3_K_M.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-Q3_K_S.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-Q3_K_XL.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-Q4_0.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-Q4_1.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-Q4_K_L.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-Q4_K_M.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-Q4_K_S.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-Q5_K_L.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-Q5_K_M.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-Q5_K_S.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-Q6_K.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-Q6_K_L.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-Q8_0.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-bf16/ByteDance-Seed_Seed-OSS-36B-Instruct-bf16-00001-of-00002.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-bf16/ByteDance-Seed_Seed-OSS-36B-Instruct-bf16-00002-of-00002.gguf",
+            "ByteDance-Seed_Seed-OSS-36B-Instruct-imatrix.gguf"
+          ],
+          "etichette": [
+            "IQ2_M",
+            "IQ2_S",
+            "IQ2_XS",
+            "IQ2_XXS",
+            "IQ3_M",
+            "IQ3_XS",
+            "IQ3_XXS",
+            "IQ4_NL",
+            "IQ4_XS",
+            "Q2_K",
+            "Q2_K_L",
+            "Q3_K_L",
+            "Q3_K_M",
+            "Q3_K_S",
+            "Q3_K_XL",
+            "Q4_0",
+            "Q4_1",
+            "Q4_K_L",
+            "Q4_K_M",
+            "Q4_K_S",
+            "Q5_K_L",
+            "Q5_K_M",
+            "Q5_K_S",
+            "Q6_K",
+            "Q6_K_L",
+            "Q8_0"
+          ]
+        },
+        {
+          "repo": "lmstudio-community/Seed-OSS-36B-Instruct-GGUF",
+          "autore": "lmstudio-community",
+          "downloads_30d": 2592,
+          "file": [
+            "Seed-OSS-36B-Instruct-Q4_K_M.gguf",
+            "Seed-OSS-36B-Instruct-Q6_K.gguf",
+            "Seed-OSS-36B-Instruct-Q8_0.gguf"
+          ],
+          "etichette": [
+            "Q4_K_M",
+            "Q6_K",
+            "Q8_0"
+          ]
+        }
+      ],
+      "scarica": {
+        "repo": "unsloth/Seed-OSS-36B-Instruct-GGUF",
+        "autore": "unsloth",
+        "etichetta": "Q4_K_M",
+        "file": [
+          "Seed-OSS-36B-Instruct-Q4_K_M.gguf"
+        ],
+        "downloads_30d": 6239,
+        "commit": "6403aa019fffb2d698433e3aed271d8962e28a58",
+        "nome": "seed-oss-36b-instruct",
+        "nota": "etichetta Q4_K_M richiesta al repository unsloth: il tipo reale dei tensori è nel manifest (files[].gguf)"
+      }
+    }
+  ],
+  "esclusi": [
+    {
+      "id": "meta-llama/Llama-3.1-8B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.03
+    },
+    {
+      "id": "meta-llama/Llama-3.2-1B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.24
+    },
+    {
+      "id": "meta-llama/Llama-3.2-3B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.21
+    },
+    {
+      "id": "meta-llama/Llama-3.1-8B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.03
+    },
+    {
+      "id": "meta-llama/Llama-2-7b-hf",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 6.74
+    },
+    {
+      "id": "meta-llama/Llama-3.2-1B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.24
+    },
+    {
+      "id": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.03
+    },
+    {
+      "id": "meta-llama/Llama-3.1-405B-FP8",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 405.87
+    },
+    {
+      "id": "meta-llama/Llama-3.2-3B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.21
+    },
+    {
+      "id": "meta-llama/Llama-2-7b-chat-hf",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 6.74
+    },
+    {
+      "id": "meta-llama/Llama-2-13b-chat-hf",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 13.02
+    },
+    {
+      "id": "meta-llama/Meta-Llama-3-8B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.03
+    },
+    {
+      "id": "meta-llama/Meta-Llama-3-70B",
+      "motivo": "nessun chat template",
+      "dominio": "generalista"
+    },
+    {
+      "id": "meta-llama/Meta-Llama-3-70B-Instruct",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 54317
+    },
+    {
+      "id": "meta-llama/Llama-3.1-70B",
+      "motivo": "nessun chat template",
+      "dominio": "generalista"
+    },
+    {
+      "id": "meta-llama/Llama-3.1-405B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 405.85
+    },
+    {
+      "id": "meta-llama/Llama-Guard-3-8B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.03
+    },
+    {
+      "id": "meta-llama/Llama-Guard-3-1B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.5
+    },
+    {
+      "id": "meta-llama/Llama-2-13b-hf",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 13.02
+    },
+    {
+      "id": "meta-llama/Llama-Guard-3-8B-INT8",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.03
+    },
+    {
+      "id": "meta-llama/Llama-2-70b-hf",
+      "motivo": "nessun chat template",
+      "dominio": "generalista"
+    },
+    {
+      "id": "meta-llama/Llama-4-Scout-17B-16E-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 108.64
+    },
+    {
+      "id": "meta-llama/Llama-3.2-11B-Vision-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 10.67
+    },
+    {
+      "id": "meta-llama/Llama-Guard-4-12B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 12.0
+    },
+    {
+      "id": "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "meta-llama/Llama-3.2-11B-Vision",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 10.64
+    },
+    {
+      "id": "Qwen/Qwen3-0.6B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.75
+    },
+    {
+      "id": "Qwen/Qwen3-4B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 4.02
+    },
+    {
+      "id": "Qwen/Qwen3-8B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.19
+    },
+    {
+      "id": "Qwen/Qwen2.5-7B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.62
+    },
+    {
+      "id": "Qwen/Qwen2.5-0.5B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.49
+    },
+    {
+      "id": "Qwen/Qwen2.5-1.5B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.54
+    },
+    {
+      "id": "Qwen/Qwen2.5-3B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.09
+    },
+    {
+      "id": "Qwen/Qwen3-1.7B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 2.03
+    },
+    {
+      "id": "Qwen/Qwen3-4B-Instruct-2507",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 4.02
+    },
+    {
+      "id": "Qwen/Qwen3-14B-AWQ",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2.5-7B-Instruct-AWQ",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3-8B-AWQ",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2.5-Coder-7B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "coding",
+      "parametri_b": 7.62
+    },
+    {
+      "id": "Qwen/Qwen2.5-14B-Instruct-AWQ",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3-4B-Instruct-2507-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2.5-0.5B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.49
+    },
+    {
+      "id": "Qwen/Qwen3-Coder-30B-A3B-Instruct-FP8",
+      "motivo": "nessun GGUF a 4 bit da quantizzatori fidati",
+      "dominio": "generalista",
+      "gguf_trovati": 0
+    },
+    {
+      "id": "Qwen/Qwen3-Coder-Next-FP8",
+      "motivo": "nessun GGUF a 4 bit da quantizzatori fidati",
+      "dominio": "generalista",
+      "gguf_trovati": 0
+    },
+    {
+      "id": "Qwen/Qwen2.5-Coder-32B-Instruct-AWQ",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "coding"
+    },
+    {
+      "id": "Qwen/Qwen2.5-32B-Instruct-AWQ",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3-32B-AWQ",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2.5-7B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.62
+    },
+    {
+      "id": "Qwen/Qwen3-8B-Base",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.19
+    },
+    {
+      "id": "Qwen/Qwen2.5-Coder-7B-Instruct-AWQ",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "coding"
+    },
+    {
+      "id": "Qwen/Qwen2.5-3B-Instruct-AWQ",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2.5-1.5B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.54
+    },
+    {
+      "id": "Qwen/Qwen3-0.6B-Base",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.6
+    },
+    {
+      "id": "Qwen/Qwen3-8B-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3-4B-Thinking-2507",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 4.02
+    },
+    {
+      "id": "Qwen/Qwen3-4B-Base",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 4.02
+    },
+    {
+      "id": "Qwen/Qwen3-1.7B-Base",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.72
+    },
+    {
+      "id": "Qwen/Qwen3-4B-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3-8B-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2.5-72B-Instruct-AWQ",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2.5-32B-Instruct-GPTQ-Int4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2.5-Coder-3B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "coding",
+      "parametri_b": 3.09
+    },
+    {
+      "id": "Qwen/Qwen3-235B-A22B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 235.09
+    },
+    {
+      "id": "Qwen/Qwen2.5-Coder-1.5B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "coding",
+      "parametri_b": 1.54
+    },
+    {
+      "id": "Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 480.18
+    },
+    {
+      "id": "Qwen/Qwen2.5-Coder-7B-Instruct-GPTQ-Int4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "coding"
+    },
+    {
+      "id": "Qwen/Qwen2.5-Coder-1.5B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "coding",
+      "parametri_b": 1.54
+    },
+    {
+      "id": "Qwen/Qwen2.5-Coder-14B-Instruct-AWQ",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "coding"
+    },
+    {
+      "id": "Qwen/Qwen2.5-1.5B-Instruct-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2.5-Coder-7B-Instruct-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "coding"
+    },
+    {
+      "id": "Qwen/Qwen2-1.5B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.54
+    },
+    {
+      "id": "Qwen/Qwen2.5-7B-Instruct-GPTQ-Int4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3-0.6B-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2.5-Coder-7B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "coding",
+      "parametri_b": 7.62
+    },
+    {
+      "id": "Qwen/Qwen3-30B-A3B-Instruct-2507-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3-235B-A22B-Instruct-2507-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2-0.5B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.49
+    },
+    {
+      "id": "Qwen/Qwen2-0.5B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.49
+    },
+    {
+      "id": "Qwen/Qwen3-14B-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2.5-Math-1.5B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.54
+    },
+    {
+      "id": "Qwen/Qwen3Guard-Gen-0.6B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.75
+    },
+    {
+      "id": "Qwen/Qwen2.5-3B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.09
+    },
+    {
+      "id": "Qwen/Qwen2.5-3B-Instruct-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "coding"
+    },
+    {
+      "id": "Qwen/Qwen2-7B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.62
+    },
+    {
+      "id": "Qwen/Qwen2-7B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.62
+    },
+    {
+      "id": "Qwen/Qwen2.5-7B-Instruct-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3-0.6B-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen1.5-1.8B-Chat",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.84
+    },
+    {
+      "id": "Qwen/Qwen3-1.7B-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3-4B-AWQ",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3-235B-A22B-Instruct-2507",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 235.09
+    },
+    {
+      "id": "Qwen/Qwen2.5-Coder-0.5B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "coding",
+      "parametri_b": 0.49
+    },
+    {
+      "id": "Qwen/Qwen2.5-Math-1.5B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.54
+    },
+    {
+      "id": "Qwen/Qwen2.5-Coder-14B-Instruct-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "coding"
+    },
+    {
+      "id": "Qwen/Qwen2-1.5B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.54
+    },
+    {
+      "id": "Qwen/Qwen2.5-14B-Instruct-GPTQ-Int4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen1.5-MoE-A2.7B",
+      "motivo": "contesto dichiarato sotto il minimo",
+      "dominio": "generalista",
+      "contesto": 8192
+    },
+    {
+      "id": "Qwen/Qwen3-30B-A3B-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2.5-Coder-3B-Instruct-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "coding"
+    },
+    {
+      "id": "Qwen/Qwen3-14B-Base",
+      "motivo": "nessun GGUF a 4 bit da quantizzatori fidati",
+      "dominio": "generalista",
+      "gguf_trovati": 0
+    },
+    {
+      "id": "Qwen/Qwen3-Next-80B-A3B-Instruct-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2.5-14B",
+      "motivo": "nessun GGUF a 4 bit da quantizzatori fidati",
+      "dominio": "generalista",
+      "gguf_trovati": 0
+    },
+    {
+      "id": "Qwen/Qwen3-32B-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2.5-7B-Instruct-1M",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.62
+    },
+    {
+      "id": "Qwen/Qwen3-4B-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3-32B-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2.5-Math-7B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.62
+    },
+    {
+      "id": "Qwen/Qwen3-30B-A3B-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen-7B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.72
+    },
+    {
+      "id": "Qwen/Qwen1.5-7B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.72
+    },
+    {
+      "id": "Qwen/Qwen3Guard-Gen-8B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.19
+    },
+    {
+      "id": "Qwen/Qwen2.5-1.5B-Instruct-AWQ",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen1.5-0.5B-Chat",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.62
+    },
+    {
+      "id": "Qwen/Qwen-7B-Chat",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.72
+    },
+    {
+      "id": "Qwen/Qwen2.5-Coder-3B-Instruct-AWQ",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "coding"
+    },
+    {
+      "id": "Qwen/Qwen3-30B-A3B-Thinking-2507",
+      "motivo": "modello reasoning senza interruttore per disattivare il ragionamento",
+      "dominio": "generalista",
+      "segnali_reasoning": [
+        "</think",
+        "<think",
+        "reasoning_content"
+      ]
+    },
+    {
+      "id": "Qwen/Qwen3-30B-A3B-GPTQ-Int4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen-72B",
+      "motivo": "nessun chat template",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3-Coder-480B-A35B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 480.15
+    },
+    {
+      "id": "Qwen/Qwen2.5-Coder-32B-Instruct-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "coding"
+    },
+    {
+      "id": "Qwen/Qwen3-Coder-Next-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3-30B-A3B-Base",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 46145
+    },
+    {
+      "id": "Qwen/Qwen3-Next-80B-A3B-Thinking",
+      "motivo": "modello reasoning senza interruttore per disattivare il ragionamento",
+      "dominio": "generalista",
+      "segnali_reasoning": [
+        "</think",
+        "<think",
+        "reasoning_content"
+      ]
+    },
+    {
+      "id": "Qwen/Qwen3-235B-A22B-Thinking-2507-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2.5-Math-7B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.62
+    },
+    {
+      "id": "Qwen/Qwen1.5-0.5B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.62
+    },
+    {
+      "id": "Qwen/QwQ-32B",
+      "motivo": "modello reasoning senza interruttore per disattivare il ragionamento",
+      "dominio": "generalista",
+      "segnali_reasoning": [
+        "</think",
+        "<think"
+      ]
+    },
+    {
+      "id": "Qwen/Qwen2.5-14B-Instruct-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2.5-Coder-3B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "coding",
+      "parametri_b": 3.09
+    },
+    {
+      "id": "Qwen/Qwen2.5-Coder-0.5B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "coding",
+      "parametri_b": 0.49
+    },
+    {
+      "id": "Qwen/Qwen2-72B",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 29502
+    },
+    {
+      "id": "Qwen/Qwen2.5-Coder-0.5B-Instruct-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "coding"
+    },
+    {
+      "id": "Qwen/Qwen3.8-2.4T-A95B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 2446.18
+    },
+    {
+      "id": "Qwen/Qwen3-14B-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2.5-14B-Instruct-1M",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 40765
+    },
+    {
+      "id": "Qwen/Qwen1.5-MoE-A2.7B-Chat",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 24351
+    },
+    {
+      "id": "Qwen/QwQ-32B-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2-72B-Instruct",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 27402
+    },
+    {
+      "id": "Qwen/Qwen2-1.5B-Instruct-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3-1.7B-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2.5-32B",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 37536
+    },
+    {
+      "id": "Qwen/Qwen3-235B-A22B-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2.5-Coder-14B-Instruct-GPTQ-Int4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "coding"
+    },
+    {
+      "id": "Qwen/Qwen-VL-Chat",
+      "motivo": "parametri non presenti nei metadati",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3Guard-Gen-4B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 4.41
+    },
+    {
+      "id": "Qwen/Qwen3-235B-A22B-Thinking-2507",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 235.09
+    },
+    {
+      "id": "Qwen/Qwen1.5-4B-Chat",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.95
+    },
+    {
+      "id": "Qwen/Qwen2-57B-A14B-Instruct",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 19593
+    },
+    {
+      "id": "Qwen/Qwen3-Next-80B-A3B-Instruct-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2-0.5B-Instruct-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen1.5-32B-Chat",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 14445
+    },
+    {
+      "id": "Qwen/Qwen1.5-1.8B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.84
+    },
+    {
+      "id": "Qwen/Qwen1.5-14B-Chat",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 15156
+    },
+    {
+      "id": "Qwen/Qwen3-4B-Thinking-2507-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3-30B-A3B-Thinking-2507-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen1.5-7B-Chat",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.72
+    },
+    {
+      "id": "Qwen/Qwen1.5-0.5B-Chat-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2-57B-A14B",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 12401
+    },
+    {
+      "id": "Qwen/Qwen1.5-72B",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 11786
+    },
+    {
+      "id": "Qwen/Qwen1.5-32B",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 13646
+    },
+    {
+      "id": "Qwen/Qwen1.5-72B-Chat",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 11176
+    },
+    {
+      "id": "Qwen/Qwen1.5-4B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.95
+    },
+    {
+      "id": "Qwen/Qwen3.5-4B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 4.66
+    },
+    {
+      "id": "Qwen/Qwen3.5-9B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 9.65
+    },
+    {
+      "id": "Qwen/Qwen3-VL-8B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.77
+    },
+    {
+      "id": "Qwen/Qwen2.5-VL-7B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.29
+    },
+    {
+      "id": "Qwen/Qwen3.8-27B-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3.6-35B-A3B-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3-VL-4B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 4.44
+    },
+    {
+      "id": "Qwen/Qwen3.5-0.8B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.87
+    },
+    {
+      "id": "Qwen/Qwen3.5-2B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 2.27
+    },
+    {
+      "id": "Qwen/Qwen3.8-Flash-Next",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 180.0
+    },
+    {
+      "id": "Qwen/Qwen3-VL-2B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 2.13
+    },
+    {
+      "id": "Qwen/Qwen2.5-VL-3B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.75
+    },
+    {
+      "id": "Qwen/Qwen2.5-VL-7B-Instruct-AWQ",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2-VL-7B-Instruct-AWQ",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3-VL-8B-Instruct-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3.6-27B-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3.5-35B-A3B-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2-VL-2B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 2.21
+    },
+    {
+      "id": "Qwen/Qwen3-VL-8B-Instruct-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3.5-4B-Base",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 4.66
+    },
+    {
+      "id": "Qwen/Qwen3.5-122B-A10B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 125.09
+    },
+    {
+      "id": "Qwen/Qwen2.5-VL-3B-Instruct-AWQ",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2-VL-7B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.29
+    },
+    {
+      "id": "Qwen/Qwen3.5-397B-A17B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 403.4
+    },
+    {
+      "id": "Qwen/Qwen3.5-0.8B-Base",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.87
+    },
+    {
+      "id": "Qwen/Qwen3-VL-4B-Instruct-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3.5-122B-A10B-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3-VL-32B-Instruct-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3.5-122B-A10B-GPTQ-Int4",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 125.09
+    },
+    {
+      "id": "Qwen/Qwen3.5-9B-Base",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 9.65
+    },
+    {
+      "id": "Qwen/Qwen2.5-VL-32B-Instruct-AWQ",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3.5-2B-Base",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 2.27
+    },
+    {
+      "id": "Qwen/Qwen3-VL-235B-A22B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 235.67
+    },
+    {
+      "id": "Qwen/Qwen3.5-397B-A17B-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3.5-35B-A3B-GPTQ-Int4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3.8-Flash-Next-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3-VL-2B-Instruct-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3.5-27B-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3-VL-30B-A3B-Instruct-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3.5-35B-A3B-Base",
+      "motivo": "nessun GGUF a 4 bit da quantizzatori fidati",
+      "dominio": "generalista",
+      "gguf_trovati": 0
+    },
+    {
+      "id": "Qwen/Qwen3-VL-8B-Thinking",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.77
+    },
+    {
+      "id": "Qwen/Qwen3-VL-4B-Instruct-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3-VL-235B-A22B-Instruct-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3-VL-2B-Thinking",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 2.13
+    },
+    {
+      "id": "Qwen/Qwen2-VL-2B-Instruct-AWQ",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3-VL-30B-A3B-Instruct-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen3-VL-32B-Instruct-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2.5-VL-72B-Instruct-AWQ",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "Qwen/Qwen2-VL-72B-Instruct",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 38818
+    },
+    {
+      "id": "Qwen/Qwen-Image-Bench",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 31671
+    },
+    {
+      "id": "Qwen/Qwen3-VL-235B-A22B-Thinking",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 235.67
+    },
+    {
+      "id": "Qwen/Qwen3-VL-4B-Thinking",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 4.44
+    },
+    {
+      "id": "Qwen/Qwen3-VL-30B-A3B-Thinking",
+      "motivo": "modello reasoning senza interruttore per disattivare il ragionamento",
+      "dominio": "generalista",
+      "segnali_reasoning": [
+        "</think",
+        "<think",
+        "reasoning_content"
+      ]
+    },
+    {
+      "id": "Qwen/Qwen3.5-27B-GPTQ-Int4",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 18247
+    },
+    {
+      "id": "Qwen/Qwen3-VL-8B-Thinking-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "google/gemma-3-1b-it",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.0
+    },
+    {
+      "id": "google/gemma-2-9b-it",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 9.24
+    },
+    {
+      "id": "google/gemma-2-2b-it",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 2.61
+    },
+    {
+      "id": "google/gemma-2-2b",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 2.61
+    },
+    {
+      "id": "google/gemma-2b",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "google/t5gemma-2b-2b-ul2-it",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 5.6
+    },
+    {
+      "id": "google/gemma-3-270m-it",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.27
+    },
+    {
+      "id": "google/gemma-3-270m",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.27
+    },
+    {
+      "id": "google/codegemma-7b-it",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.54
+    },
+    {
+      "id": "google/t5gemma-s-s-prefixlm",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.31
+    },
+    {
+      "id": "google/gemma-3-1b-pt",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.0
+    },
+    {
+      "id": "google/gemma-2-9b",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 9.24
+    },
+    {
+      "id": "google/gemma-1.1-2b-it",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 2.51
+    },
+    {
+      "id": "google/gemma-7b-it",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "google/t5gemma-b-b-ul2",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.59
+    },
+    {
+      "id": "google/medgemma-27b-text-it",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 40599
+    },
+    {
+      "id": "google/functiongemma-270m-it",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.27
+    },
+    {
+      "id": "google/gemma-2b-it",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "google/reformer-crime-and-punishment",
+      "motivo": "parametri non presenti nei metadati",
+      "dominio": "generalista"
+    },
+    {
+      "id": "google/gemma-3-4b-it",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 4.3
+    },
+    {
+      "id": "google/diffusiongemma-26B-A4B-it",
+      "motivo": "modello non autoregressivo (diffusione)",
+      "dominio": "generalista",
+      "segnali": [
+        "DiffusionGemmaForBlockDiffusion",
+        "diffusion_gemma"
+      ]
+    },
+    {
+      "id": "google/medgemma-4b-it",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 4.3
+    },
+    {
+      "id": "google/gemma-4-31B-it-qat-w4a16-ct",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "google/gemma-3-12b-it",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 12.19
+    },
+    {
+      "id": "google/gemma-4-31B",
+      "motivo": "nessun chat template",
+      "dominio": "generalista"
+    },
+    {
+      "id": "google/paligemma-3b-pt-224",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 2.92
+    },
+    {
+      "id": "google/gemma-4-26B-A4B-it-qat-q4_0-gguf",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "google/gemma-4-31B-it-qat-q4_0-gguf",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "google/gemma-3-4b-pt",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 4.3
+    },
+    {
+      "id": "google/gemma-3n-E2B-it",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 5.44
+    },
+    {
+      "id": "google/paligemma-3b-mix-224",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 2.92
+    },
+    {
+      "id": "google/medgemma-1.5-4b-it",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 4.3
+    },
+    {
+      "id": "google/t5gemma-2-270m-270m",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.79
+    },
+    {
+      "id": "google/t5gemma-2-1b-1b",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 2.12
+    },
+    {
+      "id": "google/gemma-3-12b-pt",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 12.19
+    },
+    {
+      "id": "google/paligemma2-3b-mix-224",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.03
+    },
+    {
+      "id": "google/gemma-4-26B-A4B",
+      "motivo": "nessun chat template",
+      "dominio": "generalista"
+    },
+    {
+      "id": "google/medgemma-27b-it",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 51074
+    },
+    {
+      "id": "google/paligemma2-3b-ft-docci-448",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.03
+    },
+    {
+      "id": "google/translategemma-4b-it",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 4.97
+    },
+    {
+      "id": "google/t5gemma-2-4b-4b",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.85
+    },
+    {
+      "id": "google/gemma-3n-E4B-it",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.85
+    },
+    {
+      "id": "google/paligemma-3b-ft-cococap-448",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 2.92
+    },
+    {
+      "id": "google/paligemma2-3b-mix-448",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.03
+    },
+    {
+      "id": "google/gemma-3-27b-pt",
+      "motivo": "nessun chat template",
+      "dominio": "generalista"
+    },
+    {
+      "id": "openai/gpt-oss-20b",
+      "motivo": "modello reasoning senza interruttore per disattivare il ragionamento",
+      "dominio": "generalista",
+      "segnali_reasoning": [
+        "<|channel|>analysis",
+        "analysis<|message|>",
+        "reasoning_effort"
+      ]
+    },
+    {
+      "id": "openai/gpt-oss-120b",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 116.83
+    },
+    {
+      "id": "openai/gpt-oss-safeguard-20b",
+      "motivo": "modello reasoning senza interruttore per disattivare il ragionamento",
+      "dominio": "generalista",
+      "segnali_reasoning": [
+        "<|channel|>analysis",
+        "analysis<|message|>",
+        "reasoning_effort"
+      ]
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V3.2",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 685.36
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 304.18
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V3",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 684.53
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-R1",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 684.49
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.78
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V3-0324",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 684.53
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V4-Flash",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 290.94
+    },
+    {
+      "id": "deepseek-ai/deepseek-coder-7b-instruct-v1.5",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 6.91
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.19
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.62
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+      "motivo": "modello reasoning senza interruttore per disattivare il ragionamento",
+      "dominio": "generalista",
+      "segnali_reasoning": [
+        "</think",
+        "<think"
+      ]
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V4-Pro",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1598.84
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V3.1",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
+      "motivo": "modello reasoning senza interruttore per disattivare il ragionamento",
+      "dominio": "generalista",
+      "segnali_reasoning": [
+        "</think",
+        "<think"
+      ]
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-R1-0528",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 684.53
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V4-Pro-0813",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1650.5
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V2-Lite",
+      "motivo": "nessun GGUF a 4 bit da quantizzatori fidati",
+      "dominio": "generalista",
+      "gguf_trovati": 0
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V4-Flash-DSpark",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 165.27
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.03
+    },
+    {
+      "id": "deepseek-ai/deepseek-coder-6.7b-base",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 6.74
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V2-Lite-Chat",
+      "motivo": "nessun GGUF a 4 bit da quantizzatori fidati",
+      "dominio": "generalista",
+      "gguf_trovati": 0
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V3.2-Exp",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 685.4
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
+      "motivo": "modello reasoning senza interruttore per disattivare il ragionamento",
+      "dominio": "generalista",
+      "segnali_reasoning": [
+        "</think",
+        "<think"
+      ]
+    },
+    {
+      "id": "deepseek-ai/deepseek-coder-1.3b-instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.35
+    },
+    {
+      "id": "deepseek-ai/deepseek-coder-6.7b-instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 6.74
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V2-Chat",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 235.74
+    },
+    {
+      "id": "deepseek-ai/deepseek-llm-7b-base",
+      "motivo": "parametri non presenti nei metadati",
+      "dominio": "generalista"
+    },
+    {
+      "id": "deepseek-ai/deepseek-moe-16b-chat",
+      "motivo": "contesto dichiarato sotto il minimo",
+      "dominio": "generalista",
+      "contesto": 4096
+    },
+    {
+      "id": "deepseek-ai/deepseek-llm-7b-chat",
+      "motivo": "parametri non presenti nei metadati",
+      "dominio": "generalista"
+    },
+    {
+      "id": "deepseek-ai/deepseek-coder-1.3b-base",
+      "motivo": "parametri non presenti nei metadati",
+      "dominio": "generalista"
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V3.1-Terminus",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V2",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 235.74
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V3.1-Base",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 684.53
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-OCR",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.34
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 763.21
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-OCR-2",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.39
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V4-Flash-Vision-Exp",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 304.65
+    },
+    {
+      "id": "deepseek-ai/deepseek-vl2-tiny",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.37
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 763.21
+    },
+    {
+      "id": "nvidia/Qwen3.6-35B-A3B-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/Qwen2.5-VL-7B-Instruct-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.97
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16",
+      "motivo": "modello reasoning senza interruttore per disattivare il ragionamento",
+      "dominio": "generalista",
+      "segnali_reasoning": [
+        "</think",
+        "<think",
+        "enable_thinking",
+        "reasoning_content"
+      ]
+    },
+    {
+      "id": "nvidia/Gemma-4-31B-IT-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 123.61
+    },
+    {
+      "id": "nvidia/Gemma-4-26B-A4B-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 560.52
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4",
+      "motivo": "modello reasoning senza interruttore per disattivare il ragionamento",
+      "dominio": "generalista",
+      "segnali_reasoning": [
+        "</think",
+        "<think",
+        "enable_thinking",
+        "reasoning_content"
+      ]
+    },
+    {
+      "id": "nvidia/Qwen3.6-27B-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16",
+      "motivo": "modello reasoning senza interruttore per disattivare il ragionamento",
+      "dominio": "generalista",
+      "segnali_reasoning": [
+        "</think",
+        "<think",
+        "enable_thinking",
+        "reasoning_content"
+      ]
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4",
+      "motivo": "modello reasoning senza interruttore per disattivare il ragionamento",
+      "dominio": "generalista",
+      "segnali_reasoning": [
+        "</think",
+        "<think",
+        "enable_thinking",
+        "reasoning_content"
+      ]
+    },
+    {
+      "id": "nvidia/Qwen3.8-27B-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/Qwen3.5-122B-A10B-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/GLM-5.2-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-Nano-9B-v2",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.89
+    },
+    {
+      "id": "nvidia/Kimi-K2.5-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/Kimi-K2-Thinking-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/Qwen3-8B-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/gpt-oss-120b-Eagle3-short-context",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.79
+    },
+    {
+      "id": "nvidia/diffusiongemma-26B-A4B-it-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/Qwen3.5-397B-A17B-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/Qwen3-Next-80B-A3B-Instruct-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/Qwen3-14B-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/Nemotron-Labs-Diffusion-8B-Base",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.49
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-Base-BF16",
+      "motivo": "nessun chat template",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/Llama-3_3-Nemotron-Super-49B-v1_5-FP8",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 67274
+    },
+    {
+      "id": "nvidia/Nemotron-Labs-Diffusion-3B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.83
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-Nano-9B-v2-FP8",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.89
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 123.61
+    },
+    {
+      "id": "nvidia/Nemotron-H-8B-Base-8K",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.1
+    },
+    {
+      "id": "nvidia/MiniMax-M3-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/GLM-5.3-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 302.83
+    },
+    {
+      "id": "nvidia/Llama-3.1-8B-Instruct-FP8",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.03
+    },
+    {
+      "id": "nvidia/Qwen3-235B-A22B-NVFP4",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 132.81
+    },
+    {
+      "id": "nvidia/Qwen3.5-397B-A17B-NVFP4-V2",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/Kimi-K2.6-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-Base-BF16",
+      "motivo": "nessun chat template",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/Llama-3_3-Nemotron-Super-49B-v1",
+      "motivo": "modello reasoning senza interruttore per disattivare il ragionamento",
+      "dominio": "generalista",
+      "segnali_reasoning": [
+        "</think"
+      ]
+    },
+    {
+      "id": "nvidia/Nemotron-Mini-4B-Instruct",
+      "motivo": "parametri non presenti nei metadati",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/DeepSeek-R1-0528-NVFP4-v2",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 393.63
+    },
+    {
+      "id": "nvidia/Llama-3_3-Nemotron-Super-49B-v1_5-NVFP4",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 23951
+    },
+    {
+      "id": "nvidia/Llama-3.1-Nemotron-70B-Instruct-HF",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 33361
+    },
+    {
+      "id": "nvidia/Nemotron-H-56B-Base-8K",
+      "motivo": "nessun chat template",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/Qwen3-14B-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/gpt-oss-120b-Eagle3-v3",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.79
+    },
+    {
+      "id": "nvidia/DeepSeek-V4-Flash-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/DeepSeek-V4-Pro-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/Nemotron-Labs-Diffusion-14B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 13.51
+    },
+    {
+      "id": "nvidia/DeepSeek-V3-0324-NVFP4",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 396.77
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-3-Nano-4B-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/Qwen3-30B-A3B-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/Kimi-K3-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/Llama3-ChatQA-1.5-8B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.03
+    },
+    {
+      "id": "nvidia/Qwen3-32B-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-Labs-3-Puzzle-75B-A9B-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/Qwen3.8-2.4T-A95B-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-Nano-9B-v2-NVFP4",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 5.86
+    },
+    {
+      "id": "nvidia/Cosmos-Reason2-2B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 2.44
+    },
+    {
+      "id": "nvidia/LocateAnything-3B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.83
+    },
+    {
+      "id": "nvidia/Qwen3.8-Flash-Next-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-NVFP4-QAD",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.7
+    },
+    {
+      "id": "nvidia/GLM-5.3-Flash-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-Parse-v1.1",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.96
+    },
+    {
+      "id": "nvidia/Cosmos-Reason2-8B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.77
+    },
+    {
+      "id": "nvidia/Llama-3.1-Nemotron-Nano-VL-8B-V1",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.72
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-3.5-Bolt-74B-A9B-24GB-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-Parse-v1.2",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.94
+    },
+    {
+      "id": "nvidia/DAM-3B",
+      "motivo": "parametri non presenti nei metadati",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/DeepSeek-V4.1-Flash-NVFP4",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-FP8",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 13.18
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-Parse-2.0",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.9
+    },
+    {
+      "id": "nvidia/Eagle2.5-8B",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "nvidia/Cosmos-Reason1-7B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.29
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-BF16",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 13.18
+    },
+    {
+      "id": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 124.45
+    },
+    {
+      "id": "nvidia/NVLM-D-72B",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 10830
+    },
+    {
+      "id": "nvidia/Nemotron-3-Content-Safety",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 4.3
+    },
+    {
+      "id": "microsoft/phi-2",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "coding",
+      "parametri_b": 2.78
+    },
+    {
+      "id": "microsoft/Phi-3.5-mini-instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "coding",
+      "parametri_b": 3.82
+    },
+    {
+      "id": "microsoft/Phi-4-mini-instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "coding",
+      "parametri_b": 3.84
+    },
+    {
+      "id": "microsoft/phi-4",
+      "motivo": "contesto dichiarato sotto il minimo",
+      "dominio": "coding",
+      "contesto": 16384
+    },
+    {
+      "id": "microsoft/Phi-3-mini-4k-instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "coding",
+      "parametri_b": 3.82
+    },
+    {
+      "id": "microsoft/Phi-3-mini-128k-instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "coding",
+      "parametri_b": 3.82
+    },
+    {
+      "id": "microsoft/DialoGPT-medium",
+      "motivo": "parametri non presenti nei metadati",
+      "dominio": "generalista"
+    },
+    {
+      "id": "microsoft/Phi-3.5-MoE-instruct",
+      "motivo": "inglese assente tra le lingue dichiarate",
+      "dominio": "coding",
+      "lingue": [
+        "multilingual"
+      ]
+    },
+    {
+      "id": "microsoft/phi-1_5",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "coding",
+      "parametri_b": 1.42
+    },
+    {
+      "id": "microsoft/DialoGPT-small",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.18
+    },
+    {
+      "id": "microsoft/Phi-3-vision-128k-instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "coding",
+      "parametri_b": 4.15
+    },
+    {
+      "id": "microsoft/Phi-4-mini-reasoning",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "coding",
+      "parametri_b": 3.84
+    },
+    {
+      "id": "microsoft/Phi-tiny-MoE-instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.76
+    },
+    {
+      "id": "microsoft/Phi-3-mini-4k-instruct-gguf",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "coding"
+    },
+    {
+      "id": "microsoft/bitnet-b1.58-2B-4T-gguf",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "microsoft/Phi-4-reasoning",
+      "motivo": "modello reasoning senza interruttore per disattivare il ragionamento",
+      "dominio": "coding",
+      "segnali_reasoning": [
+        "</think",
+        "<think"
+      ]
+    },
+    {
+      "id": "microsoft/biogpt",
+      "motivo": "parametri non presenti nei metadati",
+      "dominio": "generalista"
+    },
+    {
+      "id": "microsoft/phi-1",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "coding",
+      "parametri_b": 1.42
+    },
+    {
+      "id": "microsoft/Phi-mini-MoE-instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.65
+    },
+    {
+      "id": "microsoft/Phi-3-medium-4k-instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "coding",
+      "parametri_b": 13.96
+    },
+    {
+      "id": "microsoft/bitnet-b1.58-2B-4T",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.85
+    },
+    {
+      "id": "microsoft/Phi-3-small-8k-instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "coding",
+      "parametri_b": 7.39
+    },
+    {
+      "id": "microsoft/Phi-3-medium-128k-instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "coding",
+      "parametri_b": 13.96
+    },
+    {
+      "id": "microsoft/maira-2",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 6.88
+    },
+    {
+      "id": "microsoft/phi-4-gguf",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "coding"
+    },
+    {
+      "id": "microsoft/Florence-2-base",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.23
+    },
+    {
+      "id": "microsoft/Phi-3.5-vision-instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "coding",
+      "parametri_b": 4.15
+    },
+    {
+      "id": "microsoft/Florence-2-large",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.78
+    },
+    {
+      "id": "microsoft/Florence-2-base-ft",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.23
+    },
+    {
+      "id": "microsoft/Florence-2-large-ft",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.77
+    },
+    {
+      "id": "microsoft/udop-large",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.74
+    },
+    {
+      "id": "microsoft/kosmos-2.5",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.37
+    },
+    {
+      "id": "mistralai/Mistral-7B-Instruct-v0.2",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.24
+    },
+    {
+      "id": "mistralai/Mistral-7B-v0.1",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.24
+    },
+    {
+      "id": "mistralai/Mistral-7B-Instruct-v0.1",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.24
+    },
+    {
+      "id": "ibm-granite/granite-4.1-3b",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.4
+    },
+    {
+      "id": "ibm-granite/granite-3.3-2b-instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 2.53
+    },
+    {
+      "id": "ibm-granite/granite-4.1-8b",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.79
+    },
+    {
+      "id": "ibm-granite/granite-4.2-8b",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.79
+    },
+    {
+      "id": "ibm-granite/granite-3.3-8b-instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.17
+    },
+    {
+      "id": "ibm-granite/granite-4.1-30b",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 93144
+    },
+    {
+      "id": "ibm-granite/granite-4.1-8b-fp8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "ibm-granite/granite-3.0-1b-a400m-instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.33
+    },
+    {
+      "id": "ibm-granite/granite-guardian-4.1-8b",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.38
+    },
+    {
+      "id": "ibm-granite/granite-3.2-8b-instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.17
+    },
+    {
+      "id": "ibm-granite/granite-3.1-8b-instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.17
+    },
+    {
+      "id": "ibm-granite/granite-3b-code-base-2k",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "coding",
+      "parametri_b": 3.48
+    },
+    {
+      "id": "ibm-granite/granite-4.2-3b",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.66
+    },
+    {
+      "id": "ibm-granite/granite-4.0-h-tiny",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 6.94
+    },
+    {
+      "id": "ibm-granite/granite-4.0-1b-base",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.63
+    },
+    {
+      "id": "ibm-granite/granite-4.2-30b",
+      "motivo": "modello reasoning senza interruttore per disattivare il ragionamento",
+      "dominio": "generalista",
+      "segnali_reasoning": [
+        "</think",
+        "<think",
+        "enable_thinking",
+        "reasoning_content",
+        "reasoning_effort"
+      ]
+    },
+    {
+      "id": "ibm-granite/granite-4.0-tiny-preview",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 6.67
+    },
+    {
+      "id": "ibm-granite/granite-4.0-h-small",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 45140
+    },
+    {
+      "id": "ibm-granite/granite-4.0-350m",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.35
+    },
+    {
+      "id": "ibm-granite/granite-4.0-micro",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.4
+    },
+    {
+      "id": "ibm-granite/granite-3.0-8b-instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.17
+    },
+    {
+      "id": "ibm-granite/granite-3.1-1b-a400m-instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.33
+    },
+    {
+      "id": "ibm-granite/granite-4.1-3b-base",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.4
+    },
+    {
+      "id": "ibm-granite/granite-3.1-2b-instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 2.53
+    },
+    {
+      "id": "ibm-granite/granite-swash-2b",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 2.14
+    },
+    {
+      "id": "ibm-granite/granite-swash-3b-a600m",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.02
+    },
+    {
+      "id": "ibm-granite/granite-3.0-1b-a400m-base",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.38
+    },
+    {
+      "id": "ibm-granite/granite-4.0-1b",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.63
+    },
+    {
+      "id": "ibm-granite/granite-docling-258M",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "coding",
+      "parametri_b": 0.26
+    },
+    {
+      "id": "ibm-granite/granite-vision-4.1-4b",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 4.0
+    },
+    {
+      "id": "ibm-granite/granite-4.0-3b-vision",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 4.0
+    },
+    {
+      "id": "moonshotai/Kimi-K2-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1026.41
+    },
+    {
+      "id": "moonshotai/Kimi-K2-Thinking",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1026.41
+    },
+    {
+      "id": "moonshotai/Kimi-K2-Instruct-0905",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1026.47
+    },
+    {
+      "id": "moonshotai/Moonlight-16B-A3B-Instruct",
+      "motivo": "contesto dichiarato sotto il minimo",
+      "dominio": "generalista",
+      "contesto": 8192
+    },
+    {
+      "id": "moonshotai/Moonlight-16B-A3B",
+      "motivo": "contesto dichiarato sotto il minimo",
+      "dominio": "generalista",
+      "contesto": 8192
+    },
+    {
+      "id": "moonshotai/Kimi-K2-Base",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1026.47
+    },
+    {
+      "id": "moonshotai/Kimi-K3",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 2779.93
+    },
+    {
+      "id": "moonshotai/Kimi-K2.6",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1026.88
+    },
+    {
+      "id": "moonshotai/Kimi-K2.5",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1026.88
+    },
+    {
+      "id": "moonshotai/Kimi-VL-A3B-Instruct",
+      "motivo": "nessun GGUF a 4 bit da quantizzatori fidati",
+      "dominio": "generalista",
+      "gguf_trovati": 0
+    },
+    {
+      "id": "moonshotai/Kimi-K2.7-Code",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1026.88
+    },
+    {
+      "id": "moonshotai/Kimi-VL-A3B-Thinking",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 14039
+    },
+    {
+      "id": "CohereLabs/c4ai-command-r-v01",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 66012
+    },
+    {
+      "id": "CohereLabs/aya-expanse-8b",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.03
+    },
+    {
+      "id": "CohereLabs/North-Micro-Vision-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 2.48
+    },
+    {
+      "id": "CohereLabs/command-a-plus-05-2026-bf16",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 218.75
+    },
+    {
+      "id": "CohereLabs/command-a-vision-07-2025",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 111.87
+    },
+    {
+      "id": "allenai/Olmo-3-7B-Think",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.3
+    },
+    {
+      "id": "allenai/Olmo-3-7B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.3
+    },
+    {
+      "id": "allenai/OLMo-2-0425-1B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.48
+    },
+    {
+      "id": "allenai/Olmo-3-1025-7B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.3
+    },
+    {
+      "id": "allenai/OLMoE-1B-7B-0125-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 6.92
+    },
+    {
+      "id": "allenai/OLMoE-1B-7B-0924",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 6.92
+    },
+    {
+      "id": "allenai/wildguard",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.25
+    },
+    {
+      "id": "allenai/OLMo-2-0425-1B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.48
+    },
+    {
+      "id": "allenai/Olmo-3-32B-Think-SFT",
+      "motivo": "modello reasoning senza interruttore per disattivare il ragionamento",
+      "dominio": "generalista",
+      "segnali_reasoning": [
+        "<think"
+      ]
+    },
+    {
+      "id": "allenai/OLMo-2-1124-7B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.3
+    },
+    {
+      "id": "allenai/OLMo-1B-hf",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.18
+    },
+    {
+      "id": "allenai/Olmo-3-7B-Instruct-SFT",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.3
+    },
+    {
+      "id": "allenai/Olmo-3.1-32B-Think",
+      "motivo": "modello reasoning senza interruttore per disattivare il ragionamento",
+      "dominio": "generalista",
+      "segnali_reasoning": [
+        "<think"
+      ]
+    },
+    {
+      "id": "allenai/Olmo-3.1-32B-Instruct",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 26948
+    },
+    {
+      "id": "allenai/Olmo-3-1125-32B",
+      "motivo": "nessun chat template",
+      "dominio": "generalista"
+    },
+    {
+      "id": "allenai/OLMoE-1B-7B-0924-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 6.92
+    },
+    {
+      "id": "allenai/OLMo-7B-0724-hf",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 6.89
+    },
+    {
+      "id": "allenai/Olmo-3-32B-Think",
+      "motivo": "modello reasoning senza interruttore per disattivare il ragionamento",
+      "dominio": "generalista",
+      "segnali_reasoning": [
+        "<think"
+      ]
+    },
+    {
+      "id": "allenai/Olmo-Hybrid-7B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.43
+    },
+    {
+      "id": "allenai/Olmo-3-7B-Instruct-DPO",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.3
+    },
+    {
+      "id": "allenai/OLMo-7B-hf",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 6.89
+    },
+    {
+      "id": "allenai/olmOCR-7B-0825-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "allenai/olmOCR-2-7B-1025",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.29
+    },
+    {
+      "id": "allenai/olmOCR-2-7B-1025-FP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "allenai/olmOCR-7B-0225-preview",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.29
+    },
+    {
+      "id": "allenai/Molmo2-8B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.66
+    },
+    {
+      "id": "allenai/Molmo2-ER",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 4.85
+    },
+    {
+      "id": "allenai/Molmo2-4B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 4.85
+    },
+    {
+      "id": "allenai/Molmo2-O-7B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.76
+    },
+    {
+      "id": "allenai/Molmo-7B-D-0924",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.02
+    },
+    {
+      "id": "HuggingFaceTB/SmolLM2-135M",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.13
+    },
+    {
+      "id": "HuggingFaceTB/SmolLM2-135M-Instruct",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "HuggingFaceTB/SmolLM3-3B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.08
+    },
+    {
+      "id": "HuggingFaceTB/SmolLM2-360M",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.36
+    },
+    {
+      "id": "HuggingFaceTB/SmolLM2-1.7B-Instruct",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "HuggingFaceTB/SmolLM2-360M-Instruct",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "HuggingFaceTB/SmolLM3-3B-Base",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.08
+    },
+    {
+      "id": "HuggingFaceTB/SmolLM-135M",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.13
+    },
+    {
+      "id": "HuggingFaceTB/SmolLM-1.7B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.71
+    },
+    {
+      "id": "HuggingFaceTB/SmolLM2-1.7B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.71
+    },
+    {
+      "id": "HuggingFaceTB/SmolLM-135M-Instruct",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "HuggingFaceTB/SmolLM-360M",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.36
+    },
+    {
+      "id": "HuggingFaceTB/SmolLM2-1.7B-Instruct-GGUF",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "HuggingFaceTB/SmolVLM-256M-Instruct",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "HuggingFaceTB/SmolVLM2-2.2B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 2.25
+    },
+    {
+      "id": "HuggingFaceTB/SmolVLM-500M-Instruct",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "HuggingFaceTB/SmolVLM2-256M-Video-Instruct",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "HuggingFaceTB/SmolVLM-Instruct",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "zai-org/GLM-5.3",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 753.33
+    },
+    {
+      "id": "zai-org/GLM-5",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 753.86
+    },
+    {
+      "id": "zai-org/GLM-4.5-Air",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 110.47
+    },
+    {
+      "id": "zai-org/GLM-5.1",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 753.86
+    },
+    {
+      "id": "zai-org/GLM-5.2",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 753.33
+    },
+    {
+      "id": "zai-org/GLM-5.2-FP8",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 753.33
+    },
+    {
+      "id": "zai-org/GLM-4.5",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 358.34
+    },
+    {
+      "id": "zai-org/GLM-4.7",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 358.34
+    },
+    {
+      "id": "zai-org/GLM-5.3-BF16",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 753.33
+    },
+    {
+      "id": "zai-org/glm-edge-4b-chat-gguf",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "generalista"
+    },
+    {
+      "id": "zai-org/GLM-4.5-Air-FP8",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 110.51
+    },
+    {
+      "id": "zai-org/GLM-5.1-FP8",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 753.91
+    },
+    {
+      "id": "zai-org/GLM-4.6",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 356.79
+    },
+    {
+      "id": "zai-org/GLM-5-FP8",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 753.91
+    },
+    {
+      "id": "zai-org/GLM-4.7-FP8",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 358.46
+    },
+    {
+      "id": "zai-org/GLM-4-9B-0414",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 9.4
+    },
+    {
+      "id": "zai-org/GLM-5.3-Flash",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 321.32
+    },
+    {
+      "id": "zai-org/GLM-5.3-Flash-BF16",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 321.32
+    },
+    {
+      "id": "zai-org/GLM-4.1V-9B-Thinking",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 10.29
+    },
+    {
+      "id": "zai-org/GLM-4.6V-Flash",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 10.29
+    },
+    {
+      "id": "zai-org/GLM-4.5V",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 107.71
+    },
+    {
+      "id": "MiniMaxAI/MiniMax-M2.5",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 228.7
+    },
+    {
+      "id": "MiniMaxAI/MiniMax-M2.7",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 228.69
+    },
+    {
+      "id": "MiniMaxAI/MiniMax-M2",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 228.69
+    },
+    {
+      "id": "MiniMaxAI/MiniMax-M1-40k",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 456.09
+    },
+    {
+      "id": "MiniMaxAI/MiniMax-Text-01-hf",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 456.09
+    },
+    {
+      "id": "MiniMaxAI/MiniMax-M2.1",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 228.69
+    },
+    {
+      "id": "MiniMaxAI/MiniMax-M3",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "coding",
+      "parametri_b": 427.04
+    },
+    {
+      "id": "MiniMaxAI/MiniMax-M3-MXFP8",
+      "motivo": "quantizzazione, adapter o merge di un altro modello",
+      "dominio": "coding"
+    },
+    {
+      "id": "MiniMaxAI/MiniMax-VL-01",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 456.44
+    },
+    {
+      "id": "tiiuae/falcon-7b",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.22
+    },
+    {
+      "id": "tiiuae/falcon-mamba-tiny-dev",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.01
+    },
+    {
+      "id": "tiiuae/Falcon-H1-0.5B-Base",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 0.52
+    },
+    {
+      "id": "tiiuae/falcon-7b-instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.22
+    },
+    {
+      "id": "tiiuae/Falcon-H1-7B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.59
+    },
+    {
+      "id": "tiiuae/Falcon-H1-3B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 3.15
+    },
+    {
+      "id": "tiiuae/falcon-mamba-7b",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.27
+    },
+    {
+      "id": "tiiuae/Falcon3-7B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.46
+    },
+    {
+      "id": "LGAI-EXAONE/EXAONE-3.5-7.8B-Instruct-AWQ",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.82
+    },
+    {
+      "id": "LGAI-EXAONE/EXAONE-3.5-7.8B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.82
+    },
+    {
+      "id": "LGAI-EXAONE/EXAONE-3.5-2.4B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 2.41
+    },
+    {
+      "id": "LGAI-EXAONE/EXAONE-3.5-32B-Instruct-AWQ",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 46014
+    },
+    {
+      "id": "LGAI-EXAONE/EXAONE-3.5-32B-Instruct",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 31657
+    },
+    {
+      "id": "LGAI-EXAONE/EXAONE-4.0-32B",
+      "motivo": "modello reasoning senza interruttore per disattivare il ragionamento",
+      "dominio": "generalista",
+      "segnali_reasoning": [
+        "</think",
+        "<think",
+        "enable_thinking",
+        "reasoning_content"
+      ]
+    },
+    {
+      "id": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.28
+    },
+    {
+      "id": "LGAI-EXAONE/EXAONE-3.0-7.8B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.82
+    },
+    {
+      "id": "LGAI-EXAONE/K-EXAONE-236B-A23B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 237.1
+    },
+    {
+      "id": "LGAI-EXAONE/EXAONE-4.5-33B",
+      "motivo": "modello reasoning senza interruttore per disattivare il ragionamento",
+      "dominio": "generalista",
+      "segnali_reasoning": [
+        "</think",
+        "<think",
+        "enable_thinking",
+        "reasoning_content"
+      ]
+    },
+    {
+      "id": "01-ai/Yi-34B-Chat",
+      "motivo": "contesto dichiarato sotto il minimo",
+      "dominio": "generalista",
+      "contesto": 4096
+    },
+    {
+      "id": "01-ai/Yi-6B-Chat",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 6.06
+    },
+    {
+      "id": "01-ai/Yi-6B-200K",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 6.06
+    },
+    {
+      "id": "01-ai/Yi-1.5-9B-Chat",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.83
+    },
+    {
+      "id": "01-ai/Yi-1.5-34B-Chat",
+      "motivo": "contesto dichiarato sotto il minimo",
+      "dominio": "generalista",
+      "contesto": 4096
+    },
+    {
+      "id": "01-ai/Yi-1.5-6B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 6.06
+    },
+    {
+      "id": "01-ai/Yi-1.5-9B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.83
+    },
+    {
+      "id": "01-ai/Yi-6B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 6.06
+    },
+    {
+      "id": "01-ai/Yi-34B",
+      "motivo": "nessun chat template",
+      "dominio": "generalista"
+    },
+    {
+      "id": "01-ai/Yi-1.5-34B",
+      "motivo": "nessun chat template",
+      "dominio": "generalista"
+    },
+    {
+      "id": "internlm/internlm-chat-7b",
+      "motivo": "parametri non presenti nei metadati",
+      "dominio": "generalista"
+    },
+    {
+      "id": "internlm/internlm2-chat-7b",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.74
+    },
+    {
+      "id": "internlm/internlm3-8b-instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.8
+    },
+    {
+      "id": "internlm/internlm2_5-7b-chat",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.74
+    },
+    {
+      "id": "internlm/internlm2-7b",
+      "motivo": "parametri non presenti nei metadati",
+      "dominio": "generalista"
+    },
+    {
+      "id": "internlm/internlm2-20b",
+      "motivo": "parametri non presenti nei metadati",
+      "dominio": "generalista"
+    },
+    {
+      "id": "internlm/internlm2-chat-20b",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 21911
+    },
+    {
+      "id": "internlm/internlm2-base-7b",
+      "motivo": "parametri non presenti nei metadati",
+      "dominio": "generalista"
+    },
+    {
+      "id": "internlm/internlm2-base-20b",
+      "motivo": "parametri non presenti nei metadati",
+      "dominio": "generalista"
+    },
+    {
+      "id": "internlm/Intern-S1",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 240.71
+    },
+    {
+      "id": "internlm/Intern-S1-mini",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.54
+    },
+    {
+      "id": "tencent/Hy3",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 298.79
+    },
+    {
+      "id": "tencent/Hy3-preview",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 298.79
+    },
+    {
+      "id": "tencent/Hunyuan-A13B-Instruct",
+      "motivo": "download totali sotto la soglia",
+      "dominio": "generalista",
+      "downloads_totali": 77205
+    },
+    {
+      "id": "tencent/Hy3-FP8",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 298.79
+    },
+    {
+      "id": "tencent/Hy4-preview",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 779.96
+    },
+    {
+      "id": "tencent/Hunyuan-7B-Instruct",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 7.5
+    },
+    {
+      "id": "tencent/Hy4-preview-FP8",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 803.52
+    },
+    {
+      "id": "tencent/Youtu-LLM-2B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.96
+    },
+    {
+      "id": "tencent/HunyuanOCR",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 1.12
+    },
+    {
+      "id": "ByteDance-Seed/academic-ds-9B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 9.37
+    },
+    {
+      "id": "ByteDance-Seed/UI-TARS-1.5-7B",
+      "motivo": "parametri fuori dall'intervallo",
+      "dominio": "generalista",
+      "parametri_b": 8.29
+    },
+    {
+      "id": "Qwen/Qwen3.8-27B",
+      "motivo": "oltre il massimo per organizzazione",
+      "dominio": "generalista",
+      "organizzazione": "Qwen"
+    },
+    {
+      "id": "Qwen/Qwen3.6-27B",
+      "motivo": "oltre il massimo per organizzazione",
+      "dominio": "generalista",
+      "organizzazione": "Qwen"
+    },
+    {
+      "id": "Qwen/Qwen3.6-35B-A3B",
+      "motivo": "oltre il massimo per organizzazione",
+      "dominio": "generalista",
+      "organizzazione": "Qwen"
+    },
+    {
+      "id": "Qwen/Qwen3.5-35B-A3B",
+      "motivo": "oltre il massimo per organizzazione",
+      "dominio": "generalista",
+      "organizzazione": "Qwen"
+    },
+    {
+      "id": "Qwen/Qwen3.5-27B",
+      "motivo": "oltre il massimo per organizzazione",
+      "dominio": "generalista",
+      "organizzazione": "Qwen"
+    },
+    {
+      "id": "Qwen/Qwen3-Coder-Next",
+      "motivo": "oltre il massimo per organizzazione",
+      "dominio": "generalista",
+      "organizzazione": "Qwen"
+    },
+    {
+      "id": "Qwen/Qwen3-VL-32B-Instruct",
+      "motivo": "oltre il massimo per organizzazione",
+      "dominio": "generalista",
+      "organizzazione": "Qwen"
+    },
+    {
+      "id": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "motivo": "oltre il massimo per organizzazione",
+      "dominio": "generalista",
+      "organizzazione": "Qwen"
+    },
+    {
+      "id": "Qwen/Qwen3-Next-80B-A3B-Instruct",
+      "motivo": "oltre il massimo per organizzazione",
+      "dominio": "generalista",
+      "organizzazione": "Qwen"
+    },
+    {
+      "id": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
+      "motivo": "oltre il massimo per organizzazione",
+      "dominio": "generalista",
+      "organizzazione": "Qwen"
+    },
+    {
+      "id": "Qwen/Qwen3-30B-A3B-Instruct-2507",
+      "motivo": "oltre il massimo per organizzazione",
+      "dominio": "generalista",
+      "organizzazione": "Qwen"
+    },
+    {
+      "id": "Qwen/Qwen3-14B",
+      "motivo": "oltre il massimo per organizzazione",
+      "dominio": "generalista",
+      "organizzazione": "Qwen"
+    },
+    {
+      "id": "Qwen/Qwen3-32B",
+      "motivo": "oltre il massimo per organizzazione",
+      "dominio": "generalista",
+      "organizzazione": "Qwen"
+    },
+    {
+      "id": "Qwen/Qwen3-30B-A3B",
+      "motivo": "oltre il massimo per organizzazione",
+      "dominio": "generalista",
+      "organizzazione": "Qwen"
+    },
+    {
+      "id": "Qwen/Qwen2.5-VL-32B-Instruct",
+      "motivo": "oltre il massimo per organizzazione",
+      "dominio": "generalista",
+      "organizzazione": "Qwen"
+    },
+    {
+      "id": "Qwen/Qwen2.5-VL-72B-Instruct",
+      "motivo": "oltre il massimo per organizzazione",
+      "dominio": "generalista",
+      "organizzazione": "Qwen"
+    },
+    {
+      "id": "Qwen/Qwen2.5-32B-Instruct",
+      "motivo": "oltre il massimo per organizzazione",
+      "dominio": "generalista",
+      "organizzazione": "Qwen"
+    },
+    {
+      "id": "Qwen/Qwen2.5-14B-Instruct",
+      "motivo": "oltre il massimo per organizzazione",
+      "dominio": "generalista",
+      "organizzazione": "Qwen"
+    },
+    {
+      "id": "Qwen/Qwen2.5-72B-Instruct",
+      "motivo": "oltre il massimo per organizzazione",
+      "dominio": "generalista",
+      "organizzazione": "Qwen"
+    },
+    {
+      "id": "google/gemma-4-26B-A4B-it",
+      "motivo": "oltre il massimo per organizzazione",
+      "dominio": "generalista",
+      "organizzazione": "google"
+    },
+    {
+      "id": "google/gemma-4-31B-it",
+      "motivo": "oltre il massimo per organizzazione",
+      "dominio": "generalista",
+      "organizzazione": "google"
+    },
+    {
+      "id": "google/gemma-3-27b-it",
+      "motivo": "oltre il massimo per organizzazione",
+      "dominio": "generalista",
+      "organizzazione": "google"
+    },
+    {
+      "id": "google/gemma-2-27b-it",
+      "motivo": "oltre il massimo per organizzazione",
+      "dominio": "generalista",
+      "organizzazione": "google"
+    },
+    {
+      "id": "nvidia/Llama-3_3-Nemotron-Super-49B-v1_5",
+      "motivo": "fuori dai 10 posti disponibili (priorità al coding, poi download totali)",
+      "dominio": "generalista",
+      "downloads_totali": 131488
+    }
+  ]
+}

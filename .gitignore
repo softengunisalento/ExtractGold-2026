@@ -16,6 +16,7 @@ logs/
 logs_*/
 emissions/
 replay_set/
+dataset_cache/
 stats_out/
 
 # selezioni/: the frozen selection documents (candidati_*.json and .txt) are kept in Git.

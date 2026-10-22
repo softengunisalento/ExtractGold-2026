@@ -30,13 +30,14 @@ File di configurazione di Chat UI:
 | `download_models.py` | Seleziona i modelli dai metadati di Hugging Face, congela la selezione in documenti datati e scarica i file GGUF, registrando un manifest. |
 | `conversation_stats.py` | Calcola statistiche su turn e token di dataset di conversazioni con LLM. |
 | `export_conversations.py` | Estrae da un dataset le conversazioni selezionate per il replay offline. |
+| `build_replay_set.py` | Costruisce il replay set congelato dai tre dataset scelti, con token per modello, controllo delle finestre di contesto e stratificazione. |
 | `energy_api.py` | Proxy tra Chat UI e llama-server: misura l'energia (CodeCarbon) e registra le conversazioni. |
 
 ## Setup da zero
 
 Il repository contiene solo il codice di questo lavoro. Chat UI, llama.cpp, i modelli e l'ambiente virtuale non sono inclusi: si installano una volta, seguendo questi passi. I comandi sono per la workstation Linux; su Windows i passi sono gli stessi, tranne i percorsi e l'attivazione dell'ambiente virtuale. Si esegue tutto dalla radice del repository, salvo diversa indicazione.
 
-Struttura dopo il setup (tutto ciò che non è codice è ignorato da Git, tranne `selezioni/`):
+Struttura dopo il setup (i dati generati sono ignorati da Git; documentazione e configurazione sono versionate):
 
 ```
 <repository>/
@@ -47,10 +48,13 @@ Struttura dopo il setup (tutto ciò che non è codice è ignorato da Git, tranne
 ├── venv/                passo 2
 ├── logs/, emissions/    creati durante l'esecuzione
 ├── energy_api.py, download_models.py, conversation_stats.py, export_conversations.py
+├── build_replay_set.py
+├── dataset_cache/       creato da build_replay_set.py prepare (ignorato da Git)
+├── replay_set/          creato da build_replay_set.py select (ignorato da Git)
 └── commands.txt, requirements.txt, README.md
 ```
 
-**1. Prerequisiti.** Git; Python 3.9 o superiore; Node.js (provato con v24.21.0); CMake e un compilatore C++ (`build-essential`); il driver NVIDIA e il CUDA toolkit (`nvidia-smi` deve elencare le GPU e `nvcc --version` deve funzionare); MongoDB Community Edition, installato seguendo le istruzioni ufficiali per il sistema operativo; un account Hugging Face con un token di tipo Read.
+**1. Prerequisiti.** Git; Python 3.10 o superiore; Node.js (provato con v24.21.0); CMake e un compilatore C++ (`build-essential`); il driver NVIDIA e il CUDA toolkit (`nvidia-smi` deve elencare le GPU e `nvcc --version` deve funzionare); MongoDB Community Edition, installato seguendo le istruzioni ufficiali per il sistema operativo; un account Hugging Face con un token di tipo Read.
 
 **2. Ambiente Python.**
 
@@ -189,6 +193,49 @@ Output in `replay_set/` (modificabile con `--out`):
 
 - `conversazioni.jsonl`: le conversazioni selezionate;
 - `selezione.json`: parametri, commit del dataset e conteggi, da riportare nella metodologia.
+
+## `build_replay_set.py`
+
+Costruisce il replay set congelato dai tre dataset scelti (`allenai/WildChat-1M`, `shibing624/sharegpt_gpt4`, `Suzhen/CodeChat`) in cinque comandi: `prepare` e `tokenize` costruiscono la cache, `sweep` sceglie la soglia dei token, `select` congela il set e `verify` lo ricontrolla:
+
+- `prepare`: normalizza i tre formati, elimina conversazioni vuote, strutturalmente non valide e duplicate, tiene solo le conversazioni in inglese (fastText lid.176 sui messaggi utente), applica il filtro sui turni e scrive la cache normalizzata;
+- `tokenize`: conta i token di prompt con il tokenizer di ogni modello del benchmark, applicando il chat template e lo stesso interruttore del reasoning usato negli esperimenti;
+- `sweep`: varia `--min-tokeni` su una griglia e riporta le conversazioni che sopravvivono per fonte, gli strati che raggiungono `--n-per-strato`, la dimensione del campione risultante e la distribuzione dei token di prompt (p10/p50/p90/p99) con cui giustificare la soglia; la tabella è scritta in `dataset_cache/sweep.csv` (`--out` cambia il percorso);
+- `select`: applica la soglia minima di token e la finestra di contesto, costruisce il campione comune, stratifica per fasce di turni e token e congela il set; `--n-per-strato 0` mantiene tutte le conversazioni idonee, senza limite per strato;
+- `verify`: ricontrolla hash, soglie, finestre e manifest.
+
+La tokenizzazione è in cache separata dalle soglie: cambiare `--min-turni`, `--min-tokeni`, `--solo-coding` o `--solo-informatica` in `select` non richiede di ritokenizzare. `sweep` è lo strumento per scegliere `--min-tokeni`: stampa i percentili dei token di prompt del corpus idoneo e, per ogni soglia, le conversazioni che sopravvivono per fonte, gli strati che raggiungono `--n-per-strato`, la dimensione del campione risultante e mediana/p90 dei prompt trattenuti; `--dettaglio <soglia>` elenca gli strati sotto target. La soglia deve mantenere fattibile il disegno previsto (ogni fonte e le principali fasce di turni/token con almeno `--n-per-strato`) e al tempo stesso allontanare le conversazioni dai prompt brevi; `4000` è stato scelto dal `sweep`, non è un ottimo misurato. I tokenizer e le revisioni fissate dei dieci modelli sono in `MODELLI`, copiati da `selezioni/candidati_2026-10-19.json`: aggiornare quella lista e le revisioni di `FONTI` se cambiano la selezione congelata o i dataset. I due repository Llama sono gated, quindi serve `HF_TOKEN` con la licenza accettata. Il set congelato usa `10` turni e `4000` token; rieseguire `select` per provare altre soglie.
+
+`--solo-coding` tiene solo le conversazioni di programmazione: una conversazione è coding se un qualsiasi messaggio contiene un blocco di codice con un linguaggio di programmazione riconoscibile (o con righe di codice nel corpo), oppure una riga di codice che corrisponde a uno dei pattern di `SEGNALI_FORTI["riga"]`. Contano anche i messaggi dell'assistente, perché molte domande di programmazione non incollano codice ma la risposta sì. CodeChat serve da controllo esterno, non da fonte (i suoi id sono già visti in WildChat): delle 387 conversazioni WildChat a 4000 che compaiono anche in CodeChat, il filtro ne recupera l'82-83% e segnala lo 0,5% delle altre. Il campione manuale è in prevalenza coding; qualche conversazione non coding entra quando l'assistente usa un blocco XML/JSON come dati. A 4000 il filtro coding lascia 523 conversazioni (333 WildChat + 190 sharegpt_gpt4) su 3.081, su tutti i 18 strati; a 5000 ne lascia 445, a 6000 372 e a 8000 254. Il filtro è registrato in `selezione.json` sotto `parametri.solo_coding` e nell'imbuto per fonte come `coding_ok`.
+
+`--solo-informatica` allarga il criterio alle conversazioni che trattano un tema di informatica/IT anche senza incollare codice. Guarda solo il primo messaggio utente, richiede almeno due segnali tecnici distinti (algoritmi e strutture dati, sistemi operativi, reti, basi di dati, sicurezza, ingegneria del software, AI/ML, web/mobile, hardware) oppure un segnale con una richiesta esplicita di spiegazione, implementazione, debug o confronto, ed esclude i task creativi, commerciali, legali, medici, matematici/fisici, di traduzione e di carriera. Include il filtro codice. A 4000 lascia 563 conversazioni contro 523 di `--solo-coding`; a 3000, 1.042 contro 925; a 5000, 479 contro 445; a 6000 e 8000, 404 e 273. A 4000 il campione stratificato con `--n-per-strato 5` ha 80 conversazioni (1.669 turni), 3 senza codice (ingegneria del software e AI); con `--n-per-strato 6` ne ha 94 (1.928 turni). Il set congelato usa `--n-per-strato 0`: tutte le 563 conversazioni idonee (9.804 turni; 367 WildChat + 196 sharegpt_gpt4, 523 con codice e 40 senza), su 18 strati. Lo SHA-256 di `replay_set/conversazioni.jsonl` è `44b790a91ac4fc903da8282fafd444d13835ec3a8a707f16df3bacde386a276d`. Il filtro è registrato in `selezione.json` sotto `parametri.solo_informatica` e `parametri.criterio_coding`; `--solo-coding` resta l'opzione più stretta, solo codice.
+
+```bash
+# 1. normalizza una volta (rieseguire solo se cambia --min-turni)
+python build_replay_set.py prepare --min-turni 10 --lingua en
+# 2. conta i token una volta per modello (ripartibile, un JSONL per modello)
+python build_replay_set.py tokenize
+# 3. scegli --min-tokeni: copertura di fonti e strati a più soglie
+#    (6 è un esempio di target per strato; sweep scrive dataset_cache/sweep.csv)
+python build_replay_set.py sweep --min-turni 10 --solo-informatica --n-per-strato 6 --dettaglio 4000
+# 4. congela il set: 0 mantiene tutte le conversazioni idonee (563 nel set corrente)
+python build_replay_set.py select --min-turni 10 --min-tokeni 4000 --solo-informatica --n-per-strato 0
+# 5. verifica il set congelato
+python build_replay_set.py verify
+```
+
+Output:
+
+- `dataset_cache/` (ignorata da Git): corpus normalizzato, conteggi dei token e manifest di `prepare`/`tokenize`;
+- `replay_set/conversazioni.jsonl`: le conversazioni congelate con `messages`, `token_prompt` per modello, fascia turni/token e hash del contenuto;
+- `replay_set/selezione.json`: revisioni di dataset e tokenizer, SHA-256 dello script, soglie, imbuto per fonte e per modello, strati, SHA-256 dell'output;
+- `replay_set/strati.csv`: conteggi per strato.
+
+`--contesto-runtime` vale `32768` per impostazione predefinita, lo stesso `-c` usato da llama-server, quindi il controllo della finestra usa la finestra reale dell'esperimento, non quella dichiarata. CodeChat deriva da WildChat: `prepare` deduplica sull'id di fonte, dando precedenza alla conversazione completa di WildChat. Usa `--limite` per una prova ridotta e `--dry-run` in `select` per vedere l'imbuto senza scrivere.
+
+Il conteggio dei token usa il tokenizer e il chat template del repository Hugging Face originale, mentre i file GGUF provengono da quantizzatori terzi. Prima di congelare, validare un campione contro il llama-server in esecuzione (`POST /apply-template` e `POST /tokenize`) e riportare lo scarto nella metodologia. Se un template non accetta il ruolo system, `tokenize` piega il system nel primo messaggio utente: il replay deve applicare la stessa regola.
+
+La garanzia sulla finestra di contesto riguarda la conversazione registrata, cioè i messaggi dell'assistente presenti nel dataset. Se il replay lascia generare nuove risposte, il contesto ai turni successivi dipende dalle lunghezze generate: mantenere lo stesso `-c` e una riserva di sicurezza, e controllare i log di esecuzione. Le conversazioni WildChat con `toxic=true` sono escluse per impostazione predefinita (`--includi-tossici` le mantiene); quelle con `redacted` restano, salvo `--escludi-redatti`. Per accelerare la prima passata, `prepare --prefiltro-byte N` scarta le conversazioni il cui testo grezzo, più un margine di sicurezza, non può raggiungere `N` token. La soglia è in byte UTF-8, non in caratteri: per i tokenizer byte-level usati qui vale `token <= byte`, mentre codice e CJK possono avvicinarsi a un token per carattere, quindi una soglia in caratteri scarterebbe conversazioni valide. `--lingua` (default `en`) rende il replay set interamente in inglese: `prepare` rileva la lingua dei messaggi utente con fastText `lid.176` su tutte e tre le fonti (confidenza `--lingua-soglia 0.80`, primi `--lingua-caratteri 2000` caratteri) e scarta le altre. La colonna `language` di WildChat serve solo a misurare l'accordo con il rilevatore; `sharegpt_gpt4` non ha una colonna lingua e le etichette per messaggio di CodeChat non sono affidabili (il tag del repository dice `en`, ma il contenuto è multilingua), quindi il rilevatore è l'unico criterio comune alle tre fonti. Le conversazioni con meno di 20 caratteri di testo utente non sono valutabili e vengono scartate. `--tutte-le-lingue` disattiva il filtro e va usato solo per prove. Per impostazione predefinita la soglia minima di token deve valere per tutti i modelli (`--soglia-token-modo tutti`) e le fasce usano il massimo tra i modelli (`--misura-strato max`). `replay_set/` è ignorata da Git come gli altri output: va conservata insieme ai risultati sperimentali e `selezione.json` va citato nella metodologia.
 
 ## `energy_api.py`
 

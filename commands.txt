@@ -5,6 +5,39 @@ Notes
 - Replace the values in <angle brackets>.
 - Flags of llama-server change between builds: check them with `./build/bin/llama-server --help`.
 
+0. Build the frozen replay set (once, before the sessions)
+
+	python build_replay_set.py prepare --min-turni 10 --lingua en
+	python build_replay_set.py tokenize
+	python build_replay_set.py sweep --min-turni 10 --solo-informatica --n-per-strato <N> --dettaglio 4000
+	python build_replay_set.py select --min-turni 10 --min-tokeni 4000 --solo-informatica --n-per-strato <N>
+	python build_replay_set.py verify
+
+	- Choose --min-tokeni from `sweep`: it reports, per threshold, the surviving
+	  conversations, the strata reaching N and the retained p50/p90 prompt tokens,
+	  and writes dataset_cache/sweep.csv. `--dettaglio` lists the strata below N.
+	- `--min-tokeni` (4000 in the examples) is the threshold being validated, not a
+	  measured optimum: freeze it only after the sweep and the professor's review.
+	- `--solo-informatica` keeps code plus conversations that discuss a CS/IT topic
+	  without pasting code (first user message, two technical signals or one plus
+	  an explicit explain/implement/debug request, non-CS domains excluded).
+	  At 4000 it leaves 563 conversations on 18 strata; `--solo-coding`, the
+	  stricter code-only option, leaves 523; without either filter, 3,081.
+	  At 4000, `--n-per-strato 5` gives 80 conversations / 1,669 turns and
+	  `--n-per-strato 6` gives 94 / 1,928.
+	- The frozen set uses `--n-per-strato 0`: all eligible conversations
+	  (563, 9,804 turns); `5` and `6` above are trial samples.
+
+	- `--lingua en` is the default, so English-only applies even if the flag is omitted;
+	  the detector runs on all three sources. The first run downloads fastText lid.176
+	  (~131 MB) into dataset_cache/models/. `--tutte-le-lingue` is for trials only.
+	- The frozen set uses 10 turns and 4000 tokens; re-run `select` to test other thresholds.
+	- Changing only the thresholds means re-running `select`; `prepare` is needed again only
+	  if `--min-turni` changes.
+	- Every model must use the same `-c` (32768 in step 3); `select --contesto-runtime`
+	  must match it.
+	- The output in replay_set/ is frozen evidence: do not overwrite it after the sessions start.
+
 1. Activate the virtual environment
 	source venv/bin/activate
 
@@ -27,8 +60,15 @@ Notes
 	  between turns). To disable it, so that every turn reprocesses the whole history, add
 	  --no-cache-prompt. Decide it once for the whole experiment.
 	- Optional, to make the split over the GPUs explicit: --split-mode layer --tensor-split 1,1,1
-	- Reasoning models: check how the reasoning is returned (separate field or inline in the
-	  text), because it affects the context sent at the following turns and the logs.
+	- Reasoning models: the selection admits only models whose chat template can turn reasoning off.
+	  Start them with reasoning disabled, using the switch of the template, and keep it identical for
+	  baseline and GE. Check the frozen selection (`reasoning.interruttori`): for enable_thinking use
+	  `--reasoning off` (recent builds; it sets enable_thinking=false) or
+	  `--chat-template-kwargs '{"enable_thinking": false}'`; for thinking_budget use
+	  `--reasoning-budget 0` or `--chat-template-kwargs '{"thinking_budget": 0}'`. Check the flag with
+	  `./build/bin/llama-server --help` and the server log. Also check how the reasoning is returned
+	  (separate field or inline in the text), because it affects the context sent at the following
+	  turns and the logs.
 
 	Check the server and its configuration:
 	curl http://127.0.0.1:8080/props

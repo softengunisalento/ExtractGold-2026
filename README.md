@@ -30,13 +30,14 @@ Configuration files of Chat UI:
 | `download_models.py` | Selects the models from the metadata of Hugging Face, freezes the selection in dated documents and downloads the GGUF files, recording a manifest. |
 | `conversation_stats.py` | Computes statistics on turns and tokens of datasets of conversations with LLMs. |
 | `export_conversations.py` | Extracts the selected conversations from a dataset for offline replay. |
+| `build_replay_set.py` | Builds the frozen replay set from the three chosen datasets, with per-model token counts, context-window checks and stratification. |
 | `energy_api.py` | Proxy between Chat UI and llama-server: measures energy (CodeCarbon) and logs the conversations. |
 
 ## Setup from scratch
 
 The repository contains only the code of this work. Chat UI, llama.cpp, the models and the virtual environment are not included: they are installed once, following these steps. The commands are for the Linux workstation; on Windows the steps are the same, apart from the paths and the activation of the virtual environment. Run everything from the root of the repository unless stated otherwise.
 
-Layout after the setup (everything that is not code is ignored by Git, except `selezioni/`):
+Layout after the setup (generated data are ignored by Git; documentation and configuration files are versioned):
 
 ```
 <repository>/
@@ -47,10 +48,13 @@ Layout after the setup (everything that is not code is ignored by Git, except `s
 ├── venv/                step 2
 ├── logs/, emissions/    created at run time
 ├── energy_api.py, download_models.py, conversation_stats.py, export_conversations.py
+├── build_replay_set.py
+├── dataset_cache/       created by build_replay_set.py prepare (ignored by Git)
+├── replay_set/          created by build_replay_set.py select (ignored by Git)
 └── commands.txt, requirements.txt, README.md
 ```
 
-**1. Prerequisites.** Git; Python 3.9 or later; Node.js (tested with v24.21.0); CMake and a C++ compiler (`build-essential`); the NVIDIA driver and the CUDA toolkit (`nvidia-smi` must list the GPUs and `nvcc --version` must work); MongoDB Community Edition, installed following the official instructions for the operating system; a Hugging Face account with a token of type Read.
+**1. Prerequisites.** Git; Python 3.10 or later; Node.js (tested with v24.21.0); CMake and a C++ compiler (`build-essential`); the NVIDIA driver and the CUDA toolkit (`nvidia-smi` must list the GPUs and `nvcc --version` must work); MongoDB Community Edition, installed following the official instructions for the operating system; a Hugging Face account with a token of type Read.
 
 **2. Python environment.**
 
@@ -93,7 +97,17 @@ MONGODB_URL=mongodb://127.0.0.1:27017/chatui
 ```bash
 git clone https://github.com/ggml-org/llama.cpp
 cd llama.cpp
-git checkout <commit-or-tag>          # write it down: it is part of the experimental setup
+git checkout <commit-or-tag>          # in order to check your build number type: git -C llama.cpp describe --tags
+#----------------------------------------------------------------------
+#Check if the CUDA toolkit is installed::
+nvcc --version
+#If installed, specify the path to CMake:
+export PATH=/usr/local/cuda/bin:$PATH
+#Se non è installato:
+sudo apt update
+sudo apt install nvidia-cuda-toolkit #The name may vary depending on the Linux version in use.
+rm -rf build
+#---------------------------------------------------------------------------
 cmake -B build -DGGML_CUDA=ON
 cmake --build build --config Release -j
 cd ..
@@ -105,6 +119,7 @@ The option names change between versions: check `docs/build.md` of the version i
 
 ```bash
 read -rs HF_TOKEN && export HF_TOKEN
+#After running this command, paste the HF token and press Enter; to verify, run `echo $HF_TOKEN`
 python download_models.py --dry-run                         # selects, writes the frozen documents, shows the download plan
 python download_models.py                                   # selects, writes the frozen documents and downloads
 ```
@@ -124,7 +139,7 @@ Open a test session (see Experimental session), write two messages in a new conv
 
 A script that selects the models, freezes the selection and downloads them. Run without arguments it does, in sequence:
 
-1. **Selection** from the metadata of the Hugging Face Hub (parameters, chat template, languages, context, relations with other models, downloads). The organisations that publish the "official" models are listed in `ORG_PREDEFINITE` (or in a file passed with `--orgs-file`). A model is a candidate only if a GGUF with a 4-bit label exists from a trusted quantiser.
+1. **Selection** from the metadata of the Hugging Face Hub (parameters, chat template, languages, context, relations with other models, downloads). The organisations that publish the "official" models are listed in `ORG_PREDEFINITE` (or in a file passed with `--orgs-file`). A model is a candidate only if a GGUF with a 4-bit label exists from a trusted quantiser. Non-autoregressive (diffusion) models are excluded, because their energy per turn is not comparable with autoregressive models. Reasoning models are admitted only if their chat template exposes a switch that turns reasoning off (for example `enable_thinking=false` or `thinking_budget=0`); a model that only offers `reasoning_effort` is excluded. The switch found is recorded in the frozen document (`reasoning.interruttori`) and must be applied to llama-server at run time (see `commands.txt`).
 2. **Freezing** in `selezioni/`, with the date in the name and without ever overwriting: `candidati_<date>.json` (criteria, versions, counters, candidates with the download plan, excluded models with the reason) and `candidati_<date>.txt` (the same, readable).
 3. **Download** of the `.gguf` files into `models/<name>/`, ready for `llama-server -m <file>`. An interrupted download resumes from where it stopped. Files are downloaded from the exact commit of the repository and, once finished, their SHA-256 is checked against the one declared by the Hub.
 
@@ -178,6 +193,49 @@ Output in `replay_set/` (configurable with `--out`):
 
 - `conversazioni.jsonl`: the selected conversations;
 - `selezione.json`: parameters, dataset commit and counts, to be reported in the methodology.
+
+## `build_replay_set.py`
+
+Builds the frozen replay set from the three chosen datasets (`allenai/WildChat-1M`, `shibing624/sharegpt_gpt4`, `Suzhen/CodeChat`) in five commands: `prepare` and `tokenize` build the cache, `sweep` chooses the token threshold, `select` freezes the set and `verify` rechecks it:
+
+- `prepare`: normalizes the three formats, removes empty, structurally invalid and duplicate conversations, keeps only English conversations (fastText lid.176 on the user messages), applies the minimum-turn filter and writes a normalized cache;
+- `tokenize`: counts the prompt tokens with the tokenizer of every benchmark model, applying the chat template and the same reasoning-off switch used in the experiments;
+- `sweep`: varies `--min-tokeni` over a grid and reports the surviving conversations per source, the strata that reach `--n-per-strato`, the size of the resulting sample and the prompt-token distribution (p10/p50/p90/p99) used to justify the threshold; the table is written to `dataset_cache/sweep.csv` (`--out` overrides the path);
+- `select`: applies the minimum-token and context-window thresholds, builds the common sample, stratifies by turn and token bands and freezes the set; `--n-per-strato 0` keeps all eligible conversations, with no per-stratum cap;
+- `verify`: rechecks hashes, thresholds, windows and the manifest.
+
+Tokenization is cached separately from the thresholds: changing `--min-turni`, `--min-tokeni`, `--solo-coding` or `--solo-informatica` in `select` does not re-tokenize. `sweep` is the tool for choosing `--min-tokeni`: it prints the prompt-token percentiles of the eligible corpus and, for each threshold, the surviving conversations per source, the strata that reach `--n-per-strato`, the size of the resulting sample and the median/p90 of the retained prompts; `--dettaglio <threshold>` lists the strata below target. The threshold must keep the planned design feasible (every source and the main turn/token bands with at least `--n-per-strato`) while pulling the retained conversations away from short prompts; `4000` was chosen from the sweep, not as a measured optimum. The tokenizers and pinned revisions of the ten models are in `MODELLI`, copied from `selezioni/candidati_2026-10-19.json`: update that list and the `FONTI` revisions if the frozen selection or the datasets change. The two Llama repositories are gated, so `HF_TOKEN` with the accepted licence is required. The frozen set uses `10` turns and `4000` tokens; re-run `select` to test other thresholds.
+
+`--solo-coding` keeps only coding conversations: a conversation qualifies if any message contains a fenced code block whose info string is a programming language (or whose body contains code lines), or a line of code in one of the patterns in `SEGNALI_FORTI["riga"]`. Assistant messages count, because many programming questions do not paste code but the answer does. CodeChat is used as an external check rather than as a source (its ids are already seen in WildChat): of the 387 WildChat conversations at 4000 that also appear in CodeChat, the filter recovers 82-83% and flags 0.5% of the others. Manual sampling shows mostly coding conversations; a few non-coding ones slip in when the assistant uses a fenced XML/JSON block as data. At 4000 the coding filter leaves 523 conversations (333 WildChat + 190 sharegpt_gpt4) out of 3,081, across all 18 strata; at 5000 it leaves 445, at 6000 372 and at 8000 254. The filter is recorded in `selezione.json` under `parametri.solo_coding` and in the per-source funnel as `coding_ok`.
+
+`--solo-informatica` broadens the criterion to conversations that discuss a computer-science/IT topic even without pasting code. It looks only at the first user message, requires either two distinct technical signals (algorithms and data structures, operating systems, networks, databases, security, software engineering, AI/ML, web/mobile, hardware) or one signal plus an explicit request to explain, implement, debug or compare, and excludes creative, business, legal, medical, mathematical/physics, translation and career tasks. It includes the code filter. At 4000 it leaves 563 conversations versus 523 with `--solo-coding`; at 3000, 1,042 versus 925; at 5000, 479 versus 445; at 6000 and 8000, 404 and 273. At 4000 the stratified sample with `--n-per-strato 5` has 80 conversations (1,669 turns), 3 of them without code (software engineering and AI); with `--n-per-strato 6` it has 94 conversations (1,928 turns). The frozen set uses `--n-per-strato 0`: all 563 eligible conversations (9,804 turns; 367 WildChat + 196 sharegpt_gpt4, 523 with code and 40 without), in 18 strata. The SHA-256 of `replay_set/conversazioni.jsonl` is `44b790a91ac4fc903da8282fafd444d13835ec3a8a707f16df3bacde386a276d`. The filter is recorded in `selezione.json` under `parametri.solo_informatica` and `parametri.criterio_coding`; `--solo-coding` remains the stricter code-only option.
+
+```bash
+# 1. normalise once (re-run only if --min-turni changes)
+python build_replay_set.py prepare --min-turni 10 --lingua en
+# 2. count tokens once per model (resumable, one JSONL per model)
+python build_replay_set.py tokenize
+# 3. choose --min-tokeni: coverage of sources and strata at several thresholds
+#    (6 is an example per-stratum target; sweep writes dataset_cache/sweep.csv)
+python build_replay_set.py sweep --min-turni 10 --solo-informatica --n-per-strato 6 --dettaglio 4000
+# 4. freeze the set: 0 keeps all eligible conversations (563 in the current set)
+python build_replay_set.py select --min-turni 10 --min-tokeni 4000 --solo-informatica --n-per-strato 0
+# 5. verify the frozen set
+python build_replay_set.py verify
+```
+
+Output:
+
+- `dataset_cache/` (ignored by Git): normalized corpus, token counts and the `prepare.json`/`tokenize` manifests;
+- `replay_set/conversazioni.jsonl`: the frozen conversations with `messages`, per-model `token_prompt`, turn/token band and content hash;
+- `replay_set/selezione.json`: dataset and tokenizer revisions, script SHA-256, thresholds, per-source and per-model funnel, strata, output SHA-256;
+- `replay_set/strati.csv`: counts per stratum.
+
+`--contesto-runtime` defaults to `32768`, the `-c` used by llama-server, so the window check uses the real experimental window, not the declared one. CodeChat is derived from WildChat: `prepare` deduplicates on the source id, giving precedence to the full WildChat conversation. Use `--limite` for a small trial run and `--dry-run` in `select` to inspect the funnel without writing.
+
+The token count uses the tokenizer and chat template of the original Hugging Face repository, while the GGUF files come from third-party quantizers. Before freezing, validate a sample against the running llama-server (`POST /apply-template` and `POST /tokenize`) and record the difference in the methodology. If a template does not accept the system role, `tokenize` folds the system prompt into the first user message: the replay must apply the same rule.
+
+The context-window guarantee refers to the recorded conversation, i.e. the assistant messages stored in the dataset. If the replay lets the model generate new answers, the context at later turns depends on the generated lengths: keep the same `-c` and a safety reserve, and check the runtime logs. WildChat rows with `toxic=true` are excluded by default (`--includi-tossici` keeps them); `redacted` rows are kept unless `--escludi-redatti` is given. For a faster first pass, `prepare --prefiltro-byte N` drops conversations whose raw text plus a safety margin cannot reach `N` tokens. The threshold is in UTF-8 bytes, not characters: for the byte-level tokenizers used here `tokens <= bytes`, while code and CJK can approach one token per character, so a character threshold would discard valid conversations. `--lingua` (default `en`) makes the replay set English-only: `prepare` detects the language of the user messages with fastText `lid.176` on all three sources (confidence `--lingua-soglia 0.80`, first `--lingua-caratteri 2000` characters) and drops the rest. WildChat's top-level `language` column is only used to measure agreement with the detector; `sharegpt_gpt4` has no language column and CodeChat's per-message labels are unreliable (the repository tag says `en`, but the content is multilingual), so the detector is the only criterion common to the three sources. A conversation whose user text is shorter than 20 characters is not assessable and is dropped. `--tutte-le-lingue` disables the filter and must only be used for trials. By default the minimum-token threshold must hold for every model (`--soglia-token-modo tutti`) and the strata use the maximum token count across models (`--misura-strato max`). `replay_set/` is ignored by Git like the other outputs: keep it with the experimental results and cite `selezione.json` in the methodology.
 
 ## `energy_api.py`
 

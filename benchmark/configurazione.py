@@ -59,7 +59,9 @@ def carica(percorso: str | Path) -> Configurazione:
         sys.exit(f"configurazione non valida ({p}): {exc}")
     cfg = Configurazione(dati)
     cfg["_percorso"] = str(p.resolve())
-    cfg["_sha256"] = hashlib.sha256(grezzo).hexdigest()
+    # Impronta calcolata con i fine riga uniformati a LF: su Windows Git può riscrivere il file con CRLF, e
+    # lo stesso config.toml deve dare la stessa impronta sulla macchina di misura e sul PC di controllo.
+    cfg["_sha256"] = hashlib.sha256(grezzo.replace(b"\r\n", b"\n")).hexdigest()
     controlla(cfg)
     return cfg
 

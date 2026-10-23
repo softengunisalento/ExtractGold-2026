@@ -74,3 +74,6 @@ python test/prova_simulata.py
 Controlla le strategie sui contesti esatti dell'esempio del documento e fa girare servizio e runner veri con
 llama-server, CodeCarbon e modelli ausiliari finti. Non verifica l'hardware, CodeCarbon vero, le librerie dei
 modelli ausiliari né llama-server vero: quelle si provano su M1.
+
+La prova gira solo su Linux o macOS (per esempio su M1): al posto di llama-server crea un piccolo eseguibile di
+shell, che Windows non sa avviare.

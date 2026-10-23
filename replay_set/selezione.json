@@ -1,0 +1,361 @@
+{
+  "fase": "select",
+  "versione": "1.3",
+  "script": {
+    "nome": "build_replay_set.py",
+    "sha256": "75b4b8e1711f6a22e832aa35d8ebf796ebc52558f1be537aaa2f0dd0a39fc2d1"
+  },
+  "data_utc": "2026-10-22T18:03:23+00:00",
+  "parametri": {
+    "min_turni": 10,
+    "solo_coding": false,
+    "solo_informatica": true,
+    "criterio_coding": "codice oppure tema informatico/IT riconosciuto nel primo messaggio utente (almeno due segnali tecnici distinti, oppure un segnale con richiesta esplicita di spiegazione/implementazione; esclusi domini non informatici e task creativi/commerciali)",
+    "min_tokeni": 4000,
+    "soglia_token_modo": "tutti",
+    "tokenizer_riferimento": "qwen2.5-coder-14b-instruct",
+    "misura_strato": "max",
+    "fasce_token": "4000,8000,16000",
+    "fasce_turni": "10,15,25",
+    "n_per_strato": 0,
+    "seed": 42,
+    "contesto_runtime": 32768,
+    "riserva_output": 2048
+  },
+  "confini_fasce": {
+    "turni": [
+      10,
+      15,
+      25
+    ],
+    "token": [
+      4000,
+      8000,
+      16000
+    ]
+  },
+  "modelli": {
+    "qwen2.5-coder-14b-instruct": {
+      "repo": "Qwen/Qwen2.5-Coder-14B-Instruct",
+      "revision": "aedcc2d42b622764e023cf882b6652e646b95671",
+      "contesto_dichiarato": 32768,
+      "contesto_effettivo": 32768,
+      "template_kwargs": {},
+      "commit_risolto": "aedcc2d42b622764e023cf882b6652e646b95671",
+      "system_piegato": false
+    },
+    "qwen2.5-coder-32b-instruct": {
+      "repo": "Qwen/Qwen2.5-Coder-32B-Instruct",
+      "revision": "381fc969f78efac66bc87ff7ddeadb7e73c218a7",
+      "contesto_dichiarato": 32768,
+      "contesto_effettivo": 32768,
+      "template_kwargs": {},
+      "commit_risolto": "381fc969f78efac66bc87ff7ddeadb7e73c218a7",
+      "system_piegato": false
+    },
+    "glm-4.7-flash": {
+      "repo": "zai-org/GLM-4.7-Flash",
+      "revision": "7dd20894a642a0aa287e9827cb1a1f7f91386b67",
+      "contesto_dichiarato": 202752,
+      "contesto_effettivo": 32768,
+      "template_kwargs": {
+        "enable_thinking": false
+      },
+      "commit_risolto": "7dd20894a642a0aa287e9827cb1a1f7f91386b67",
+      "system_piegato": false
+    },
+    "gemma-4-31b-it-qat-q4-0-unquantized": {
+      "repo": "google/gemma-4-31B-it-qat-q4_0-unquantized",
+      "revision": "1e4d8beecacb8b7590c1d8bedd7335f687bf311f",
+      "contesto_dichiarato": 262144,
+      "contesto_effettivo": 32768,
+      "template_kwargs": {
+        "enable_thinking": false
+      },
+      "commit_risolto": "1e4d8beecacb8b7590c1d8bedd7335f687bf311f",
+      "system_piegato": false
+    },
+    "gemma-4-26b-a4b-it-qat-q4-0-unquantized": {
+      "repo": "google/gemma-4-26B-A4B-it-qat-q4_0-unquantized",
+      "revision": "f1e06dc520982d9b9edd76859fdb7ab209449949",
+      "contesto_dichiarato": 262144,
+      "contesto_effettivo": 32768,
+      "template_kwargs": {
+        "enable_thinking": false
+      },
+      "commit_risolto": "f1e06dc520982d9b9edd76859fdb7ab209449949",
+      "system_piegato": false
+    },
+    "llama-3.3-70b-instruct": {
+      "repo": "meta-llama/Llama-3.3-70B-Instruct",
+      "revision": "6f6073b423013f6a7d4d9f39144961bfbfbc386b",
+      "contesto_dichiarato": 131072,
+      "contesto_effettivo": 32768,
+      "template_kwargs": {},
+      "commit_risolto": "6f6073b423013f6a7d4d9f39144961bfbfbc386b",
+      "system_piegato": false
+    },
+    "deepseek-coder-v2-lite-instruct": {
+      "repo": "deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct",
+      "revision": "e434a23f91ba5b4923cf6c9d9a238eb4a08e3a11",
+      "contesto_dichiarato": 163840,
+      "contesto_effettivo": 32768,
+      "template_kwargs": {},
+      "commit_risolto": "e434a23f91ba5b4923cf6c9d9a238eb4a08e3a11",
+      "system_piegato": false
+    },
+    "llama-3.1-70b-instruct": {
+      "repo": "meta-llama/Llama-3.1-70B-Instruct",
+      "revision": "1605565b47bb9346c5515c34102e054115b4f98b",
+      "contesto_dichiarato": 131072,
+      "contesto_effettivo": 32768,
+      "template_kwargs": {},
+      "commit_risolto": "1605565b47bb9346c5515c34102e054115b4f98b",
+      "system_piegato": false
+    },
+    "kimi-linear-48b-a3b-instruct": {
+      "repo": "moonshotai/Kimi-Linear-48B-A3B-Instruct",
+      "revision": "e1df551a447157d4658b573f9a695d57658590e9",
+      "contesto_dichiarato": 1048576,
+      "contesto_effettivo": 32768,
+      "template_kwargs": {},
+      "commit_risolto": "e1df551a447157d4658b573f9a695d57658590e9",
+      "system_piegato": false
+    },
+    "seed-oss-36b-instruct": {
+      "repo": "ByteDance-Seed/Seed-OSS-36B-Instruct",
+      "revision": "497f1dca95ebdec98e41d517b9f060ee753c902f",
+      "contesto_dichiarato": 524288,
+      "contesto_effettivo": 32768,
+      "template_kwargs": {
+        "thinking_budget": 0
+      },
+      "commit_risolto": "497f1dca95ebdec98e41d517b9f060ee753c902f",
+      "system_piegato": false
+    }
+  },
+  "dataset": {
+    "wildchat": {
+      "repo": "allenai/WildChat-1M",
+      "revision": "7d6490e462285cf85d91eabea0f9a954fbddcd1f",
+      "licenza": "ODC-BY"
+    },
+    "sharegpt_gpt4": {
+      "repo": "shibing624/sharegpt_gpt4",
+      "revision": "3fb53354e02a931777556fb1da37e931d73af48a",
+      "licenza": "CC-BY-4.0"
+    },
+    "codechat": {
+      "repo": "Suzhen/CodeChat",
+      "revision": "1681793a6cfb27b68c1f285bd1e78588132bc1c1",
+      "licenza": "ODC-BY"
+    }
+  },
+  "lingua": {
+    "codice": "en",
+    "soglia_confidenza": 0.8,
+    "rilevatore": "fastText lid.176",
+    "modello_sha256": "7e69ec5451bc261cc7844e49e4792a85d7f09c06789ec800fc4a44aec362764e"
+  },
+  "imbuto": {
+    "per_fonte": {
+      "wildchat": {
+        "lette": 9628,
+        "turni_ok": 9628,
+        "coding_ok": 1100,
+        "con_token": 1100,
+        "soglia_token_ok": 388,
+        "finestra_ok": 367
+      },
+      "sharegpt_gpt4": {
+        "lette": 697,
+        "turni_ok": 697,
+        "coding_ok": 232,
+        "con_token": 232,
+        "soglia_token_ok": 211,
+        "finestra_ok": 196
+      },
+      "codechat": {}
+    },
+    "per_modello": {
+      "qwen2.5-coder-14b-instruct": {
+        "in_finestra": 574,
+        "fuori_finestra": 25
+      },
+      "qwen2.5-coder-32b-instruct": {
+        "in_finestra": 574,
+        "fuori_finestra": 25
+      },
+      "glm-4.7-flash": {
+        "in_finestra": 575,
+        "fuori_finestra": 24
+      },
+      "gemma-4-31b-it-qat-q4-0-unquantized": {
+        "in_finestra": 568,
+        "fuori_finestra": 31
+      },
+      "gemma-4-26b-a4b-it-qat-q4-0-unquantized": {
+        "in_finestra": 568,
+        "fuori_finestra": 31
+      },
+      "llama-3.3-70b-instruct": {
+        "in_finestra": 575,
+        "fuori_finestra": 24
+      },
+      "deepseek-coder-v2-lite-instruct": {
+        "in_finestra": 563,
+        "fuori_finestra": 36
+      },
+      "llama-3.1-70b-instruct": {
+        "in_finestra": 575,
+        "fuori_finestra": 24
+      },
+      "kimi-linear-48b-a3b-instruct": {
+        "in_finestra": 575,
+        "fuori_finestra": 24
+      },
+      "seed-oss-36b-instruct": {
+        "in_finestra": 571,
+        "fuori_finestra": 28
+      }
+    },
+    "senza_token": 0,
+    "candidate_idonee": 563
+  },
+  "strati": [
+    {
+      "fonte": "sharegpt_gpt4",
+      "fascia_turni": "10-14",
+      "fascia_token": "4000-7999",
+      "idonei": 59,
+      "selezionati": 59
+    },
+    {
+      "fonte": "sharegpt_gpt4",
+      "fascia_turni": "10-14",
+      "fascia_token": "8000-15999",
+      "idonei": 17,
+      "selezionati": 17
+    },
+    {
+      "fonte": "sharegpt_gpt4",
+      "fascia_turni": "10-14",
+      "fascia_token": ">=16000",
+      "idonei": 1,
+      "selezionati": 1
+    },
+    {
+      "fonte": "sharegpt_gpt4",
+      "fascia_turni": "15-24",
+      "fascia_token": "4000-7999",
+      "idonei": 15,
+      "selezionati": 15
+    },
+    {
+      "fonte": "sharegpt_gpt4",
+      "fascia_turni": "15-24",
+      "fascia_token": "8000-15999",
+      "idonei": 46,
+      "selezionati": 46
+    },
+    {
+      "fonte": "sharegpt_gpt4",
+      "fascia_turni": "15-24",
+      "fascia_token": ">=16000",
+      "idonei": 3,
+      "selezionati": 3
+    },
+    {
+      "fonte": "sharegpt_gpt4",
+      "fascia_turni": ">=25",
+      "fascia_token": "4000-7999",
+      "idonei": 1,
+      "selezionati": 1
+    },
+    {
+      "fonte": "sharegpt_gpt4",
+      "fascia_turni": ">=25",
+      "fascia_token": "8000-15999",
+      "idonei": 29,
+      "selezionati": 29
+    },
+    {
+      "fonte": "sharegpt_gpt4",
+      "fascia_turni": ">=25",
+      "fascia_token": ">=16000",
+      "idonei": 25,
+      "selezionati": 25
+    },
+    {
+      "fonte": "wildchat",
+      "fascia_turni": "10-14",
+      "fascia_token": "4000-7999",
+      "idonei": 122,
+      "selezionati": 122
+    },
+    {
+      "fonte": "wildchat",
+      "fascia_turni": "10-14",
+      "fascia_token": "8000-15999",
+      "idonei": 86,
+      "selezionati": 86
+    },
+    {
+      "fonte": "wildchat",
+      "fascia_turni": "10-14",
+      "fascia_token": ">=16000",
+      "idonei": 15,
+      "selezionati": 15
+    },
+    {
+      "fonte": "wildchat",
+      "fascia_turni": "15-24",
+      "fascia_token": "4000-7999",
+      "idonei": 19,
+      "selezionati": 19
+    },
+    {
+      "fonte": "wildchat",
+      "fascia_turni": "15-24",
+      "fascia_token": "8000-15999",
+      "idonei": 70,
+      "selezionati": 70
+    },
+    {
+      "fonte": "wildchat",
+      "fascia_turni": "15-24",
+      "fascia_token": ">=16000",
+      "idonei": 15,
+      "selezionati": 15
+    },
+    {
+      "fonte": "wildchat",
+      "fascia_turni": ">=25",
+      "fascia_token": "4000-7999",
+      "idonei": 5,
+      "selezionati": 5
+    },
+    {
+      "fonte": "wildchat",
+      "fascia_turni": ">=25",
+      "fascia_token": "8000-15999",
+      "idonei": 14,
+      "selezionati": 14
+    },
+    {
+      "fonte": "wildchat",
+      "fascia_turni": ">=25",
+      "fascia_token": ">=16000",
+      "idonei": 21,
+      "selezionati": 21
+    }
+  ],
+  "selezionate": 563,
+  "file": {
+    "conversazioni": "conversazioni.jsonl",
+    "sha256_conversazioni": "44b790a91ac4fc903da8282fafd444d13835ec3a8a707f16df3bacde386a276d",
+    "strati": "strati.csv"
+  },
+  "note": "Campione comune: ogni conversazione rispetta la soglia minima e la finestra di tutti i modelli elencati. CodeChat deriva da WildChat: la deduplica usa l'id di fonte, non solo il contenuto.",
+  "attribuzione": "Data extracted from allenai/WildChat-1M (ODC-BY), Suzhen/CodeChat (ODC-BY) and shibing624/sharegpt_gpt4 (CC-BY-4.0). You are responsible for complying with the dataset-specific licenses and attribution terms."
+}

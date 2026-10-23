@@ -1,0 +1,77 @@
+# Configurazione del benchmark delle strategie di gestione del contesto (prima versione).
+# Lo STESSO file va usato sulla macchina di misura e sul PC di controllo: il runner controlla l'impronta.
+# I percorsi sono relativi alla cartella di questo file.
+
+[esecuzione]
+nome = "v1"                      # cartella dei risultati: <cartella_risultati>/<nome>; un nome nuovo per ogni esecuzione
+seed = 42                        # ordine delle strategie, mescolato per ogni conversazione
+cartella_risultati = "risultati"
+
+[input]                          # file congelati
+conversazioni = "../replay_set/conversazioni.jsonl"
+selezione = "../replay_set/selezione.json"
+modelli = "../selezioni/candidati_2026-10-19.json"
+sha256_conversazioni = "44b790a91ac4fc903da8282fafd444d13835ec3a8a707f16df3bacde386a276d"
+
+[rete]
+host = "0.0.0.0"                 # dove ascolta il servizio di misura (su M1)
+porta = 9100
+indirizzo_misura = "http://127.0.0.1:9100"   # indirizzo di M1 visto dal PC di controllo: da cambiare
+chiave = ""                      # facoltativa: se impostata, ogni richiesta al servizio deve portarla
+
+[llama]
+sorgenti = "../llama.cpp"
+repository = "https://github.com/ggml-org/llama.cpp"
+commit = "def4d406ae2c2f39573120d68730fbb7760b24bf"   # b11316-9-gdef4d406a
+opzioni_cmake = ["-DGGML_CUDA=ON"]
+eseguibile = "../llama.cpp/build/bin/llama-server"
+porta = 8080                     # solo locale su M1
+contesto = 32768
+argomenti = ["-ngl", "99", "-np", "1", "--jinja"]   # --jinja: chat template del GGUF e parametri del template
+cache_prompt = true
+attesa_caricamento_s = 1800
+cartella_modelli = "../models"
+
+[generazione]
+temperatura = 0.7
+seed = 42
+# nessun tetto alla lunghezza delle risposte (max_tokens non impostato)
+
+[misura]
+modalita = "machine"             # CodeCarbon: intera macchina, GPU + CPU + RAM
+metodo_finestre = "auto"         # auto | task | tracker (auto: task se CodeCarbon li supporta)
+riposo_secondi = 120             # consumo a riposo, con il modello caricato e dopo il riscaldamento
+riscaldamento_richieste = 3
+riscaldamento_messaggio = "Hello! Please introduce yourself in two sentences."
+
+[strategie]
+elenco = ["S0", "S1", "S2", "S3", "S4", "S5", "S6", "S7"]
+soglia_token = 3500              # trigger: contesto di S0 contato con il tokenizer del modello in prova
+turni_recenti = 3                # S1, S4, S7
+s3_ogni_turni = 3
+s7_recuperati = 2
+quota_token_tenuti = 0.5         # S5 e S6: si tiene il 50% dei token (solo testo, codice intatto)
+prefisso_riassunto = "Here is a summary of the conversation to date:"
+prompt_ge = "Generate a prompt that contains a summary of the context and of the conversation, which will allow me to start a new conversation and continue solving my problem."
+prompt_s3_primo = "Generate a summary of the context and of the conversation above, which will allow me to continue this conversation and keep solving my problem."
+prompt_s3_aggiornamento = "Below are the current summary of the context and of the conversation, followed by the new messages. Update the summary so that it includes the new messages and still allows me to continue this conversation and keep solving my problem."
+# Come si compone la richiesta di aggiornamento di S3: il prompt dice "Below", quindi riassunto e nuovi messaggi
+# seguono il prompt nello stesso messaggio dell'utente. {prompt}, {riassunto} e {messaggi} sono obbligatori.
+formato_s3_aggiornamento = "{prompt}\n\nCurrent summary:\n{riassunto}\n\nNew messages:\n{messaggi}"
+prompt_s4 = "Generate a summary of the context and of the earlier part of the conversation above. The most recent messages will follow your summary word for word, so the summary must allow me to continue this conversation from them and keep solving my problem."
+
+[ausiliari]                      # intercambiabili
+llmlingua2 = "microsoft/llmlingua-2-xlm-roberta-large-meetingbank"
+selective_context_modello = "gpt2"
+selective_context_lingua = "en"
+selective_context_unita = "phrase"
+embedding = "BAAI/bge-small-en-v1.5"
+embedding_max_token = 512
+embedding_prefisso_query = "Represent this sentence for searching relevant passages: "
+dispositivo = "cuda"
+offline = true                   # durante l'esecuzione nessun download (funziona anche con lo switch)
+
+[preparazione]
+script_download = "../download_models.py"
+requisiti = "requirements_misura.txt"
+spacy_modello = "en_core_web_sm"

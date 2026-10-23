@@ -24,3 +24,8 @@ stats_out/
 selezioni/esito_download_*.txt
 
 .env.local
+
+benchmark/risultati/
+benchmark/log_misura/
+benchmark/preparazione.json
+benchmark/requirements_misura.lock.txt

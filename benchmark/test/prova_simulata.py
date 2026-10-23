@@ -1,0 +1,339 @@
+#!/usr/bin/env python3
+"""Prova simulata del benchmark, senza GPU né rete: python test/prova_simulata.py
+
+Parte A: le strategie, controllate sui contesti esatti dell'esempio del documento (trigger al turno 6).
+Parte B: servizio di misura vero (con llama-server, CodeCarbon e modelli ausiliari FINTI) e runner vero, su
+conversazioni inventate: caricamento con FAIL, riscaldamento, consumo a riposo, trigger, tutte le strategie,
+contesto superato, energia lorda e netta, ripresa dopo l'interruzione.
+"""
+import json
+import os
+import shutil
+import socket
+import subprocess
+import sys
+import tempfile
+import time
+import urllib.request
+from pathlib import Path
+
+QUI = Path(__file__).resolve().parent
+BENCH = QUI.parent
+sys.path.insert(0, str(BENCH))
+import strategie  # noqa: E402
+from dati import Conversazione  # noqa: E402
+
+ERRORI = []
+
+
+def controlla(cond, descrizione):
+    print(("  OK   " if cond else "  ERR  ") + descrizione)
+    if not cond:
+        ERRORI.append(descrizione)
+
+
+# ---------------------------------------------------------------------------
+# Parte A: strategie
+# ---------------------------------------------------------------------------
+
+PAR = {"turni_recenti": 3, "s3_ogni_turni": 3, "s7_recuperati": 2, "quota_token_tenuti": 0.5,
+       "prefisso_riassunto": "Here is a summary of the conversation to date:",
+       "prompt_ge": "PROMPT_GE", "prompt_s3_primo": "PROMPT_S3_1", "prompt_s3_aggiornamento": "PROMPT_S3_N",
+       "formato_s3_aggiornamento": "{prompt}\n\nCurrent summary:\n{riassunto}\n\nNew messages:\n{messaggi}",
+       "prompt_s4": "PROMPT_S4"}
+PREF = PAR["prefisso_riassunto"]
+
+
+class ServiziFinti:
+    def __init__(self):
+        self.richieste, self.compressi, self.embedding_voci, self.intermedi = [], [], [], []
+        self.n = 0
+
+    def chiedi(self, messaggi, tipo):
+        self.n += 1
+        self.richieste.append((tipo, messaggi))
+        return f"{tipo.upper()}#{self.n}"
+
+    def comprimi(self, metodo, testi, quota):
+        self.compressi.append((metodo, list(testi)))
+        return [f"[{metodo}:{t[:10]}]" for t in testi]
+
+    def embedding(self, voci):
+        self.embedding_voci.append(voci)
+        # il turno che contiene "alpha" è il più simile alla query
+        return [[[1.0, 0.0]] if "alpha" in v["testo"] else [[0.0, 1.0]] for v in voci[:-1]] + [[[1.0, 0.0]]]
+
+    def intermedio(self, tipo, contenuto):
+        self.intermedi.append((tipo, contenuto))
+
+
+def conv_esempio(n=10):
+    m = []
+    for k in range(1, n + 1):
+        m.append({"role": "user", "content": f"U{k}" + (" alpha" if k == 2 else "")})
+        m.append({"role": "assistant", "content": f"A{k}" + (" ```code k``` and `x`" if k == 1 else "")})
+    return Conversazione(id="c", fonte="prova", messaggi=m)
+
+
+def esegui(strat_nome, conv, trigger, fino_a):
+    serv = ServiziFinti()
+    s = strategie.crea(strat_nome, PAR, serv)
+    contesti = {}
+    for k in range(trigger, fino_a + 1):
+        contesti[k] = s.contesto(conv.storia_prima(k), conv.utente(k), k >= trigger)
+    return serv, contesti
+
+
+def testi(contesto):
+    return [(m["role"][0], m["content"]) for m in contesto]
+
+
+def parte_a():
+    print("Parte A: strategie (trigger al turno 6)")
+    c = conv_esempio()
+    # S0
+    _, ctx = esegui("S0", c, 6, 6)
+    controlla(len(ctx[6]) == 11 and ctx[6][-1]["content"] == "U6", "S0: storia completa più U6")
+    # S1
+    _, ctx = esegui("S1", c, 6, 7)
+    controlla(testi(ctx[6]) == [("u", "U3"), ("a", "A3"), ("u", "U4"), ("a", "A4"), ("u", "U5"), ("a", "A5"), ("u", "U6")],
+              "S1: ultimi 3 turni (3–5) più U6")
+    controlla(testi(ctx[7])[0] == ("u", "U4"), "S1: al turno 7 la finestra scorre (4–6)")
+    # S2
+    serv, ctx = esegui("S2", c, 6, 7)
+    tipi = [t for t, _ in serv.richieste]
+    controlla(tipi == ["ge_gold_prompt", "ge_nuova_sessione"], "S2: una sola GE (gold prompt + nuova sessione)")
+    controlla(serv.richieste[0][1][-1]["content"] == "PROMPT_GE" and len(serv.richieste[0][1]) == 11,
+              "S2: il gold prompt si chiede su tutta la storia (turni 1–5) + prompt GE")
+    controlla(serv.richieste[1][1] == [{"role": "user", "content": "GE_GOLD_PROMPT#1"}],
+              "S2: la nuova sessione inizia con il gold prompt come messaggio dell'utente, senza sistema")
+    controlla(testi(ctx[6]) == [("u", "GE_GOLD_PROMPT#1"), ("a", "GE_NUOVA_SESSIONE#2"), ("u", "U6")],
+              "S2 turno 6: gold prompt + risposta + U6")
+    controlla(testi(ctx[7]) == [("u", "GE_GOLD_PROMPT#1"), ("a", "GE_NUOVA_SESSIONE#2"), ("u", "U6"), ("a", "A6"), ("u", "U7")],
+              "S2 turno 7: come sopra + A6 + U7")
+    # S3
+    serv, ctx = esegui("S3", c, 6, 10)
+    tipi = [t for t, _ in serv.richieste]
+    controlla(tipi == ["s3_riassunto", "s3_aggiornamento"], "S3: primo riassunto al turno 6, aggiornamento al turno 9")
+    controlla(serv.richieste[0][1][-1]["content"] == "PROMPT_S3_1" and len(serv.richieste[0][1]) == 11,
+              "S3: il primo riassunto copre tutta la storia (turni 1–5)")
+    controlla(testi(ctx[6]) == [("u", f"{PREF}\n\nS3_RIASSUNTO#1\n\nU6")], "S3 turno 6: riassunto unito a U6")
+    controlla(testi(ctx[7]) == [("u", f"{PREF}\n\nS3_RIASSUNTO#1\n\nU6"), ("a", "A6"), ("u", "U7")], "S3 turno 7")
+    agg = serv.richieste[1][1]
+    controlla(len(agg) == 1 and agg[0]["content"].startswith("PROMPT_S3_N\n\nCurrent summary:\nS3_RIASSUNTO#1")
+              and "User: U6" in agg[0]["content"] and "Assistant: A8" in agg[0]["content"]
+              and "U9" not in agg[0]["content"], "S3: l'aggiornamento contiene riassunto + turni 6–8 dopo il prompt")
+    controlla(testi(ctx[9]) == [("u", f"{PREF}\n\nS3_AGGIORNAMENTO#2\n\nU9")], "S3 turno 9: riassunto aggiornato unito a U9")
+    # S4
+    serv, ctx = esegui("S4", c, 6, 8)
+    controlla([t for t, _ in serv.richieste] == ["s4_riassunto"], "S4: una sola compattazione")
+    controlla([m["content"] for m in serv.richieste[0][1]] == ["U1", c.messaggi[1]["content"], "U2 alpha", "A2", "PROMPT_S4"],
+              "S4: si riassumono solo i turni vecchi (1–2)")
+    controlla(testi(ctx[6]) == [("u", f"{PREF}\n\nS4_RIASSUNTO#1\n\nU3"), ("a", "A3"), ("u", "U4"), ("a", "A4"),
+                                ("u", "U5"), ("a", "A5"), ("u", "U6")], "S4 turno 6: riassunto unito a U3, poi turni 3–5 e U6")
+    controlla(len(ctx[8]) == 11 and ctx[8][-1]["content"] == "U8", "S4 turno 8: la coda cresce (nessuna nuova compattazione)")
+    serv, ctx = esegui("S4", c, 3, 5)
+    controlla([t for t, _ in serv.richieste] == ["s4_riassunto"] and len(ctx[3]) == 5 and len(ctx[4]) == 7,
+              "S4 con trigger al turno 3: compattazione rinviata al turno 5 (primo con turni più vecchi degli ultimi 3)")
+    # S5 / S6
+    for nome, metodo in (("S5", "llmlingua2"), ("S6", "selective_context")):
+        serv, ctx = esegui(nome, c, 6, 7)
+        controlla(serv.compressi[0][0] == metodo, f"{nome}: metodo {metodo}")
+        tutti = [t for _, lst in serv.compressi for t in lst]
+        controlla(not any("```" in t or "`x`" in t for t in tutti), f"{nome}: il codice non va al compressore")
+        controlla("```code k```" in ctx[6][1]["content"] and "`x`" in ctx[6][1]["content"],
+                  f"{nome}: il codice resta intatto nel messaggio compresso")
+        controlla(ctx[6][-1] == {"role": "user", "content": "U6"}, f"{nome}: l'ultimo messaggio dell'utente non si comprime")
+        controlla(len(serv.compressi) == 2 and len(serv.compressi[1][1]) == 2,
+                  f"{nome}: al turno 7 si comprimono solo i 2 messaggi nuovi (U6, A6)")
+    # S7
+    serv, ctx = esegui("S7", c, 7, 7)
+    controlla(testi(ctx[7]) == [("u", "U1"), ("a", c.messaggi[1]["content"]), ("u", "U2 alpha"), ("a", "A2"),
+                                ("u", "U4"), ("a", "A4"), ("u", "U5"), ("a", "A5"), ("u", "U6"), ("a", "A6"), ("u", "U7")],
+              "S7 turno 7: 2 turni recuperati (il 2 più simile, poi l'1 a parità), in ordine cronologico, + ultimi 3 (4–6) + U7")
+    controlla(serv.intermedi[0][0] == "s7_recuperati" and [v["turno"] for v in serv.intermedi[0][1]] == [1, 2],
+              "S7: turni recuperati registrati (1, 2)")
+    voci = serv.embedding_voci[0]
+    controlla(voci[-1] == {"testo": "U7", "tipo": "query"} and len(voci) == 4,
+              "S7: embedding dei 3 turni candidati (1–3) + query")
+
+
+# ---------------------------------------------------------------------------
+# Parte B: servizio di misura + runner
+# ---------------------------------------------------------------------------
+
+def porta_libera():
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
+
+
+def parole(n, tema="word"):
+    return " ".join(f"{tema}{i}" for i in range(n))
+
+
+def crea_dati(d: Path):
+    def conv(cid, turni):
+        msgs = []
+        for u, a in turni:
+            msgs += [{"role": "user", "content": u}, {"role": "assistant", "content": a}]
+        return {"id": cid, "fonte": "prova", "turni": len(turni), "messages": msgs}
+    righe = [
+        conv("prova:normale", [(f"question {k} " + parole(15, f"q{k}_"), f"answer {k} ```python\nprint({k})\n``` "
+                                + parole(40, f"a{k}_")) for k in range(1, 13)]),
+        conv("prova:corta", [(f"hi {k}", f"hello {k}") for k in range(1, 11)]),
+        conv("prova:trigger1", [(parole(600, "big"), "ok")] + [(f"next {k}", f"reply {k} " + parole(20)) for k in range(2, 11)]),
+        conv("prova:lunghissima", [(f"long {k} " + parole(30), parole(160, f"l{k}_")) for k in range(1, 15)]),
+    ]
+    (d / "conversazioni.jsonl").write_text("".join(json.dumps(r) + "\n" for r in righe), encoding="utf-8")
+    modelli = {"modello-a": {"enable_thinking": False}, "modello-b": {}, "modello-fail": {}}
+    sel = {"modelli": {n: {"repo": f"org/{n}", "revision": "c" * 40, "template_kwargs": k} for n, k in modelli.items()}}
+    (d / "selezione.json").write_text(json.dumps(sel), encoding="utf-8")
+    cand = {"candidati": [{"id": f"org/{n}", "commit": "c" * 40,
+                           "reasoning": {"interruttori": [f"{a}={str(b).lower()}" for a, b in k.items()]},
+                           "scarica": {"nome": n, "repo": f"q/{n}-GGUF", "etichetta": "Q4_K_M", "commit": "d" * 40}}
+                          for n, k in modelli.items()]}
+    (d / "candidati.json").write_text(json.dumps(cand), encoding="utf-8")
+    manifest = {}
+    for n in modelli:
+        (d / "models" / n).mkdir(parents=True)
+        f = f"{n}-fail-Q4_K_M.gguf" if "fail" in n else f"{n}-Q4_K_M.gguf"
+        (d / "models" / n / f).write_bytes(b"GGUF")
+        manifest[n] = {"files": [{"file": f}]}
+    (d / "models" / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    commit = "def4d406ae2c2f39573120d68730fbb7760b24bf"
+    (d / "llama.cpp" / "build" / "bin").mkdir(parents=True)
+    (d / "llama.cpp" / "build" / ".commit_benchmark").write_text(commit + "\n")
+    eseguibile = d / "llama.cpp" / "build" / "bin" / "llama-server"
+    eseguibile.write_text(f"#!/bin/sh\nexec {sys.executable} {QUI / 'finto_llama_server.py'} \"$@\"\n")
+    eseguibile.chmod(0o755)
+    cfg = (BENCH / "config.toml").read_text(encoding="utf-8")
+    porta = porta_libera()
+    sostituzioni = {
+        'conversazioni = "../replay_set/conversazioni.jsonl"': f'conversazioni = "{d / "conversazioni.jsonl"}"',
+        'selezione = "../replay_set/selezione.json"': f'selezione = "{d / "selezione.json"}"',
+        'modelli = "../selezioni/candidati_2026-10-19.json"': f'modelli = "{d / "candidati.json"}"',
+        'sha256_conversazioni = "44b790a91ac4fc903da8282fafd444d13835ec3a8a707f16df3bacde386a276d"': 'sha256_conversazioni = ""',
+        'cartella_risultati = "risultati"': f'cartella_risultati = "{d / "risultati"}"',
+        'host = "0.0.0.0"': 'host = "127.0.0.1"',
+        "porta = 9100": f"porta = {porta}",
+        'indirizzo_misura = "http://127.0.0.1:9100"': f'indirizzo_misura = "http://127.0.0.1:{porta}"',
+        'sorgenti = "../llama.cpp"': f'sorgenti = "{d / "llama.cpp"}"',
+        'eseguibile = "../llama.cpp/build/bin/llama-server"': f'eseguibile = "{eseguibile}"',
+        "porta = 8080": f"porta = {porta_libera()}",
+        "contesto = 32768": "contesto = 2500",
+        'cartella_modelli = "../models"': f'cartella_modelli = "{d / "models"}"',
+        "riposo_secondi = 120": "riposo_secondi = 0.3",
+        "riscaldamento_richieste = 3": "riscaldamento_richieste = 1",
+        "soglia_token = 3500": "soglia_token = 500",
+    }
+    for a, b in sostituzioni.items():
+        assert cfg.count(a) == 1, a
+        cfg = cfg.replace(a, b)
+    (d / "config.toml").write_text(cfg, encoding="utf-8")
+    return d / "config.toml", porta
+
+
+def leggi(p: Path):
+    return [json.loads(r) for r in p.read_text(encoding="utf-8").splitlines() if r.strip()] if p.exists() else []
+
+
+def parte_b():
+    print("\nParte B: servizio di misura + runner (llama-server, CodeCarbon e ausiliari finti)")
+    d = Path(tempfile.mkdtemp(prefix="bench_"))
+    config, porta = crea_dati(d)
+    env = {**os.environ, "PYTHONPATH": str(QUI / "finti"), "FINTO_LOG": str(d / "llama_richieste.jsonl")}
+    servizio = subprocess.Popen([sys.executable, str(QUI / "avvia_misura_finta.py"), "esegui", "--config", str(config)],
+                                cwd=d, env=env, stdout=open(d / "servizio.log", "w"), stderr=subprocess.STDOUT)
+    try:
+        for _ in range(100):
+            try:
+                urllib.request.urlopen(f"http://127.0.0.1:{porta}/stato", timeout=1)
+                break
+            except OSError:
+                time.sleep(0.1)
+        runner = [sys.executable, str(BENCH / "runner.py"), "--config", str(config)]
+        r1 = subprocess.run(runner, cwd=d, env=env, capture_output=True, text=True)
+        print("  --- uscita del runner ---\n" + "\n".join("  | " + x for x in r1.stdout.splitlines()[-12:]))
+        if r1.returncode:
+            print(r1.stderr[-3000:])
+        controlla(r1.returncode == 0, "runner concluso senza errori")
+        res = d / "risultati" / "v1"
+        mod = leggi(res / "modelli.jsonl")
+        controlla(any(m["modello"] == "modello-fail" and m.get("esito") == "FAIL" for m in mod), "modello-fail: FAIL registrato")
+        controlla(sum(m.get("evento") == "riposo" for m in mod) == 2, "consumo a riposo misurato per i 2 modelli caricati")
+        rich = leggi(res / "richieste.jsonl")
+        comp = leggi(res / "completate.jsonl")
+        controlla(len(comp) == 2 * 4 * 8, "64 unità concluse (2 modelli x 4 conversazioni x 8 strategie)")
+        controlla(sum(c["esito"] == "nessun_trigger" for c in comp) == 2 * 7, "conversazione corta: nessun trigger, solo S0")
+        trig = json.loads((res / "trigger" / "modello-a.json").read_text())["conversazioni"]
+        kt = trig["prova:normale"]["turno_trigger"]
+        controlla(kt is not None and 1 < kt < 12, f"conversazione normale: trigger al turno {kt}")
+        controlla(trig["prova:trigger1"]["turno_trigger"] == 1, "conversazione con primo messaggio enorme: trigger al turno 1")
+        ge1 = [r for r in rich if r["conversazione"] == "prova:trigger1" and r["tipo"] == "ge_gold_prompt"]
+        controlla(len(ge1) == 2 and all(r["turno"] == 2 for r in ge1),
+                  "trigger al turno 1: la GE avviene al turno 2 (al turno 1 non c'è storia da riassumere)")
+        def righe(mod_, conv, strat, tipo=None):
+            return [r for r in rich if r["modello"] == mod_ and r["conversazione"] == conv and r["strategia"] == strat
+                    and (tipo is None or r["tipo"] == tipo)]
+        s0 = righe("modello-a", "prova:normale", "S0", "turno")
+        controlla(len(s0) == 12 and sum(r["pre_trigger"] for r in s0) == kt - 1, "S0: tutti i turni, pre_trigger prima del trigger")
+        for s in ("S1", "S2", "S3", "S4", "S5", "S6", "S7"):
+            t = righe("modello-a", "prova:normale", s, "turno")
+            controlla(len(t) == 12 - kt + 1 and t[0]["turno"] == kt, f"{s}: turni dal trigger alla fine")
+        controlla(len(righe("modello-a", "prova:normale", "S2", "ge_gold_prompt")) == 1
+                  and len(righe("modello-a", "prova:normale", "S2", "ge_nuova_sessione")) == 1, "S2: una GE")
+        n_agg = len(righe("modello-a", "prova:normale", "S3", "s3_aggiornamento"))
+        controlla(n_agg == (12 - kt) // 3, f"S3: {n_agg} aggiornamenti ogni 3 turni")
+        controlla(len(righe("modello-a", "prova:normale", "S4", "s4_riassunto")) == 1, "S4: una compattazione")
+        controlla(len(righe("modello-a", "prova:normale", "S5", "compressione")) == 12 - kt + 1, "S5: compressione a ogni turno attivo")
+        controlla(len(righe("modello-a", "prova:normale", "S7", "embedding")) >= 1, "S7: embedding registrati")
+        cs = [r for r in rich if r["esito"] == "contesto_superato"]
+        controlla(len(cs) > 0 and all(r["conversazione"] == "prova:lunghissima" for r in cs),
+                  f"contesto superato registrato ({len(cs)} richieste) senza fermare il benchmark")
+        t0 = s0[0]
+        e = t0["energia_lorda"]
+        controlla(e["prefill"]["gpu_wh"] > 0 and e["decode"]["gpu_wh"] > 0 and e["prefill"]["cpu_wh"] > 0,
+                  "energia lorda: prefill e decode con GPU, CPU e RAM")
+        controlla(t0["energia_netta"]["prefill"]["gpu_wh"] is not None, "energia netta calcolata")
+        controlla(any(r["token_in_cache"] for r in rich if r["tipo"] == "turno"), "token in cache registrati")
+        log = leggi(d / "llama_richieste.jsonl")
+        a = [x for x in log if x["alias"] == "modello-a"]
+        b = [x for x in log if x["alias"] == "modello-b"]
+        controlla(all(x.get("chat_template_kwargs") == {"enable_thinking": False} for x in a) and
+                  all("chat_template_kwargs" not in x for x in b), "reasoning spento solo dove serve (modello-a)")
+        controlla(all(x["temperature"] == 0.7 and x["seed"] == 42 and "max_tokens" not in x for x in log),
+                  "temperatura 0,7, seed 42, nessun tetto alla risposta")
+        controlla(all(x["messages"][0]["role"] != "system" for x in log), "nessun messaggio di sistema")
+        inter = leggi(res / "intermedi.jsonl")
+        tipi = {i["tipo"] for i in inter}
+        controlla({"ge_gold_prompt", "s3_riassunto", "s4_riassunto", "s5_compressi", "s6_compressi", "s7_recuperati"} <= tipi,
+                  "testi intermedi salvati per tutte le strategie")
+        s5 = [i for i in inter if i["tipo"] == "s5_compressi" and i["conversazione"] == "prova:normale"]
+        controlla(any("```python\nprint(1)\n```" in m["testo"] for i in s5 for m in i["contenuto"]),
+                  "S5: blocchi di codice intatti nei messaggi compressi")
+        n_righe = len(rich)
+        r2 = subprocess.run(runner, cwd=d, env=env, capture_output=True, text=True)
+        controlla(r2.returncode == 0 and len(leggi(res / "richieste.jsonl")) == n_righe and "già concluso" in r2.stdout,
+                  "ripresa: un secondo avvio non rifà le unità concluse")
+        # ripresa dopo un'interruzione: si cancella l'ultima unità conclusa e si rilancia
+        comp_righe = (res / "completate.jsonl").read_text().splitlines()
+        tolta = json.loads(comp_righe[-1])["unita"]
+        (res / "completate.jsonl").write_text("\n".join(comp_righe[:-1]) + "\n")
+        r3 = subprocess.run(runner, cwd=d, env=env, capture_output=True, text=True)
+        nuove = [x for x in leggi(res / "completate.jsonl") if x["unita"] == tolta]
+        controlla(r3.returncode == 0 and len(nuove) == 1, f"ripresa: l'unità non conclusa ({tolta}) si rifà")
+    finally:
+        servizio.terminate()
+        servizio.wait()
+    if ERRORI:
+        print(f"\n(cartella della prova conservata: {d})")
+    else:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+if __name__ == "__main__":
+    parte_a()
+    parte_b()
+    print(f"\n{'TUTTO OK' if not ERRORI else f'{len(ERRORI)} CONTROLLI FALLITI'}")
+    sys.exit(1 if ERRORI else 0)

@@ -1,0 +1,9 @@
+# Librerie della macchina di misura (M1). Le versioni effettivamente installate da "python misura.py prepara"
+# finiscono in requirements_misura.lock.txt, da conservare con i risultati.
+codecarbon==3.3.1
+huggingface_hub>=0.20.0
+requests>=2.31.0
+llmlingua
+selective-context
+sentence-transformers
+spacy

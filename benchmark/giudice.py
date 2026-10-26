@@ -13,7 +13,8 @@ Controlli dell'affidabilità (stessi testi, il giudice non sa di essere testato)
 
 La misura dell'energia è spenta. I giudizi si salvano uno per uno in risultati/<nome>/giudizi/<impronta del
 giudice>/giudizi.jsonl: rilanciato, il giudice salta quelli già fatti. Un modello si giudica solo quando il suo
-benchmark è concluso. Usa solo la libreria standard di Python (3.11 o superiore).
+benchmark è concluso. Avanzamento: una riga con la percentuale dei giudizi del modello (quelli già salvati
+contano come fatti). Usa solo la libreria standard di Python (3.11 o superiore).
 """
 from __future__ import annotations
 
@@ -27,6 +28,7 @@ from pathlib import Path
 
 import configurazione
 import dati
+from avanzamento import Avanzamento
 from client_misura import ClientMisura, ErroreServizio
 from risultati import adesso, chiave_unita
 
@@ -341,7 +343,7 @@ def main(argv=None) -> int:
                                    "stato_servizio": stato})
     giudice = Giudice(cfg, client, arch, nome)
     print(f"Giudice {cfg['giudice']['nome']}: giudizi in {arch.cartella}")
-    for m in modelli:
+    for n_modello, m in enumerate(modelli, 1):
         lavori, motivo = lavori_del_modello(cfg, res, m, conversazioni, completate)
         if motivo:
             print(f"\n[{m}] saltato: {motivo}")
@@ -351,12 +353,16 @@ def main(argv=None) -> int:
         print(f"\n[{m}] {len(lavori)} voci ({n_base} giudizi base, "
               f"{sum(1 for x in lavori if x['controllo'])} controlli, "
               f"{sum(1 for x in lavori if x.get('non_giudicabile'))} non giudicabili); da fare: {len(da_fare)}")
-        for i, lav in enumerate(da_fare, 1):
+        if any(not x.get("non_giudicabile") for x in da_fare) and not giudice.caricato:
+            giudice.carica()  # prima della riga di avanzamento, così i messaggi di caricamento non la spezzano
+        etichetta = f"  [{m}]" + (f" modello {n_modello}/{len(modelli)}" if len(modelli) > 1 else "")
+        avanz = Avanzamento(etichetta, len(lavori), len(lavori) - len(da_fare), "giudizi")
+        for lav in da_fare:
             riga = giudice.giudica(lav, per_id)
             arch.scrivi("giudizi.jsonl", riga)
             arch.fatti.add(lav["id"])
-            if i % 100 == 0 or i == len(da_fare):
-                print(f"  {i}/{len(da_fare)}")
+            avanz.avanza()
+        avanz.chiudi()
     if giudice.caricato:
         client.scarica_modello()
     print(f"\nGiudizi in {arch.cartella / 'giudizi.jsonl'}")

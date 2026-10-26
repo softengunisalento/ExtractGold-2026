@@ -11,6 +11,7 @@ registra token, tempi ed energia. La risposta generata si salva ma non entra nel
 riparte dalla storia originale.
 
 Ripresa: rilanciato con la stessa configurazione, salta le unità (modello, conversazione, strategia) già concluse.
+Avanzamento: una riga con la percentuale delle risposte ai turni (le unità già concluse contano come fatte).
 Usa solo la libreria standard di Python (3.11 o superiore).
 """
 from __future__ import annotations
@@ -24,6 +25,7 @@ from pathlib import Path
 import configurazione
 import dati
 import strategie
+from avanzamento import Avanzamento
 from client_misura import ClientMisura, ErroreServizio
 from risultati import Registro, adesso, chiave_unita
 
@@ -159,8 +161,15 @@ def verifiche(trig: dict, turni_recenti: int) -> dict:
 # Esecuzione
 # ---------------------------------------------------------------------------
 
+def turni_dell_unita(conv: dati.Conversazione, strategia: str, trigger: int | None) -> int:
+    """Risposte ai turni di un'unità: S0 tutti i turni, le altre strategie dal trigger alla fine."""
+    if strategia == "S0":
+        return conv.n_turni
+    return conv.n_turni - trigger + 1 if trigger else 0
+
+
 def esegui_unita(client, reg, chiavi, conv: dati.Conversazione, strategia: str, trigger: int | None,
-                 parametri: dict, potenze: dict | None) -> None:
+                 parametri: dict, potenze: dict | None, avanz: Avanzamento | None = None) -> None:
     chiave = chiave_unita(chiavi["modello"], conv.id, strategia)
     if strategia != "S0" and trigger is None:
         reg.scrivi_unita(chiave, [], [], [], {"esito": "nessun_trigger"})
@@ -174,6 +183,8 @@ def esegui_unita(client, reg, chiavi, conv: dati.Conversazione, strategia: str, 
         serv.turno, serv.pre_trigger = k, not attiva
         contesto = strat.contesto(conv.storia_prima(k), conv.utente(k), attiva)
         serv.chiedi(contesto, "turno")
+        if avanz:
+            avanz.avanza()
     esiti = [r["esito"] for r in serv.richieste]
     reg.scrivi_unita(chiave, serv.richieste, serv.testi, serv.intermedi,
                      {"esito": "ok", "richieste": len(esiti), "contesto_superato": esiti.count("contesto_superato"),
@@ -227,7 +238,7 @@ def main() -> int:
     elenco = list(par["elenco"])
     seed = cfg["esecuzione"]["seed"]
 
-    for m in modelli:
+    for n_modello, m in enumerate(modelli, 1):
         nm = m["nome"]
         chiavi_modello = [chiave_unita(nm, c.id, s) for c in conversazioni for s in elenco]
         if not args.solo_verifiche and all(reg.conclusa(k) for k in chiavi_modello):
@@ -255,14 +266,21 @@ def main() -> int:
         reg.scrivi("modelli.jsonl", {"sessione": sessione, "evento": "riposo", "modello": nm, **rip})
         potenze = rip.get("potenza_media")
         chiavi = {"esecuzione": nome, "sessione": sessione, "modello": nm}
+        tt = {c.id: trig["conversazioni"][c.id]["turno_trigger"] for c in conversazioni}
+        totale = sum(turni_dell_unita(c, s, tt[c.id]) for c in conversazioni for s in elenco)
+        fatti = sum(turni_dell_unita(c, s, tt[c.id]) for c in conversazioni for s in elenco
+                    if reg.conclusa(chiave_unita(nm, c.id, s)))
+        etichetta = f"  [{nm}]" + (f" modello {n_modello}/{len(modelli)}" if len(modelli) > 1 else "")
+        avanz = Avanzamento(etichetta, totale, fatti, "turni")
         for i, c in enumerate(conversazioni, 1):
+            avanz.imposta_dettaglio(f"conversazione {i}/{len(conversazioni)}")
             ordine = list(elenco)
             random.Random(f"{seed}|{nm}|{c.id}").shuffle(ordine)
             for s in ordine:
                 if reg.conclusa(chiave_unita(nm, c.id, s)):
                     continue
-                esegui_unita(client, reg, chiavi, c, s, trig["conversazioni"][c.id]["turno_trigger"], par, potenze)
-            print(f"  {i}/{len(conversazioni)} conversazioni")
+                esegui_unita(client, reg, chiavi, c, s, tt[c.id], par, potenze, avanz)
+        avanz.chiudi()
         client.scarica_modello()
     print(f"\nRisultati in {reg.cartella}")
     return 0

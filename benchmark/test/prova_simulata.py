@@ -246,6 +246,13 @@ def crea_dati(d: Path):
     return d / "config.toml", porta
 
 
+def pct(riga):
+    """La percentuale di una riga di avanzamento, come numero (None se manca)."""
+    import re
+    m = re.search(r"(\d+,\d)%", riga or "")
+    return float(m.group(1).replace(",", ".")) if m else None
+
+
 def leggi(p: Path):
     return [json.loads(r) for r in p.read_text(encoding="utf-8").splitlines() if r.strip()] if p.exists() else []
 
@@ -259,6 +266,14 @@ def parte_b(d, env, config):
         if r1.returncode:
             print(r1.stderr[-3000:])
         controlla(r1.returncode == 0, "runner concluso senza errori")
+        av = [x for x in r1.stdout.splitlines() if "[modello-a]" in x and "%" in x]
+        controlla(av and pct(av[0]) == 0 and pct(av[-1]) == 100 and "turni" in av[-1]
+                  and "stima residua" in av[-1], f"avanzamento del benchmark da 0,0% a 100,0% ({len(av)} righe)")
+        # totale atteso: S0 tutti i turni, le altre strategie dal trigger alla fine
+        tr_a = json.loads((d / "risultati" / "v1" / "trigger" / "modello-a.json").read_text())["conversazioni"]
+        atteso = sum(v["turni"] + (7 * (v["turni"] - v["turno_trigger"] + 1) if v["turno_trigger"] else 0)
+                     for v in tr_a.values())
+        controlla(f"/{atteso} turni)" in av[-1].replace(".", ""), f"avanzamento: totale di {atteso} risposte ai turni")
         res = d / "risultati" / "v1"
         mod = leggi(res / "modelli.jsonl")
         controlla(any(m["modello"] == "modello-fail" and m.get("esito") == "FAIL" for m in mod), "modello-fail: FAIL registrato")
@@ -324,6 +339,9 @@ def parte_b(d, env, config):
         r3 = subprocess.run(runner, cwd=d, env=env, capture_output=True, text=True)
         nuove = [x for x in leggi(res / "completate.jsonl") if x["unita"] == tolta]
         controlla(r3.returncode == 0 and len(nuove) == 1, f"ripresa: l'unità non conclusa ({tolta}) si rifà")
+        av3 = [x for x in r3.stdout.splitlines() if "[modello-b]" in x and "%" in x]
+        controlla(av3 and 0 < pct(av3[0]) < 100 and pct(av3[-1]) == 100,
+                  f"avanzamento alla ripresa: riparte da {pct(av3[0]) if av3 else '?'}%")
 
 
 def parte_c(d, env, config):
@@ -339,6 +357,9 @@ def parte_c(d, env, config):
     if r.returncode:
         print(r.stderr[-3000:])
     controlla(r.returncode == 0, "giudice concluso senza errori")
+    avg = [x for x in r.stdout.splitlines() if "[modello-a]" in x and "%" in x]
+    controlla(avg and pct(avg[0]) == 0 and pct(avg[-1]) == 100 and "giudizi" in avg[-1],
+              f"avanzamento del giudice da 0,0% a 100,0% ({len(avg)} righe)")
     g = leggi(cg / "giudizi.jsonl")
     controlla("[modello-fail] saltato: nessun risultato" in r.stdout, "modello in FAIL saltato dal giudice")
     base = [x for x in g if not x["controllo"]]
@@ -399,6 +420,9 @@ def parte_c(d, env, config):
     (cg / "giudizi.jsonl").write_text("\n".join(righe[:-5]) + "\n")
     r3 = subprocess.run(giudice, cwd=d, env=env, capture_output=True, text=True)
     nuovi = leggi(cg / "giudizi.jsonl")
+    avr = [x for x in r3.stdout.splitlines() if "[modello-b]" in x and "%" in x]  # le 5 righe tolte sono di modello-b
+    controlla(avr and 95 < pct(avr[0]) < 100 and pct(avr[-1]) == 100,
+              f"avanzamento del giudice alla ripresa: riparte da {pct(avr[0]) if avr else '?'}%")
     controlla(r3.returncode == 0 and len(nuovi) == n and [x["id"] for x in nuovi[-5:]] == [json.loads(x)["id"] for x in righe[-5:]],
               "ripresa: i giudizi mancanti si rifanno")
     return cfg

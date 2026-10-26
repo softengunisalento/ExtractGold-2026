@@ -16,7 +16,7 @@ elaborazione dei risultati in tabelle, grafici e un rapporto Word. Le scelte son
 | `giudice.py` | PC di controllo | giudica le risposte con il giudice su M1 (misura spenta); riprende da dove si era fermato |
 | `elabora.py` | PC di controllo | tabelle CSV, grafici PNG e rapporto Word |
 | `strategie.py` | PC di controllo | le strategie S0–S7 |
-| `configurazione.py`, `dati.py`, `client_misura.py`, `risultati.py` | moduli comuni | configurazione, file di input, comunicazione con M1, risultati |
+| `configurazione.py`, `dati.py`, `client_misura.py`, `risultati.py`, `avanzamento.py` | moduli comuni | configurazione, file di input, comunicazione con M1, risultati, riga di avanzamento |
 | `requirements_misura.txt` | M1 | librerie della macchina di misura |
 | `requirements_runner.txt` | PC di controllo | librerie dell'elaborazione |
 | `test/` | qualsiasi | prova simulata (llama-server, CodeCarbon e modelli ausiliari finti) |
@@ -67,6 +67,11 @@ python runner.py [--modelli ...] [--solo-verifiche]   # benchmark (--solo-verifi
 python giudice.py [--modelli ...]                     # giudizi
 python elabora.py [--modelli ...]                     # elaborazione
 ```
+
+**Avanzamento.** Durante il benchmark e durante il giudizio la console (per esempio PowerShell) mostra una riga
+con la percentuale, i turni o i giudizi fatti sul totale, il tempo trascorso e una stima del tempo residuo; alla
+ripresa il lavoro già concluso conta come fatto. Il run vive nella finestra in cui è stato lanciato: se si chiude
+la finestra o il PC va in sospensione si ferma, e si riprende rilanciando lo stesso comando.
 
 **Ripresa.** Se qualcosa si interrompe, si rilancia lo stesso comando. Benchmark: le unità (modello,
 conversazione, strategia) concluse si saltano, quella interrotta si rifà da capo. Giudice: i giudizi già

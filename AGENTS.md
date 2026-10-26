@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Research tooling for a controlled LLM energy-measurement experiment ("Gold Extraction"). Five standalone Python scripts plus Chat UI configuration; there is no application build in this repo.
+Research tooling for a controlled LLM energy-measurement experiment ("Gold Extraction"): root-level dataset/model scripts, the Chat UI proxy, and an independent `benchmark/` subsystem. There is no application build in this repo.
 
 ## Architecture
 
@@ -10,15 +10,16 @@ Chat UI :5173  ->  energy_api.py :9000 (FastAPI + CodeCarbon)  ->  llama-server 
   MongoDB :27017 (Chat UI conversation store)
 ```
 
-`chat-ui/`, `llama.cpp/`, `models/`, `venv/`, `logs/`, `emissions/` are external/generated and gitignored. Setup is documented in `README.md` (English) and `README_IT.md` (Italian); keep both in sync when behavior changes. Full startup order is in `commands.txt`.
+`chat-ui/`, `llama.cpp/`, `models/`, `venv/`, `logs/`, `emissions/`, `dataset_cache/`, and `replay_export/` are external/generated and gitignored. The frozen inputs in `replay_set/` and `selezioni/` are tracked evidence. Setup is documented in `README.md` (English) and `README_IT.md` (Italian); keep both in sync when behavior changes. Full startup order is in `commands.txt`.
 
 ## Entry points
 
 - `energy_api.py` — proxy that streams to llama-server, measures each turn with CodeCarbon, writes `logs/turns.jsonl` and `logs/sessions.jsonl`.
 - `download_models.py` — selects HF models, freezes the selection in `selezioni/`, downloads GGUF files and maintains `models/manifest.json`. It excludes non-autoregressive (diffusion) models and admits reasoning models only when the chat template exposes a switch to turn reasoning off; both decisions are recorded in the frozen selection.
-- `conversation_stats.py` / `export_conversations.py` — dataset sampling and replay-set export; `export` imports helpers from `conversation_stats.py`, so they must stay in the same directory.
+- `conversation_stats.py` / `export_conversations.py` — dataset sampling and legacy export; `export` imports helpers from `conversation_stats.py`, so they must stay in the same directory. Export defaults to `replay_export/` and refuses to overwrite existing files without `--sovrascrivi`.
 - `build_replay_set.py` — frozen replay set from WildChat-1M, sharegpt_gpt4 and CodeChat: `prepare` (normalization, dedup, language and turn filters), `tokenize` (per-model prompt tokens via chat template), `sweep` (grid of `--min-tokeni` with per-source counts, strata fill and retained-token distribution; writes only `dataset_cache/sweep.csv`), `select` (thresholds, context windows, optional `--solo-coding`/`--solo-informatica`, stratification, freeze), `verify`. Token counts are cached in `dataset_cache/`, so threshold or coding-filter changes only re-run `select`.
 - `dataset_discovery.py` — one-off dataset survey; produces the tracked `dataset_discovery_<date>.txt`, not part of the main pipeline.
+- `benchmark/` — standalone S0–S7 strategy benchmark; keep its path-based configuration and shared M1/runner inputs intact.
 
 ## Commands and verification
 
@@ -32,10 +33,11 @@ Chat UI :5173  ->  energy_api.py :9000 (FastAPI + CodeCarbon)  ->  llama-server 
 
 - `package.json` is Chat UI's pinned manifest copied into `chat-ui/` during setup, and `env.local` is copied there as `.env.local`. `npm` commands belong to `chat-ui/`, not this repo.
 - `energy_api.py` requires Python 3.10+ because it uses `str | None` without `from __future__ import annotations`; the READMEs state Python 3.10+.
-- `requirements.txt` omits `datasets`, which both dataset scripts import; `matplotlib` is only needed for `--plot`.
-- README examples for `conversation_stats.py` and `export_conversations.py` are stale: `--tokenizer`, `--min-turns`, `--min-tokens` (plus `--n` for export) are required argparse arguments, even with `--inspect`.
+- `requirements.txt` is the dependency input; install the pinned Linux/Python 3.11 environment from `requirements.lock.txt`. `requirements-dev.txt` pins `pip-tools` for refreshing that lock. `matplotlib` is only needed for `--plot`.
+- `conversation_stats.py` requires `--tokenizer`, `--min-turns`, and `--min-tokens`, including with `--inspect`; `export_conversations.py` additionally requires `--n`.
 - Run `uvicorn energy_api:app ...` from the repo root: `LOG_DIR`/`EMISSIONS_DIR` are relative and resolved at import.
-- `commands.txt` says to run from the repo root but passes `-m ../models/...`; models actually live at `./models/<name>/<file>.gguf`.
+- `commands.txt` runs from the repo root; model files are addressed as `./models/<name>/<file>.gguf`.
+- `energy_api.py` defaults to `TRACKING_MODE=machine`: process mode measures the proxy rather than the separate llama-server inference process.
 - The llama-server `--alias <folderName>` becomes `model_label` in the logs and must match the `models/<name>` folder / manifest entry.
 - Requests without a `chatui-conversation-id` header are treated as auxiliary: forwarded and logged but not counted as turns or energy-measured. Keep `LLM_SUMMARIZATION=false` in Chat UI so title generation does not create extra requests.
 - `energy_api.py` forces streaming and `stream_options.include_usage`; `build_clean_messages()` is dead code — do not use it to trim history, since the proxy must forward Chat UI messages unchanged.

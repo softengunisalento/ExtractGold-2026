@@ -46,7 +46,7 @@ Notes
 
 3. Start llama-server, ONE model at a time
 	
-	./llama.cpp/build/bin/llama-server -m ../models/<folderName>/<modelName> --alias <folderName> --host 127.0.0.1 --port 8080 -c 32768 -ngl 99 -np 1
+	./llama.cpp/build/bin/llama-server -m ./models/<folderName>/<modelName>.gguf --alias <folderName> --host 127.0.0.1 --port 8080 -c 32768 -ngl 99 -np 1
 
 	- -c 32768   context size: it must be the same for all models.
 	- -ngl 99    offloads all layers to the GPUs. Check in the start-up log how many layers
@@ -74,9 +74,6 @@ Notes
 	curl http://127.0.0.1:8080/props
 
 4. Start the energy_api proxy
-	uvicorn energy_api:app --host 127.0.0.1 --port 9000
-
-	Optional environment variables (see README.md), for example:
 	TRACKING_MODE=machine uvicorn energy_api:app --host 127.0.0.1 --port 9000
 
 5. Start the Chat UI application, from the chat-ui directory

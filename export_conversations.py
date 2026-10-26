@@ -28,13 +28,22 @@ def main() -> int:
     ap.add_argument("--max-tokens", type=int, default=0,
                     help="token massimi di contesto finale, per restare nella finestra dei modelli (0 = nessun limite)")
     ap.add_argument("--model-regex", default="",
-                    help='tiene solo i modelli della colonna "model" che corrispondono (default: ^gpt-4; "" = tutti)')
+                    help='tiene solo i modelli della colonna "model" che corrispondono (default: "" = tutti)')
     ap.add_argument("--n", type=int, required=True, help="conversazioni da esportare (0 = tutte le idonee)")
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--scan", type=int, default=0, help="legge solo le prime N conversazioni (0 = tutte; utile per prove)")
     ap.add_argument("--tokenizer", required=True, help="repo Hugging Face del tokenizer da usare (default: stima a caratteri/4)")
-    ap.add_argument("--out", default="replay_set", help="cartella di output (default: replay_set)")
+    ap.add_argument("--out", default="replay_export", help="cartella di output (default: replay_export)")
+    ap.add_argument("--sovrascrivi", action="store_true",
+                    help="sovrascrive conversazioni.jsonl e selezione.json se esistono")
     args = ap.parse_args()
+
+    out_dir = Path(args.out)
+    out_files = (out_dir / "conversazioni.jsonl", out_dir / "selezione.json")
+    esistenti = [p for p in out_files if p.exists()]
+    if esistenti and not args.sovrascrivi:
+        sys.exit("output gia' esistente: " + ", ".join(str(p) for p in esistenti) +
+                 "; scegli un'altra cartella con --out oppure usa --sovrascrivi")
 
     model_re = re.compile(args.model_regex) if args.model_regex else None
     count, method = make_counter(args.tokenizer)
@@ -89,7 +98,6 @@ def main() -> int:
                  'controlla --model-regex (usa "" se il dataset non ha la colonna model) o --max-tokens')
 
     reservoir.sort(key=lambda r: str(r["id"]))
-    out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
     with open(out_dir / "conversazioni.jsonl", "w", encoding="utf-8") as fh:
         for rec in reservoir:

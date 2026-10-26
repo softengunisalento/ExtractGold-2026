@@ -1,7 +1,7 @@
 """Scrittura dei risultati e ripresa dopo un'interruzione.
 
 Cartella di un'esecuzione: <cartella_risultati>/<nome>/
-  esecuzione.json     configurazione (impronta), file di input (impronte), primo avvio
+  esecuzione.json     configurazione del benchmark (impronta), file di input (impronte), primo avvio
   sessioni.jsonl      un record per ogni avvio del runner (stato del servizio di misura, versioni)
   modelli.jsonl       caricamento di ogni modello (OK/FAIL), riscaldamento e consumo a riposo
   trigger/<modello>.json   turno di attivazione di ogni conversazione, contato con il tokenizer del modello
@@ -10,6 +10,8 @@ Cartella di un'esecuzione: <cartella_risultati>/<nome>/
   testi.jsonl         testo delle risposte, con le stesse chiavi
   intermedi.jsonl     testi intermedi delle strategie (gold prompt, riassunti, compressi, turni recuperati)
   completate.jsonl    unità (modello, conversazione, strategia) concluse: alla ripresa si saltano
+  giudizi/<impronta del giudice>/   giudizi.jsonl (uno per riga), sessioni.jsonl, giudice.json (giudice.py)
+  elaborazione/       tabelle CSV, grafici PNG e rapporto.docx (elabora.py, rifatta da capo a ogni avvio)
 
 Le righe di un'unità si scrivono tutte insieme a unità conclusa, poi la riga di completamento: un'unità
 interrotta a metà non lascia righe e si rifà da capo.
@@ -40,7 +42,7 @@ class Registro:
         p = cartella / "esecuzione.json"
         if p.exists():
             vecchio = json.loads(p.read_text(encoding="utf-8"))
-            diversi = [k for k in ("config_sha256", "input") if vecchio.get(k) != meta.get(k)]
+            diversi = [k for k in ("config_benchmark_sha256", "input") if vecchio.get(k) != meta.get(k)]
             if diversi:
                 sys.exit(f"la cartella {cartella} contiene un'esecuzione con {', '.join(diversi)} diversi: "
                          "per non mescolare i risultati usa un altro esecuzione.nome nella configurazione")

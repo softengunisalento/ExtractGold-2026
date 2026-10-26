@@ -1,8 +1,8 @@
 """Client del servizio di misura (misura.py esegui) sulla macchina di misura.
 
 Usa solo la libreria standard, così il PC di controllo non ha dipendenze da installare. Il servizio esegue una
-richiesta alla volta e non sa chi lo chiama: lo usano il runner e, nella seconda versione, giudice e utente
-simulato.
+richiesta alla volta e non sa chi lo chiama: lo usano il runner e il giudice (e, nella seconda versione,
+l'utente simulato).
 """
 from __future__ import annotations
 
@@ -45,11 +45,23 @@ class ClientMisura:
         tutte le richieste successive a quel modello."""
         return self._chiama("POST", "/modello/carica", {"nome": nome, "chat_template_kwargs": chat_template_kwargs or {}})
 
+    def carica_giudice(self) -> dict:
+        """Avvia llama-server con il giudice: file, contesto, argomenti e parametri del template da [giudice]."""
+        return self._chiama("POST", "/modello/carica", {"ruolo": "giudice"})
+
     def scarica_modello(self) -> dict:
         return self._chiama("POST", "/modello/scarica", {}, timeout=self.timeout_breve)
 
-    def chat(self, messaggi: list[dict], misura: bool, etichetta: str = "") -> dict:
-        return self._chiama("POST", "/chat", {"messaggi": messaggi, "misura": misura, "etichetta": etichetta})
+    def chat(self, messaggi: list[dict], misura: bool, etichetta: str = "", campionamento: dict | None = None,
+             schema: dict | None = None, leggi_slot: bool = False) -> dict:
+        corpo = {"messaggi": messaggi, "misura": misura, "etichetta": etichetta}
+        if campionamento:
+            corpo["campionamento"] = campionamento
+        if schema:
+            corpo["schema"] = schema
+        if leggi_slot:
+            corpo["leggi_slot"] = True
+        return self._chiama("POST", "/chat", corpo)
 
     def conta_token(self, messaggi: list[dict]) -> dict:
         return self._chiama("POST", "/conta_token", {"messaggi": messaggi})

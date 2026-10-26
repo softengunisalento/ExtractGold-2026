@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 """llama-server FINTO, solo per la prova simulata.
 
-Accetta le stesse opzioni di avvio usate da misura.py, risponde a /health, /props, /apply-template, /tokenize e
-/v1/chat/completions in streaming (con usage e timings), e scrive ogni richiesta di chat in FINTO_LOG.
+Accetta le stesse opzioni di avvio usate da misura.py, risponde a /health, /props, /slots, /apply-template,
+/tokenize e /v1/chat/completions in streaming (con usage e timings), e scrive ogni richiesta di chat in FINTO_LOG.
 Un token = una parola. Un modello il cui file contiene "fail" termina subito (come un modello che non entra).
+Con response_format (il giudice) risponde con un JSON di voti calcolati dal prompt: voti relativi alti se la
+risposta somiglia al riferimento, voti assoluti alti se la risposta parla del messaggio dell'utente; con
+alcuni seed risponde con testo non valido (per provare i nuovi tentativi).
 """
 import argparse
 import json
 import os
+import re
 import sys
 import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -26,6 +30,33 @@ if "fail" in (args.m or ""):
 
 AVVIO = time.time()
 ULTIMO_PROMPT: list[str] = []
+ULTIMI_PARAMETRI: dict = {}
+
+
+def sezione(testo, nome):
+    m = re.search(rf"=== {nome} START ===\n(.*?)\n=== {nome} END ===", testo, re.S)
+    return m.group(1) if m else ""
+
+
+def giudizio(corpo):
+    prompt = corpo["messages"][-1]["content"]
+    seed = int(corpo.get("seed") or 0)
+    if seed % 7 == 0:
+        return "I think the answer is fine."            # non valido: niente JSON
+    risposta = sezione(prompt, "ANSWER TO EVALUATE") or sezione(prompt, "ANSWER")
+    messaggio = sezione(prompt, "USER MESSAGE")
+    rumore = -1 if seed % 3 == 0 else 0
+    props = corpo["response_format"]["json_schema"]["schema"]["properties"]
+    if "relative_correctness" in props:
+        rif = set(sezione(prompt, "REFERENCE ANSWER").split())
+        par = set(risposta.split())
+        simile = len(rif & par) / max(1, len(rif | par))
+        v = max(1, min(10, round(1 + 9 * simile) + rumore))
+        return json.dumps({"motivation": "Compared with the reference.", "relative_correctness": v,
+                           "relative_coherence": v})
+    pertinente = " ".join(messaggio.split()[:3]) in risposta
+    v = max(1, min(10, (9 if pertinente else 2) + rumore))
+    return json.dumps({"motivation": "Rated on its own.", "absolute_correctness": v, "absolute_coherence": v})
 
 
 def template(messaggi):
@@ -58,6 +89,8 @@ class Gestore(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/health":
             return self._json(200 if time.time() - AVVIO > 0.3 else 503, {"status": "ok"})
+        if self.path == "/slots":
+            return self._json(200, [{"id": 0, "params": ULTIMI_PARAMETRI}])
         if self.path == "/props":
             return self._json(200, {"model_path": args.m, "build_info": "finto", "total_slots": 1,
                                     "default_generation_settings": {"n_ctx": args.c}})
@@ -86,11 +119,18 @@ class Gestore(BaseHTTPRequestHandler):
         if not corpo.get("cache_prompt", True):
             comune = 0
         ULTIMO_PROMPT[:] = prompt
-        parole = risposta_per(corpo["messages"]).split()
+        ULTIMI_PARAMETRI.clear()
+        ULTIMI_PARAMETRI.update({k: corpo.get(k, d) for k, d in
+                                 (("temperature", 0.8), ("top_k", 40), ("top_p", 0.95), ("min_p", 0.05), ("seed", -1))})
+        giudice = "response_format" in corpo
+        parole = (giudizio(corpo) if giudice else risposta_per(corpo["messages"])).split(" ")
         self.send_response(200)
         self.send_header("Content-Type", "text/event-stream")
         self.end_headers()
         time.sleep(0.002 * (len(prompt) - comune) / 100 + 0.002)
+        if giudice:
+            chunk = {"choices": [{"delta": {"reasoning_content": "Let me weigh the answer."}, "finish_reason": None}]}
+            self.wfile.write(f"data: {json.dumps(chunk)}\n\n".encode())
         for i, p in enumerate(parole):
             chunk = {"choices": [{"delta": {"content": (" " if i else "") + p}, "finish_reason": None}]}
             self.wfile.write(f"data: {json.dumps(chunk)}\n\n".encode())

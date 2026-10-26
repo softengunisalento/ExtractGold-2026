@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Macchina di misura (M1): preparazione e servizio di misura del benchmark.
 
-    python misura.py prepara [--config config.toml]   una volta, con internet: llama.cpp al commit congelato,
-                                                       librerie, modelli della lista congelata, modelli ausiliari
+    python misura.py prepara [--config config.toml] [--modelli a,b]
+                                                      una volta, con internet: llama.cpp al commit congelato,
+                                                      librerie, modelli della lista congelata (o solo quelli
+                                                      indicati), giudice, modelli ausiliari
     python misura.py esegui  [--config config.toml]   servizio di misura, anche senza internet
 
-Il servizio offre poche operazioni generiche (stato, carica modello, richiesta al modello, conteggio dei token,
-compressione, embedding, consumo a riposo). Ogni operazione dice se la misura è accesa o spenta. Non conosce
+Il servizio offre poche operazioni generiche (stato, carica modello o giudice, richiesta al modello, conteggio
+dei token, compressione, embedding, consumo a riposo). Ogni operazione dice se la misura è accesa o spenta. Non conosce
 strategie né conversazioni. Esegue UNA richiesta alla volta: con CodeCarbon in modalità machine due richieste
 sovrapposte finirebbero nella stessa misura.
 
@@ -34,7 +36,7 @@ from pathlib import Path
 
 import configurazione
 
-VERSIONE = "1.0"
+VERSIONE = "1.1"
 CARTELLA_LOG = "log_misura"
 
 
@@ -216,15 +218,22 @@ class LlamaServer:
                 self.proc.wait()
         self.proc, self.modello, self.kwargs, self.props = None, None, {}, {}
 
-    def avvia(self, nome: str, kwargs: dict) -> dict:
+    def avvia(self, nome: str, kwargs: dict, gguf: Path | None = None, contesto: int | None = None,
+              argomenti: list[str] | None = None) -> dict:
+        """Avvia llama-server. Per il giudice si passano file, contesto e argomenti della sezione [giudice]."""
         self.ferma()
         if not self.eseguibile.exists():
             raise Errore(f"llama-server non trovato: {self.eseguibile} (lancia prima: python misura.py prepara)")
-        gguf = self.percorso_gguf(nome)
+        if gguf is None:
+            gguf = self.percorso_gguf(nome)
+        elif not gguf.exists():
+            raise Errore(f"file GGUF non trovato: {gguf} (lancia prima: python misura.py prepara)")
+        contesto = int(contesto or self.contesto)
+        argomenti = [str(a) for a in argomenti] if argomenti is not None else self.argomenti
         self.log_dir.mkdir(exist_ok=True)
         log = self.log_dir / f"llama_{nome}_{datetime.now().strftime('%Y%m%d-%H%M%S')}.log"
         cmd = [str(self.eseguibile), "-m", str(gguf), "--alias", nome, "--host", "127.0.0.1",
-               "--port", str(self.porta), "-c", str(self.contesto), *self.argomenti]
+               "--port", str(self.porta), "-c", str(contesto), *argomenti]
         t0 = time.perf_counter()
         with open(log, "w", encoding="utf-8") as fh:
             fh.write(" ".join(cmd) + "\n\n")
@@ -253,17 +262,25 @@ class LlamaServer:
                 p = json.loads(r.read().decode("utf-8"))
             gen = p.get("default_generation_settings") or {}
             self.props = {"model_path": p.get("model_path"), "build_info": p.get("build_info"),
-                          "total_slots": p.get("total_slots"), "n_ctx": gen.get("n_ctx") or p.get("n_ctx")}
+                          "total_slots": p.get("total_slots"), "n_ctx": gen.get("n_ctx") or p.get("n_ctx"),
+                          "default_generation_settings": gen}
         except (urllib.error.URLError, ValueError, OSError) as exc:
             self.props = {"errore": str(exc)}
         return {"esito": "OK", "modello": nome, "gguf": str(gguf), "secondi_caricamento": round(time.perf_counter() - t0, 1),
                 "log": str(log), "comando": cmd, "props": self.props, "chat_template_kwargs": self.kwargs}
+
+    def get_json(self, percorso: str, timeout: float = 30):
+        with urllib.request.urlopen(self.url(percorso), timeout=timeout) as r:
+            return json.loads(r.read().decode("utf-8"))
 
     def post_json(self, percorso: str, corpo: dict, timeout: float = 60) -> dict:
         req = urllib.request.Request(self.url(percorso), data=json.dumps(corpo).encode("utf-8"),
                                      headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=timeout) as r:
             return json.loads(r.read().decode("utf-8"))
+
+
+CAMPIONAMENTO_AMMESSO = {"temperature", "top_p", "top_k", "min_p", "seed"}
 
 
 def contesto_superato(testo: str) -> bool:
@@ -375,9 +392,15 @@ class Servizio:
             "codecarbon": self.mis.versione, "modalita": self.mis.modalita, "metodo_finestre": self.mis.metodo,
             "hardware_codecarbon": self.mis.hardware, "rapl": rapl_leggibile(), "gpu": gpu_nvidia(),
             "ausiliari": self.aus.info, "config_sha256": self.cfg["_sha256"],
+            "giudice": {k: self.cfg["giudice"][k] for k in ("nome", "repository", "file", "commit", "contesto")},
         }
 
     def carica(self, corpo: dict) -> dict:
+        if corpo.get("ruolo") == "giudice":
+            g = self.cfg["giudice"]
+            gguf = self.llama.cartella_modelli / g["nome"] / g["file"]
+            return self.llama.avvia(g["nome"], dict(g["chat_template_kwargs"]), gguf=gguf, contesto=int(g["contesto"]),
+                                    argomenti=list(g["argomenti"]))
         nome = corpo.get("nome")
         if not nome:
             raise Errore("manca il nome del modello")
@@ -399,6 +422,15 @@ class Servizio:
         payload = {"model": self.llama.modello, "messages": corpo["messaggi"], "stream": True,
                    "stream_options": {"include_usage": True}, "temperature": g["temperatura"], "seed": g["seed"],
                    "cache_prompt": bool(self.cfg["llama"]["cache_prompt"])}
+        # Il chiamante (es. il giudice) può dare i suoi parametri di campionamento e uno schema JSON per l'uscita
+        campionamento = corpo.get("campionamento") or {}
+        ignoti = set(campionamento) - CAMPIONAMENTO_AMMESSO
+        if ignoti:
+            raise Errore(f"parametri di campionamento non ammessi: {sorted(ignoti)}")
+        payload.update(campionamento)
+        if corpo.get("schema"):
+            payload["response_format"] = {"type": "json_schema", "json_schema": {"name": "giudizio",
+                                                                                 "schema": corpo["schema"]}}
         if self.llama.kwargs:
             payload["chat_template_kwargs"] = self.llama.kwargs
         # nessun max_tokens: la risposta finisce quando il modello si ferma o quando la finestra è piena
@@ -468,7 +500,18 @@ class Servizio:
         ris["testo"], ris["ragionamento"] = "".join(testo), "".join(ragionamento)
         # senza max_tokens, "length" vuol dire che la risposta ha riempito la finestra di contesto
         ris["fine_finestra"] = ris["finish_reason"] == "length"
+        if corpo.get("leggi_slot"):
+            ris["parametri_slot"] = self.parametri_slot()
         return ris
+
+    def parametri_slot(self) -> dict | None:
+        """I parametri che llama-server dichiara di aver usato nell'ultima richiesta (endpoint /slots)."""
+        try:
+            slot = self.llama.get_json("/slots")
+            params = (slot[0] if isinstance(slot, list) and slot else {}).get("params") or {}
+            return {k: params.get(k) for k in ("temperature", "top_k", "top_p", "min_p", "seed", "samplers")}
+        except (urllib.error.URLError, ValueError, OSError, AttributeError) as exc:
+            return {"errore": str(exc)[:300]}
 
     # --- conteggio dei token (misura spenta) ---
     def conta_token(self, corpo: dict) -> dict:
@@ -646,7 +689,19 @@ def prepara_llama(cfg: configurazione.Configurazione) -> dict:
     return {"commit": attuale, "eseguibile": str(eseguibile)}
 
 
-def prepara(cfg: configurazione.Configurazione, passi: set[str]) -> int:
+def prepara_giudice(cfg: configurazione.Configurazione) -> dict:
+    """Il GGUF del giudice, al commit fissato nella configurazione."""
+    from huggingface_hub import hf_hub_download
+    g = cfg["giudice"]
+    cartella = cfg.percorso(cfg["llama"]["cartella_modelli"]) / g["nome"]
+    print(f"  {g['repository']} / {g['file']} @ {g['commit'][:12]}")
+    percorso = hf_hub_download(repo_id=g["repository"], filename=g["file"], revision=g["commit"],
+                               local_dir=str(cartella))
+    return {"repository": g["repository"], "file": g["file"], "commit": g["commit"], "percorso": percorso,
+            "byte": Path(percorso).stat().st_size}
+
+
+def prepara(cfg: configurazione.Configurazione, passi: set[str], modelli: list[str] | None = None) -> int:
     esito: dict = {"data_utc": adesso(), "host": socket.gethostname(), "python": platform.python_version(),
                    "config_sha256": cfg["_sha256"]}
     p = cfg.get("preparazione", {})
@@ -667,14 +722,24 @@ def prepara(cfg: configurazione.Configurazione, passi: set[str]) -> int:
         req = cfg.percorso(p.get("requisiti", "requirements_misura.txt"))
         _esegui_comando([sys.executable, "-m", "pip", "install", "-r", str(req)])
         bloccato = cfg.cartella / "requirements_misura.lock.txt"
+        if bloccato.exists():
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+            bloccato = cfg.cartella / f"requirements_misura_{timestamp}.lock.txt"
         bloccato.write_text(subprocess.run([sys.executable, "-m", "pip", "freeze"], capture_output=True,
                                            text=True).stdout, encoding="utf-8")
         esito["librerie_bloccate"] = str(bloccato)
     if "modelli" in passi:
-        print("4. Modelli (lista congelata, con download_models.py)")
+        print("4. Modelli (lista congelata, con download_models.py)" + (f": solo {', '.join(modelli)}" if modelli else ""))
         script = cfg.percorso(p.get("script_download", "../download_models.py"))
-        _esegui_comando([sys.executable, str(script), "--da-lista", str(cfg.percorso(cfg["input"]["modelli"])),
-                         "--out", str(cfg.percorso(cfg["llama"]["cartella_modelli"]))], cwd=script.parent)
+        cmd = [sys.executable, str(script), "--da-lista", str(cfg.percorso(cfg["input"]["modelli"])),
+               "--out", str(cfg.percorso(cfg["llama"]["cartella_modelli"]))]
+        if modelli:
+            cmd += ["--only", ",".join(modelli)]
+        _esegui_comando(cmd, cwd=script.parent)
+        esito["modelli"] = modelli or "tutti"
+    if "giudice" in passi:
+        print("4b. Giudice")
+        esito["giudice"] = prepara_giudice(cfg)
     if "ausiliari" in passi:
         print("5. Modelli ausiliari")
         from huggingface_hub import snapshot_download
@@ -693,15 +758,26 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Macchina di misura del benchmark: preparazione e servizio di misura.")
     ap.add_argument("comando", choices=["prepara", "esegui"])
     ap.add_argument("--config", default=str(Path(__file__).with_name("config.toml")))
-    ap.add_argument("--solo", help="prepara: solo questi passi, separati da virgola (llama,librerie,modelli,ausiliari)")
+    ap.add_argument("--solo", help="prepara: solo questi passi, separati da virgola "
+                                   "(llama,librerie,modelli,giudice,ausiliari)")
+    ap.add_argument("--modelli", help="prepara: scarica solo questi modelli della lista (nomi brevi, separati da "
+                                      "virgola), per esempio per il pilota")
     args = ap.parse_args()
     cfg = configurazione.carica(args.config)
     if args.comando == "prepara":
-        tutti = {"llama", "librerie", "modelli", "ausiliari"}
+        tutti = {"llama", "librerie", "modelli", "giudice", "ausiliari"}
         passi = {x.strip() for x in args.solo.split(",")} if args.solo else tutti
         if passi - tutti:
             sys.exit(f"passi sconosciuti: {sorted(passi - tutti)}")
-        return prepara(cfg, passi)
+        modelli = [x.strip() for x in args.modelli.split(",") if x.strip()] if args.modelli else None
+        if modelli:
+            import dati
+            noti = {m["nome"] for m in dati.carica_modelli(cfg.percorso(cfg["input"]["modelli"]),
+                                                          cfg.percorso(cfg["input"]["selezione"]))}
+            ignoti = [m for m in modelli if m not in noti]
+            if ignoti:
+                sys.exit(f"modelli sconosciuti: {ignoti} (nomi possibili: {', '.join(sorted(noti))})")
+        return prepara(cfg, passi, modelli)
     return esegui(cfg)
 
 

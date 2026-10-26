@@ -1,4 +1,5 @@
-"""CodeCarbon FINTO, solo per la prova simulata: energia proporzionale alla durata (potenze fisse)."""
+"""CodeCarbon FINTO, solo per la prova simulata: energia proporzionale alla durata (potenze fisse; a riposo,
+cioè nella finestra chiamata "riposo", la metà)."""
 import time
 
 __version__ = "finto"
@@ -7,11 +8,11 @@ POTENZE_W = {"gpu": 300.0, "cpu": 100.0, "ram": 10.0}
 
 
 class EmissionsData:
-    def __init__(self, durata: float):
+    def __init__(self, durata: float, fattore: float = 1.0):
         self.duration = durata
-        self.gpu_energy = POTENZE_W["gpu"] * durata / 3600 / 1000
-        self.cpu_energy = POTENZE_W["cpu"] * durata / 3600 / 1000
-        self.ram_energy = POTENZE_W["ram"] * durata / 3600 / 1000
+        self.gpu_energy = fattore * POTENZE_W["gpu"] * durata / 3600 / 1000
+        self.cpu_energy = fattore * POTENZE_W["cpu"] * durata / 3600 / 1000
+        self.ram_energy = fattore * POTENZE_W["ram"] * durata / 3600 / 1000
         self.energy_consumed = self.gpu_energy + self.cpu_energy + self.ram_energy
         self.emissions = self.energy_consumed * 0.3
 
@@ -45,6 +46,7 @@ class EmissionsTracker:
 
     def start_task(self, task_name=""):
         self._task = time.perf_counter()
+        self._nome = task_name
 
     def stop_task(self):
-        return EmissionsData(time.perf_counter() - self._task)
+        return EmissionsData(time.perf_counter() - self._task, 0.5 if self._nome == "riposo" else 1.0)

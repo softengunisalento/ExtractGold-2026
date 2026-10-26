@@ -1,11 +1,16 @@
 """Lettura e controllo di config.toml, comune a tutti gli script del benchmark.
 
-I percorsi scritti nel file sono relativi alla cartella del file stesso. L'impronta SHA-256 del file
-finisce nei risultati, così ogni esecuzione dice con quale configurazione è stata fatta.
+I percorsi scritti nel file sono relativi alla cartella del file stesso. Tre impronte SHA-256:
+  _sha256            tutto il file: deve essere identico sulla macchina di misura e sul PC di controllo;
+  _sha256_benchmark  tutto tranne [giudice] ed [elaborazione]: identifica i risultati del benchmark, così
+                     cambiare il giudice dopo il pilota non invalida le misure già fatte;
+  _sha256_giudice    solo [giudice]: i giudizi si salvano in una cartella per ogni impronta.
 """
 from __future__ import annotations
 
 import hashlib
+import json
+import re
 import sys
 from pathlib import Path
 
@@ -29,7 +34,22 @@ OBBLIGATORIE = {
     "ausiliari": ["llmlingua2", "selective_context_modello", "selective_context_lingua",
                   "selective_context_unita", "embedding", "embedding_max_token",
                   "embedding_prefisso_query", "dispositivo", "offline"],
+    "giudice": ["nome", "repository", "file", "commit", "contesto", "argomenti", "chat_template_kwargs",
+                "temperatura", "top_p", "top_k", "min_p", "seed", "schema_json", "tentativi_extra",
+                "campione_stabilita", "campione_identita", "campione_degrado", "peso_relativi", "peso_assoluti",
+                "prompt_relativo", "prompt_assoluto", "storia_vuota"],
+    "elaborazione": ["bootstrap_ripetizioni", "livello_confidenza", "seed", "min_conversazioni_per_punto"],
 }
+
+# Sezioni che non toccano le misure del benchmark
+SEZIONI_NON_BENCHMARK = ("giudice", "elaborazione")
+SEGNAPOSTO = re.compile(r"\{(storia|messaggio|riferimento|risposta)\}")
+SOGLIE_NOTE = {"non_validi_max", "quota_dieci_max", "stabilita_differenza_media_max", "identita_media_min",
+               "degrado_media_max", "bias_lunghezza_max", "coerenza_interna_min"}
+
+
+def _impronta(dati) -> str:
+    return hashlib.sha256(json.dumps(dati, sort_keys=True, ensure_ascii=False, default=str).encode("utf-8")).hexdigest()
 
 STRATEGIE_NOTE = {"S0", "S1", "S2", "S3", "S4", "S5", "S6", "S7"}
 
@@ -62,6 +82,9 @@ def carica(percorso: str | Path) -> Configurazione:
     # Impronta calcolata con i fine riga uniformati a LF: su Windows Git può riscrivere il file con CRLF, e
     # lo stesso config.toml deve dare la stessa impronta sulla macchina di misura e sul PC di controllo.
     cfg["_sha256"] = hashlib.sha256(grezzo.replace(b"\r\n", b"\n")).hexdigest()
+    # Impronte per sezione, calcolate sul contenuto letto (commenti e fine riga non contano)
+    cfg["_sha256_benchmark"] = _impronta({k: v for k, v in dati.items() if k not in SEZIONI_NON_BENCHMARK})
+    cfg["_sha256_giudice"] = _impronta(dati.get("giudice"))
     controlla(cfg)
     return cfg
 
@@ -86,3 +109,18 @@ def controlla(cfg: dict) -> None:
         sys.exit("strategie.quota_token_tenuti deve essere tra 0 e 1 (es. 0.5 = si tiene il 50% dei token)")
     if cfg["misura"]["metodo_finestre"] not in ("auto", "task", "tracker"):
         sys.exit("misura.metodo_finestre deve essere auto, task o tracker")
+    g = cfg["giudice"]
+    attesi = {"prompt_relativo": {"storia", "messaggio", "riferimento", "risposta"},
+              "prompt_assoluto": {"storia", "messaggio", "risposta"}}
+    for chiave, voluti in attesi.items():
+        trovati = SEGNAPOSTO.findall(g[chiave])
+        if set(trovati) != voluti or len(trovati) != len(voluti):
+            sys.exit(f"giudice.{chiave}: servono una volta sola i segnaposto {sorted(voluti)}, trovati {trovati}")
+    for chiave in ("campione_stabilita", "campione_identita", "campione_degrado"):
+        if not (0 <= g[chiave] <= 1):
+            sys.exit(f"giudice.{chiave} deve essere tra 0 e 1")
+    if abs(g["peso_relativi"] + g["peso_assoluti"] - 1) > 1e-9:
+        sys.exit("giudice.peso_relativi + giudice.peso_assoluti deve fare 1")
+    ignote = set(g.get("soglie") or {}) - SOGLIE_NOTE
+    if ignote:
+        sys.exit(f"soglie sconosciute in [giudice.soglie]: {sorted(ignote)}")

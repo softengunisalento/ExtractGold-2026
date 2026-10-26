@@ -216,7 +216,7 @@ def main() -> int:
         sys.exit(f"llama.cpp sulla macchina di misura non è al commit congelato ({stato.get('llama_commit_compilato')})")
 
     nome = cfg["esecuzione"]["nome"]
-    meta = {"nome": nome, "config_sha256": cfg["_sha256"],
+    meta = {"nome": nome, "config_benchmark_sha256": cfg["_sha256_benchmark"],
             "input": {"conversazioni": dati.sha256_file(p_conv), "selezione": dati.sha256_file(p_sel),
                       "modelli": dati.sha256_file(p_mod), "max_conversazioni": args.max_conversazioni or None}}
     reg = Registro(cfg.percorso(cfg["esecuzione"]["cartella_risultati"]) / nome, meta)

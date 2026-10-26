@@ -5,6 +5,9 @@ Parte A: le strategie, controllate sui contesti esatti dell'esempio del document
 Parte B: servizio di misura vero (con llama-server, CodeCarbon e modelli ausiliari FINTI) e runner vero, su
 conversazioni inventate: caricamento con FAIL, riscaldamento, consumo a riposo, trigger, tutte le strategie,
 contesto superato, energia lorda e netta, ripresa dopo l'interruzione.
+Parte C: giudice vero sullo stesso servizio (il llama-server finto fa anche da giudice): varianti A e B, turni
+giudicati, non giudicabili, controlli, parametri, nuovi tentativi, ripresa.
+Parte D: elaborazione vera (tabelle, grafici, rapporto Word). Parte E: comando unico catena.py.
 """
 import json
 import os
@@ -200,6 +203,8 @@ def crea_dati(d: Path):
         f = f"{n}-fail-Q4_K_M.gguf" if "fail" in n else f"{n}-Q4_K_M.gguf"
         (d / "models" / n / f).write_bytes(b"GGUF")
         manifest[n] = {"files": [{"file": f}]}
+    (d / "models" / "gpt-oss-120b").mkdir(parents=True)
+    (d / "models" / "gpt-oss-120b" / "gpt-oss-120b-MXFP4.gguf").write_bytes(b"GGUF")
     (d / "models" / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
     commit = "def4d406ae2c2f39573120d68730fbb7760b24bf"
     (d / "llama.cpp" / "build" / "bin").mkdir(parents=True)
@@ -226,6 +231,13 @@ def crea_dati(d: Path):
         "riposo_secondi = 120": "riposo_secondi = 0.3",
         "riscaldamento_richieste = 3": "riscaldamento_richieste = 1",
         "soglia_token = 3500": "soglia_token = 500",
+        "contesto = 65536 ": "contesto = 2400 ",
+        "campione_stabilita = 0.05": "campione_stabilita = 0.3",
+        "campione_identita = 0.05": "campione_identita = 0.3",
+        "campione_degrado = 0.05": "campione_degrado = 0.3",
+        "# degrado_media_max, bias_lunghezza_max, coerenza_interna_min":
+            "# degrado_media_max, bias_lunghezza_max, coerenza_interna_min\nnon_validi_max = 0.5",
+        "min_conversazioni_per_punto = 20": "min_conversazioni_per_punto = 1",
     }
     for a, b in sostituzioni.items():
         assert cfg.count(a) == 1, a
@@ -238,20 +250,9 @@ def leggi(p: Path):
     return [json.loads(r) for r in p.read_text(encoding="utf-8").splitlines() if r.strip()] if p.exists() else []
 
 
-def parte_b():
+def parte_b(d, env, config):
     print("\nParte B: servizio di misura + runner (llama-server, CodeCarbon e ausiliari finti)")
-    d = Path(tempfile.mkdtemp(prefix="bench_"))
-    config, porta = crea_dati(d)
-    env = {**os.environ, "PYTHONPATH": str(QUI / "finti"), "FINTO_LOG": str(d / "llama_richieste.jsonl")}
-    servizio = subprocess.Popen([sys.executable, str(QUI / "avvia_misura_finta.py"), "esegui", "--config", str(config)],
-                                cwd=d, env=env, stdout=open(d / "servizio.log", "w"), stderr=subprocess.STDOUT)
-    try:
-        for _ in range(100):
-            try:
-                urllib.request.urlopen(f"http://127.0.0.1:{porta}/stato", timeout=1)
-                break
-            except OSError:
-                time.sleep(0.1)
+    if True:
         runner = [sys.executable, str(BENCH / "runner.py"), "--config", str(config)]
         r1 = subprocess.run(runner, cwd=d, env=env, capture_output=True, text=True)
         print("  --- uscita del runner ---\n" + "\n".join("  | " + x for x in r1.stdout.splitlines()[-12:]))
@@ -323,17 +324,155 @@ def parte_b():
         r3 = subprocess.run(runner, cwd=d, env=env, capture_output=True, text=True)
         nuove = [x for x in leggi(res / "completate.jsonl") if x["unita"] == tolta]
         controlla(r3.returncode == 0 and len(nuove) == 1, f"ripresa: l'unità non conclusa ({tolta}) si rifà")
-    finally:
-        servizio.terminate()
-        servizio.wait()
-    if ERRORI:
-        print(f"\n(cartella della prova conservata: {d})")
-    else:
-        shutil.rmtree(d, ignore_errors=True)
+
+
+def parte_c(d, env, config):
+    print("\nParte C: giudice")
+    import configurazione
+    cfg = configurazione.carica(config)
+    res = d / "risultati" / "v1"
+    cg = res / "giudizi" / cfg["_sha256_giudice"][:12]
+    giudice = [sys.executable, str(BENCH / "giudice.py"), "--config", str(config)]
+    n_log = len(leggi(d / "llama_richieste.jsonl"))
+    r = subprocess.run(giudice, cwd=d, env=env, capture_output=True, text=True)
+    print("  --- uscita del giudice ---\n" + "\n".join("  | " + x for x in r.stdout.splitlines()[-8:]))
+    if r.returncode:
+        print(r.stderr[-3000:])
+    controlla(r.returncode == 0, "giudice concluso senza errori")
+    g = leggi(cg / "giudizi.jsonl")
+    controlla("[modello-fail] saltato: nessun risultato" in r.stdout, "modello in FAIL saltato dal giudice")
+    base = [x for x in g if not x["controllo"]]
+    trig = json.loads((res / "trigger" / "modello-a.json").read_text())["conversazioni"]
+    attese = set()
+    for cid, v in trig.items():
+        if v["turno_trigger"]:
+            for k in range(v["turno_trigger"], v["turni"] + 1):
+                for s in ("S0", "S1", "S2", "S3", "S4", "S5", "S6", "S7"):
+                    attese.add((cid, k, s, "B"))
+                    if s != "S0":
+                        attese.add((cid, k, s, "A"))
+    trovate = {(x["conversazione"], x["turno"], x["strategia"], x["tipo"]) for x in base if x["modello"] == "modello-a"}
+    controlla(trovate == attese, f"modello-a: una voce A per S1–S7 e una B per S0–S7 per ogni turno dal trigger ({len(attese)})")
+    controlla(not any(x["turno"] < x["turno_trigger"] for x in g), "nessun giudizio prima del trigger")
+    controlla(any(x.get("motivo") == "tecnica_senza_S0" for x in g), "casi «tecnica senza S0» registrati come tali")
+    controlla(any(x.get("motivo") == "risposta_mancante" for x in g), "risposte mancanti: non giudicabili")
+    controlla(any(x["esito"] == "contesto_superato_giudice" for x in g), "contesto del giudice superato registrato")
+    ok = [x for x in base if x["esito"] == "ok"]
+    controlla(all(set(x["voti"]) == {"relative_correctness", "relative_coherence"} for x in ok if x["tipo"] == "A") and
+              all(set(x["voti"]) == {"absolute_correctness", "absolute_coherence"} for x in ok if x["tipo"] == "B"),
+              "variante A: solo voti relativi; variante B: solo voti assoluti")
+    controlla(any(x["tentativi"] > 1 for x in ok), "uscite non valide: giudizio riuscito con un nuovo tentativo")
+    controlla(all(x["motivazione"] and x["ragionamento"] for x in ok), "motivazione e ragionamento salvati")
+    ctrl = {c: [x for x in g if x["controllo"] == c and x["esito"] == "ok"] for c in ("stabilita", "identita", "degrado")}
+    controlla(all(ctrl.values()), "controlli presenti: " + ", ".join(f"{k} {len(v)}" for k, v in ctrl.items()))
+    controlla(all(x["tipo"] == "A" for x in ctrl["identita"]) and
+              sum(v for x in ctrl["identita"] for v in x["voti"].values()) / (2 * len(ctrl["identita"])) >= 9,
+              "identità: solo variante A, voto relativo vicino a 10")
+    deg_b = [x for x in ctrl["degrado"] if x["tipo"] == "B"]
+    controlla(deg_b and all(x["degrado_da"]["conversazione"] != x["conversazione"] for x in ctrl["degrado"]) and
+              max(x["voti"]["absolute_coherence"] for x in deg_b) <= 3,
+              "degrado: risposta da un'altra conversazione, voti assoluti bassi")
+    log = leggi(d / "llama_richieste.jsonl")[n_log:]
+    gl = [x for x in log if x["alias"] == "gpt-oss-120b"]
+    controlla(gl and all(x["temperature"] == 1.0 and x["top_p"] == 1.0 and x["top_k"] == 0 and x["min_p"] == 0.0
+                         and x["chat_template_kwargs"] == {"reasoning_effort": "low"}
+                         and x["response_format"]["type"] == "json_schema" for x in gl),
+              "giudice: temperatura 1.0, top_p 1.0, top_k 0, min_p 0, ragionamento low, schema JSON")
+    controlla(len({x["seed"] for x in gl}) > len(gl) * 0.9, "seed diverso per ogni giudizio")
+    a_prompt = next(x["messages"][0]["content"] for x in gl if "REFERENCE ANSWER START" in x["messages"][0]["content"])
+    b_prompt = next(x["messages"][0]["content"] for x in gl if "=== ANSWER START ===" in x["messages"][0]["content"])
+    controlla(len(gl[0]["messages"]) == 1 and "User: " in a_prompt and "Assistant: " in a_prompt
+              and "REFERENCE ANSWER" not in b_prompt and "{" + "storia}" not in a_prompt,
+              "prompt: un solo messaggio, storia citata come User/Assistant, B senza riferimento")
+    sess = leggi(cg / "sessioni.jsonl")
+    car = [x for x in sess if x["evento"] == "caricamento"]
+    controlla(car and "2400" in car[-1]["comando"], "giudice caricato con il suo contesto")
+    par = [x for x in sess if x["evento"] == "parametri_dichiarati"]
+    controlla(par and par[-1]["coerenti"], "parametri dichiarati da llama-server uguali a quelli richiesti")
+    stato = json.loads(urllib.request.urlopen(f"http://127.0.0.1:{cfg['rete']['porta']}/stato").read())
+    controlla(stato["modello"] is None, "giudice scaricato alla fine")
+    # ripresa
+    n = len(g)
+    r2 = subprocess.run(giudice, cwd=d, env=env, capture_output=True, text=True)
+    controlla(r2.returncode == 0 and len(leggi(cg / "giudizi.jsonl")) == n, "ripresa: un secondo avvio non rifà i giudizi")
+    righe = (cg / "giudizi.jsonl").read_text().splitlines()
+    (cg / "giudizi.jsonl").write_text("\n".join(righe[:-5]) + "\n")
+    r3 = subprocess.run(giudice, cwd=d, env=env, capture_output=True, text=True)
+    nuovi = leggi(cg / "giudizi.jsonl")
+    controlla(r3.returncode == 0 and len(nuovi) == n and [x["id"] for x in nuovi[-5:]] == [json.loads(x)["id"] for x in righe[-5:]],
+              "ripresa: i giudizi mancanti si rifanno")
+    return cfg
+
+
+def parte_d(d, env, config):
+    print("\nParte D: elaborazione")
+    r = subprocess.run([sys.executable, str(BENCH / "elabora.py"), "--config", str(config)], cwd=d, env=env,
+                       capture_output=True, text=True)
+    if r.returncode:
+        print(r.stdout[-2000:], r.stderr[-4000:])
+    controlla(r.returncode == 0, "elaborazione conclusa senza errori")
+    el = d / "risultati" / "v1" / "elaborazione"
+    controlla((el / "rapporto.docx").exists(), "rapporto Word scritto")
+    tab = el / "tabelle"
+    nomi = ["A_quadro", "B_energia_per_strategia", "B_token_per_strategia", "B_pareggio", "C_qualita_per_strategia",
+            "C_per_fonte", "D_compromesso", "E_test_contro_S0", "F_referto_giudice", "F_robustezza"]
+    mancano = [n for n in nomi if not (tab / f"modello-a__{n}.csv").exists()]
+    controlla(not mancano, f"tabelle A–F per modello-a ({'mancano ' + ', '.join(mancano) if mancano else 'tutte'})")
+    controlla((tab / "G_punteggio_medio_per_modello.csv").exists(), "tabella G di confronto tra modelli")
+    controlla(len(list((el / "grafici").glob("modello-a__*.png"))) >= 8, "grafici PNG scritti")
+    import csv
+    ref = list(csv.DictReader(open(tab / "modello-a__F_referto_giudice.csv", encoding="utf-8")))
+    stati = {}
+    for x in ref:
+        stati.setdefault(x["indicatore"], x["stato"])
+    controlla({str(i) for i in range(1, 8)} <= set(stati), "referto: 7 indicatori")
+    controlla(stati["1"] in ("ok", "avviso") and stati["4"] == "soglia da fissare", "referto: soglie applicate solo se fissate")
+    en = list(csv.DictReader(open(tab / "modello-a__B_energia_per_strategia.csv", encoding="utf-8")))
+    controlla(len(en) == 8 and all(float(x["Wh_per_turno"]) > 0 for x in en)
+              and all(x["risparmio_medio"] not in ("", "nan") for x in en), "energia netta e risparmio calcolati")
+    rif = {x["voce"][:40]: x["valore"] for x in ref}
+    controlla(any(v == "sì" for k, v in rif.items() if k.startswith("parametri di campionamento")),
+              "referto: parametri del giudice verificati")
+    from docx import Document
+    testo = "\n".join(p.text for p in Document(el / "rapporto.docx").paragraphs)
+    controlla(all(t in testo for t in ("A. Quadro dei dati", "B. Energia", "C. Qualità", "D. Compromesso",
+                                       "E. Statistica", "F. Affidabilità", "G. Confronto")), "rapporto: sezioni A–G")
+
+
+def parte_e(d, env, config):
+    print("\nParte E: comando unico")
+    r = subprocess.run([sys.executable, str(BENCH / "catena.py"), "--config", str(config), "--modelli", "modello-a"],
+                       cwd=d, env=env, capture_output=True, text=True)
+    if r.returncode:
+        print(r.stdout[-2000:], r.stderr[-3000:])
+    controlla(r.returncode == 0 and "già concluso" in r.stdout and "Catena conclusa" in r.stdout,
+              "catena.py: benchmark e giudice già fatti si saltano, elaborazione rifatta")
 
 
 if __name__ == "__main__":
     parte_a()
-    parte_b()
+    d = Path(tempfile.mkdtemp(prefix="bench_"))
+    config, porta = crea_dati(d)
+    env = {**os.environ, "PYTHONPATH": str(QUI / "finti"), "FINTO_LOG": str(d / "llama_richieste.jsonl")}
+    servizio = subprocess.Popen([sys.executable, str(QUI / "avvia_misura_finta.py"), "esegui", "--config", str(config)],
+                                cwd=d, env=env, stdout=open(d / "servizio.log", "w"), stderr=subprocess.STDOUT)
+    try:
+        for _ in range(100):
+            try:
+                urllib.request.urlopen(f"http://127.0.0.1:{porta}/stato", timeout=1)
+                break
+            except OSError:
+                time.sleep(0.1)
+        parte_b(d, env, config)
+        parte_c(d, env, config)
+        parte_d(d, env, config)
+        parte_e(d, env, config)
+    finally:
+        servizio.terminate()
+        servizio.wait()
+    if ERRORI or os.environ.get("CONSERVA_PROVA"):
+        print(f"\n(cartella della prova conservata: {d})")
+    else:
+        shutil.rmtree(d, ignore_errors=True)
     print(f"\n{'TUTTO OK' if not ERRORI else f'{len(ERRORI)} CONTROLLI FALLITI'}")
     sys.exit(1 if ERRORI else 0)

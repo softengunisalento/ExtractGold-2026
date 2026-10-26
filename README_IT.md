@@ -27,17 +27,17 @@ File di configurazione di Chat UI:
 
 | File | Scopo |
 |---|---|
-| `download_models.py` | Seleziona i modelli dai metadati di Hugging Face, congela la selezione in documenti datati e scarica i file GGUF, registrando un manifest. |
-| `conversation_stats.py` | Calcola statistiche su turn e token di dataset di conversazioni con LLM. |
-| `export_conversations.py` | Estrae da un dataset le conversazioni selezionate per il replay offline. |
-| `build_replay_set.py` | Costruisce il replay set congelato dai tre dataset scelti, con token per modello, controllo delle finestre di contesto e stratificazione. |
+| `download_models.py` | Seleziona i modelli dai metadati Hugging Face, congela la selezione in documenti datati, scarica GGUF e registra un manifest. |
+| `conversation_stats.py` / `export_conversations.py` | Analizzano i dataset e generano un campione legacy per il replay. L'export scrive in `replay_export/` e protegge i file già esistenti. |
+| `build_replay_set.py` | Costruisce e verifica il replay set congelato dai dataset selezionati. |
 | `energy_api.py` | Proxy tra Chat UI e llama-server: misura l'energia (CodeCarbon) e registra le conversazioni. |
+| [`benchmark/README.md`](benchmark/README.md) | Documentazione del benchmark autonomo delle strategie S0–S7, del servizio di misura e del test simulato. |
 
 ## Setup da zero
 
-Il repository contiene solo il codice di questo lavoro. Chat UI, llama.cpp, i modelli e l'ambiente virtuale non sono inclusi: si installano una volta, seguendo questi passi. I comandi sono per la workstation Linux; su Windows i passi sono gli stessi, tranne i percorsi e l'attivazione dell'ambiente virtuale. Si esegue tutto dalla radice del repository, salvo diversa indicazione.
+Il repository contiene il codice, la configurazione e gli input congelati di questo lavoro. Chat UI, llama.cpp, i modelli e l'ambiente virtuale non sono inclusi: si installano una volta, seguendo questi passi. I comandi sono per la workstation Linux; su Windows i passi sono diversi. Si esegue tutto dalla radice del repository, salvo diversa indicazione.
 
-Struttura dopo il setup (i dati generati sono ignorati da Git; documentazione e configurazione sono versionate):
+Struttura dopo il setup (cache e risultati runtime sono ignorati; gli input sperimentali congelati sono versionati):
 
 ```
 <repository>/
@@ -50,9 +50,15 @@ Struttura dopo il setup (i dati generati sono ignorati da Git; documentazione e 
 ├── energy_api.py, download_models.py, conversation_stats.py, export_conversations.py
 ├── build_replay_set.py
 ├── dataset_cache/       creato da build_replay_set.py prepare (ignorato da Git)
-├── replay_set/          creato da build_replay_set.py select (ignorato da Git)
-└── commands.txt, requirements.txt, README.md
+├── replay_set/          evidenza congelata del replay (versionata in Git)
+├── replay_export/       export legacy (ignorati da Git)
+├── benchmark/           benchmark autonomo delle strategie
+└── commands.txt, requirements*.txt, README.md, README_IT.md
 ```
+
+Gli entry point Python restano intenzionalmente nella radice: l'exporter legacy importa
+`conversation_stats.py` e runbook/configurazioni risolvono i percorsi rispetto a queste posizioni.
+`benchmark/` è già un sottosistema separato; spostare questi file richiederebbe migrare tali dipendenze.
 
 **1. Prerequisiti.** Git; Python 3.10 o superiore; Node.js (provato con v24.21.0); CMake e un compilatore C++ (`build-essential`); il driver NVIDIA e il CUDA toolkit (`nvidia-smi` deve elencare le GPU e `nvcc --version` deve funzionare); MongoDB Community Edition, installato seguendo le istruzioni ufficiali per il sistema operativo; un account Hugging Face con un token di tipo Read.
 
@@ -61,8 +67,14 @@ Struttura dopo il setup (i dati generati sono ignorati da Git; documentazione e 
 ```bash
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements.lock.txt
 ```
+
+`requirements.txt` è il file sorgente delle dipendenze; `requirements.lock.txt` blocca l'ambiente
+Linux/Python 3.11. Per aggiornare le dipendenze, installare lo strumento di lock fissato con
+`pip install -r requirements-dev.txt`, poi rigenerare e rivedere il lock con
+`pip-compile requirements.txt --output-file requirements.lock.txt`. Per gli esperimenti installare
+dal lock.
 **3. MongoDB.** Chat UI conserva le conversazioni.
 
 ```bash
@@ -76,13 +88,13 @@ systemctl status mongod
 git clone https://github.com/huggingface/chat-ui
 cd chat-ui
 git checkout -f 9159eaa4
-cp ../.env.local .          # configurazione fornita con questo repository
+cp ../env.local .env.local  # template fornito con questo repository
 cp ../package.json .
 npm install
 cd ..
 ```
 
-Se i due file sono altrove nel repository, si adattano i percorsi; se il file fornito si chiama `env.local` (senza punto), va rinominato `.env.local`. Le variabili che contano sono:
+Il template nel repository si chiama `env.local`; va copiato in Chat UI come `.env.local`. Le variabili che contano sono:
 
 ```
 OPENAI_BASE_URL=http://127.0.0.1:9000/v1
@@ -97,23 +109,18 @@ MONGODB_URL=mongodb://127.0.0.1:27017/chatui
 ```bash
 git clone https://github.com/ggml-org/llama.cpp
 cd llama.cpp
-git checkout <commit-o-tag>    #per verificare il numero di build da sostituire: git -C llama.cpp describe --tags
-`#----------------------------------------------------------------------*`
-#Verifica se CUDA-toolkit è  installato:
+git checkout <commit-o-tag>    # fissa la revisione di llama.cpp usata nell'esperimento
 nvcc --version
-#Se è installato indica il percorso a CMake:
+# Se CUDA è installato in un percorso non standard, aggiungilo al PATH:
 export PATH=/usr/local/cuda/bin:$PATH
-#Se non è installato:
-sudo apt update
-sudo apt install nvidia-cuda-toolkit #il nome potrebbe cambiare a seconda della versione di linux in uso
-rm -rf build
-#---------------------------------------------------------------------------
 cmake -B build -DGGML_CUDA=ON
 cmake --build build --config Release -j
 cd ..
 ```
 
-I nomi delle opzioni cambiano tra le versioni: si controlla `docs/build.md` della versione in uso. Senza il supporto CUDA la compilazione gira su CPU e `-ngl 99` non ha effetto: all'avvio il log del server deve elencare le GPU.
+Controlla `docs/build.md` della revisione selezionata per le opzioni di compilazione. Senza il
+supporto CUDA la compilazione gira su CPU e `-ngl 99` non ha effetto: all'avvio il log del server
+deve elencare le GPU.
 
 **6. Modelli.** Prima si controlla lo spazio libero.
 
@@ -169,10 +176,9 @@ Output:
 Legge in streaming un campione di conversazioni da Hugging Face e calcola, per ciascuna, il numero di turn e di token.
 
 ```bash
-python conversation_stats.py --inspect
-python conversation_stats.py --sample 5000 --plot
-python conversation_stats.py --tokenizer Qwen/Qwen3-Coder-30B-A3B-Instruct --min-turns 10 --min-tokens 8000
-python conversation_stats.py --dataset allenai/WildChat-1M --lang English
+python conversation_stats.py --inspect --tokenizer Qwen/Qwen3-Coder-30B-A3B-Instruct --min-turns 10 --min-tokens 4000
+python conversation_stats.py --sample 5000 --plot --tokenizer Qwen/Qwen3-Coder-30B-A3B-Instruct --min-turns 10 --min-tokens 4000
+python conversation_stats.py --dataset allenai/WildChat-1M --lang English --tokenizer Qwen/Qwen3-Coder-30B-A3B-Instruct --min-turns 10 --min-tokens 4000
 ```
 Output in `stats_out/` (modificabile con `--out`):
 
@@ -185,11 +191,12 @@ Output in `stats_out/` (modificabile con `--out`):
 Seleziona le conversazioni lunghe (per numero di turn, token e modello) ed estrae un campione casuale riproducibile, salvato in formato JSONL (una conversazione per riga), con i messaggi nel formato `{"role": ..., "content": ...}`. Richiede `conversation_stats.py` nella stessa cartella.
 
 ```bash
-python export_conversations.py
-python export_conversations.py --n 50 --tokenizer Qwen/Qwen3-Coder-30B-A3B-Instruct --max-tokens 24000
-python export_conversations.py --dataset allenai/WildChat-1M --model-regex "" --n 100
+python export_conversations.py --min-turns 10 --min-tokens 4000 --n 50 --tokenizer Qwen/Qwen3-Coder-30B-A3B-Instruct --max-tokens 24000
+python export_conversations.py --dataset allenai/WildChat-1M --model-regex "^gpt-4" --min-turns 10 --min-tokens 4000 --n 100 --tokenizer Qwen/Qwen3-Coder-30B-A3B-Instruct --out replay_export/wildchat
 ```
-Output in `replay_set/` (modificabile con `--out`):
+Output in `replay_export/` per impostazione predefinita (modificabile con `--out`). I file esistenti
+sono protetti; usare `--sovrascrivi` solo se si intende sostituirli. Non usare `replay_set/` per gli
+export legacy: contiene l'evidenza congelata.
 
 - `conversazioni.jsonl`: le conversazioni selezionate;
 - `selezione.json`: parametri, commit del dataset e conteggi, da riportare nella metodologia.
@@ -235,7 +242,7 @@ Output:
 
 Il conteggio dei token usa il tokenizer e il chat template del repository Hugging Face originale, mentre i file GGUF provengono da quantizzatori terzi. Prima di congelare, validare un campione contro il llama-server in esecuzione (`POST /apply-template` e `POST /tokenize`) e riportare lo scarto nella metodologia. Se un template non accetta il ruolo system, `tokenize` piega il system nel primo messaggio utente: il replay deve applicare la stessa regola.
 
-La garanzia sulla finestra di contesto riguarda la conversazione registrata, cioè i messaggi dell'assistente presenti nel dataset. Se il replay lascia generare nuove risposte, il contesto ai turni successivi dipende dalle lunghezze generate: mantenere lo stesso `-c` e una riserva di sicurezza, e controllare i log di esecuzione. Le conversazioni WildChat con `toxic=true` sono escluse per impostazione predefinita (`--includi-tossici` le mantiene); quelle con `redacted` restano, salvo `--escludi-redatti`. Per accelerare la prima passata, `prepare --prefiltro-byte N` scarta le conversazioni il cui testo grezzo, più un margine di sicurezza, non può raggiungere `N` token. La soglia è in byte UTF-8, non in caratteri: per i tokenizer byte-level usati qui vale `token <= byte`, mentre codice e CJK possono avvicinarsi a un token per carattere, quindi una soglia in caratteri scarterebbe conversazioni valide. `--lingua` (default `en`) rende il replay set interamente in inglese: `prepare` rileva la lingua dei messaggi utente con fastText `lid.176` su tutte e tre le fonti (confidenza `--lingua-soglia 0.80`, primi `--lingua-caratteri 2000` caratteri) e scarta le altre. La colonna `language` di WildChat serve solo a misurare l'accordo con il rilevatore; `sharegpt_gpt4` non ha una colonna lingua e le etichette per messaggio di CodeChat non sono affidabili (il tag del repository dice `en`, ma il contenuto è multilingua), quindi il rilevatore è l'unico criterio comune alle tre fonti. Le conversazioni con meno di 20 caratteri di testo utente non sono valutabili e vengono scartate. `--tutte-le-lingue` disattiva il filtro e va usato solo per prove. Per impostazione predefinita la soglia minima di token deve valere per tutti i modelli (`--soglia-token-modo tutti`) e le fasce usano il massimo tra i modelli (`--misura-strato max`). `replay_set/` è ignorata da Git come gli altri output: va conservata insieme ai risultati sperimentali e `selezione.json` va citato nella metodologia.
+La garanzia sulla finestra di contesto riguarda la conversazione registrata, cioè i messaggi dell'assistente presenti nel dataset. Se il replay lascia generare nuove risposte, il contesto ai turni successivi dipende dalle lunghezze generate: mantenere lo stesso `-c` e una riserva di sicurezza, e controllare i log di esecuzione. Le conversazioni WildChat con `toxic=true` sono escluse per impostazione predefinita (`--includi-tossici` le mantiene); quelle con `redacted` restano, salvo `--escludi-redatti`. Per accelerare la prima passata, `prepare --prefiltro-byte N` scarta le conversazioni il cui testo grezzo, più un margine di sicurezza, non può raggiungere `N` token. La soglia è in byte UTF-8, non in caratteri: per i tokenizer byte-level usati qui vale `token <= byte`, mentre codice e CJK possono avvicinarsi a un token per carattere, quindi una soglia in caratteri scarterebbe conversazioni valide. `--lingua` (default `en`) rende il replay set interamente in inglese: `prepare` rileva la lingua dei messaggi utente con fastText `lid.176` su tutte e tre le fonti (confidenza `--lingua-soglia 0.80`, primi `--lingua-caratteri 2000` caratteri) e scarta le altre. La colonna `language` di WildChat serve solo a misurare l'accordo con il rilevatore; `sharegpt_gpt4` non ha una colonna lingua e le etichette per messaggio di CodeChat non sono affidabili (il tag del repository dice `en`, ma il contenuto è multilingua), quindi il rilevatore è l'unico criterio comune alle tre fonti. Le conversazioni con meno di 20 caratteri di testo utente non sono valutabili e vengono scartate. `--tutte-le-lingue` disattiva il filtro e va usato solo per prove. Per impostazione predefinita la soglia minima di token deve valere per tutti i modelli (`--soglia-token-modo tutti`) e le fasce usano il massimo tra i modelli (`--misura-strato max`). `replay_set/` contiene evidenza congelata versionata in Git; `select` non la sovrascrive senza `--sovrascrivi`. Va conservata con i risultati sperimentali e `selezione.json` citato nella metodologia.
 
 ## `energy_api.py`
 
@@ -265,7 +272,7 @@ curl -X POST http://127.0.0.1:9000/experiment/session/end -H "Content-Type: appl
 | `LLAMA_API_KEY` | chiave, ignorata da llama.cpp (`dummy-key`) |
 | `EMISSIONS_DIR` | cartella di `emissions.csv` di CodeCarbon (`./emissions`) |
 | `LOG_DIR` | cartella dei log (`./logs`) |
-| `TRACKING_MODE` | modalità di CodeCarbon, `process` o `machine` (`process`); vedi Avvertenze |
+| `TRACKING_MODE` | modalità CodeCarbon, `machine` o `process` (`machine`). Per l'esperimento usare `machine`, perché l'inferenza gira nel processo separato di llama-server. |
 | `GE_MARKER` | frase che identifica la richiesta di riepilogo GE, senza distinzione tra maiuscole e minuscole (`riepilogo conciso del contesto`) |
 | `LOG_FULL_REQUEST` | `1` = salva tutti i messaggi inviati al modello, `0` = solo l'ultimo (`1`) |
 | `REQUEST_USAGE` | `1` = aggiunge `stream_options.include_usage` alla richiesta, così llama-server restituisce sempre token e tempi (`1`) |
@@ -279,6 +286,6 @@ curl -X POST http://127.0.0.1:9000/experiment/session/end -H "Content-Type: appl
 
 ### Avvertenze
 
-- Perimetro della misura. Con `TRACKING_MODE=process` CodeCarbon cerca di isolare il consumo del processo corrente, cioè del proxy, mentre l'inferenza avviene nel processo di llama-server; con `machine` (impostazione predefinita di CodeCarbon) si misura l'intera macchina, comprese le attività di fondo, il cui consumo a riposo va misurato e sottratto.
+- Perimetro della misura. L'impostazione predefinita è `machine`: CodeCarbon misura l'intera workstation, comprese le attività di fondo; mantenere la macchina inattiva e misurare/sottrarre il consumo a riposo. `process` misura il processo proxy, non il processo separato di llama-server, quindi non è adatto all'esperimento principale.
 - Riconoscimento della richiesta GE. Si basa su `GE_MARKER`: va verificato che il prompt standardizzato fornito ai partecipanti lo contenga.
 s

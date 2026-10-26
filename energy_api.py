@@ -23,7 +23,7 @@ LLAMA_API_KEY = os.getenv("LLAMA_API_KEY", "dummy-key")  # llama.cpp accetta qua
 EMISSIONS_DIR = os.getenv("EMISSIONS_DIR", "./emissions")
 
 LOG_DIR = os.getenv("LOG_DIR", "./logs")
-TRACKING_MODE = os.getenv("TRACKING_MODE", "process")
+TRACKING_MODE = os.getenv("TRACKING_MODE", "machine")
 GE_MARKER = os.getenv("GE_MARKER", "riepilogo conciso del contesto").lower()
 LOG_FULL_REQUEST = os.getenv("LOG_FULL_REQUEST", "1") == "1"
 REQUEST_USAGE = os.getenv("REQUEST_USAGE", "1") == "1"

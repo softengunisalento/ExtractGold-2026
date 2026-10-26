@@ -667,6 +667,9 @@ def prepara(cfg: configurazione.Configurazione, passi: set[str]) -> int:
         req = cfg.percorso(p.get("requisiti", "requirements_misura.txt"))
         _esegui_comando([sys.executable, "-m", "pip", "install", "-r", str(req)])
         bloccato = cfg.cartella / "requirements_misura.lock.txt"
+        if bloccato.exists():
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+            bloccato = cfg.cartella / f"requirements_misura_{timestamp}.lock.txt"
         bloccato.write_text(subprocess.run([sys.executable, "-m", "pip", "freeze"], capture_output=True,
                                            text=True).stdout, encoding="utf-8")
         esito["librerie_bloccate"] = str(bloccato)

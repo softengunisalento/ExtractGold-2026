@@ -28,8 +28,10 @@ python misura.py esegui       # servizio di misura; funziona anche senza interne
 ```
 
 `prepara` si può ripetere a pezzi: `--solo llama`, `--solo librerie`, `--solo modelli`, `--solo ausiliari`.
-Scrive `preparazione.json` e `requirements_misura.lock.txt` (le versioni effettivamente installate, da
-conservare con i risultati).
+Scrive `preparazione.json` e `requirements_misura.lock.txt` (le versioni effettivamente installate).
+Il lock non è ignorato da Git: conservarlo con la configurazione e i risultati del benchmark.
+Se esiste già, una nuova preparazione salva un lock con timestamp invece di sovrascrivere quello
+precedente; `preparazione.json` indica il percorso prodotto.
 
 **Contatori della CPU (RAPL).** CodeCarbon misura la CPU con i contatori RAPL; se l'utente non può leggerli,
 la stima invece di misurarla. `prepara` ed `esegui` controllano i permessi e lo segnalano. I file sono

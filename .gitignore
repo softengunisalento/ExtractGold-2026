@@ -15,9 +15,9 @@ models/
 logs/
 logs_*/
 emissions/
-replay_set/
 dataset_cache/
 stats_out/
+replay_export/
 
 # selezioni/: the frozen selection documents (candidati_*.json and .txt) are kept in Git.
 # The outcome of a download contains local paths and stays on the machine.
@@ -28,4 +28,3 @@ selezioni/esito_download_*.txt
 benchmark/risultati/
 benchmark/log_misura/
 benchmark/preparazione.json
-benchmark/requirements_misura.lock.txt

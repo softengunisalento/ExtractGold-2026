@@ -8,8 +8,13 @@ Legge i risultati del benchmark (risultati/<nome>/) e i giudizi del giudice conf
 Confronti sempre appaiati: ogni strategia contro S0 sulla stessa conversazione e sugli stessi turni, solo dal
 trigger in poi. Unità di analisi: la conversazione.
 
-  A  quadro dei dati          B  energia            C  qualità           D  compromesso energia-qualità
+  A  quadro dei dati          B  energia            C  qualità
+  D  compromesso energia-qualità, risultati per fascia di turni, medie semplici e pesate
   E  statistica               F  affidabilità del giudice e robustezza   G  confronto tra modelli (se più di uno)
+
+Medie pesate: il run usa le prime N conversazioni nell'ordine a giri (una per fascia di turni a ogni giro), quindi
+le fasce hanno nel run un peso diverso da quello del dataset. La media pesata dà a ogni fascia il peso che ha
+nell'intero dataset congelato (rinormalizzato sulle fasce presenti nel run).
 
 Richiede le librerie di requirements_runner.txt.
 """
@@ -38,6 +43,7 @@ except ImportError as exc:  # messaggio chiaro invece di un errore a metà
 import configurazione
 import dati
 from giudice import VOTI, cartella_giudizi, leggi_jsonl
+from risultati import cartella_esecuzione
 
 COMPONENTI_E = ("prefill", "decode", "overhead")
 ASS, REL = VOTI["B"], VOTI["A"]
@@ -150,8 +156,12 @@ def spearman(x, y) -> float:
 # ---------------------------------------------------------------------------
 
 class Analisi:
-    def __init__(self, cfg, modello: str, rich: pd.DataFrame, giud: pd.DataFrame, trig: dict, st: Stat, out: Path):
+    def __init__(self, cfg, modello: str, rich: pd.DataFrame, giud: pd.DataFrame, trig: dict, st: Stat, out: Path,
+                 fasce: dict | None = None):
         self.cfg, self.m, self.st, self.out = cfg, modello, st, out
+        # fasce: {"di": {id conversazione: fascia}, "ordine": [fasce], "pesi": {fascia: quota nel dataset},
+        #         "dataset": {fascia: conversazioni nel dataset}}
+        self.fasce = fasce or {"di": {}, "ordine": [], "pesi": {}, "dataset": {}}
         self.elenco = list(cfg["strategie"]["elenco"])
         self.tecniche = [s for s in self.elenco if s != "S0"]
         self.rich = rich[rich["modello"] == modello].copy() if not rich.empty else rich
@@ -182,6 +192,9 @@ class Analisi:
     # --- A: quadro dei dati ---
     def quadro(self, modelli_jsonl: list[dict]) -> None:
         conv = self.trig.get("conversazioni") or {}
+        if not self.rich.empty:  # solo le conversazioni del run (il file del trigger può contenerne di più)
+            nel_run = set(self.rich["conversazione"])
+            conv = {k: v for k, v in conv.items() if k in nel_run}
         con = [v for v in conv.values() if v.get("turno_trigger")]
         dopo = [v["turni"] - v["turno_trigger"] + 1 for v in con]
         tt = [v["turno_trigger"] for v in con]
@@ -459,6 +472,64 @@ class Analisi:
         ax.set_title(f"{self.m}: energia contro qualità (bordo nero = frontiera di Pareto)")
         self.figura("D_compromesso", fig)
 
+    # --- D (seconda parte): fasce di turni e medie pesate ---
+    def per_fascia(self) -> None:
+        f = self.fasce
+        if not f["ordine"]:
+            return
+        # composizione: fasce nel dataset e nel run
+        nel_run = pd.Series([f["di"].get(c) for c in self.rich["conversazione"].unique()]).value_counts() \
+            if not self.rich.empty else pd.Series(dtype=int)
+        tot_ds, tot_run = sum(f["dataset"].values()), int(nel_run.sum())
+        self.salva("A_fasce", pd.DataFrame([{"fascia_turni": x, "conversazioni_dataset": f["dataset"].get(x, 0),
+                                             "quota_dataset": f["dataset"].get(x, 0) / tot_ds if tot_ds else np.nan,
+                                             "conversazioni_run": int(nel_run.get(x, 0)),
+                                             "quota_run": nel_run.get(x, 0) / tot_run if tot_run else np.nan}
+                                            for x in f["ordine"]]))
+        pezzi = []
+        if hasattr(self, "pc"):
+            pezzi.append(self.pc[["conversazione", "strategia", "risparmio"]])
+        if hasattr(self, "vc"):
+            pezzi.append(self.vc[["conversazione", "strategia", "punteggio", "media_assoluti"]])
+        if not pezzi:
+            return
+        d = pezzi[0]
+        for x in pezzi[1:]:
+            d = d.merge(x, on=["conversazione", "strategia"], how="outer")
+        d["fascia"] = d["conversazione"].map(f["di"])
+        misure = [c for c in ("risparmio", "punteggio", "media_assoluti") if c in d]
+        pf = d.groupby(["strategia", "fascia"], as_index=False).agg(
+            conversazioni=("conversazione", "nunique"), **{m: (m, "mean") for m in misure})
+        pf["fascia"] = pd.Categorical(pf["fascia"], categories=f["ordine"], ordered=True)
+        pf = pf.sort_values(["strategia", "fascia"])
+        self.salva("D_per_fascia", pf.assign(fascia=pf["fascia"].astype(str)))
+        righe = []
+        for s in self.elenco:
+            x = pf[pf["strategia"] == s]
+            r = {"strategia": s, "fasce_presenti": int(x["fascia"].nunique())}
+            for m in misure:
+                ok = x[x[m].notna()]
+                w = ok["fascia"].astype(str).map(f["pesi"]).astype(float)
+                r[f"{m}_semplice"] = d[(d["strategia"] == s)][m].mean()
+                r[f"{m}_pesata"] = float((w * ok[m]).sum() / w.sum()) if len(ok) and w.sum() > 0 else np.nan
+            righe.append(r)
+        self.salva("D_medie_pesate", pd.DataFrame(righe))
+        self.nota("D", "Medie pesate: ogni fascia di turni conta in proporzione alle sue conversazioni nell'intero "
+                       "dataset (rinormalizzato sulle fasce presenti); medie semplici: ogni conversazione del run conta "
+                       "uguale. I risultati per fascia mostrano come cambia l'effetto con la lunghezza della conversazione.")
+        for m, etich, scala in (("risparmio", "risparmio rispetto a S0 (%)", 100), ("punteggio", "punteggio combinato", 1)):
+            if m not in pf:
+                continue
+            fig, ax = plt.subplots(figsize=(8, 4))
+            for s in self.tecniche:
+                x = pf[pf["strategia"] == s]
+                ax.plot(x["fascia"].astype(str), scala * x[m], marker="o", ms=4, label=s, color=self.colori[s])
+            ax.set_xlabel("fascia di turni della conversazione")
+            ax.set_ylabel(etich)
+            ax.set_title(f"{self.m}: {etich} per fascia di turni")
+            ax.legend(ncol=4, fontsize=8)
+            self.figura(f"D_fasce_{m}", fig)
+
     # --- E: statistica ---
     def statistica(self) -> None:
         righe = []
@@ -670,7 +741,12 @@ SEZIONI = [
     ("C. Qualità", [("C_qualita_per_strategia", "Voti medi per strategia (media per conversazione)"),
                     ("C_per_fonte", "Per fonte del dataset")],
      ["C_voti", "C_distribuzione", "C_andamento"]),
-    ("D. Compromesso energia-qualità", [("D_compromesso", "Classifica e frontiera di Pareto")], ["D_compromesso"]),
+    ("D. Compromesso energia-qualità, fasce di turni e medie pesate",
+     [("D_compromesso", "Classifica e frontiera di Pareto (medie semplici)"),
+      ("A_fasce", "Composizione per fascia di turni: dataset e run"),
+      ("D_per_fascia", "Risultati per fascia di turni"),
+      ("D_medie_pesate", "Medie semplici e pesate per strategia")],
+     ["D_compromesso", "D_fasce_risparmio", "D_fasce_punteggio"]),
     ("E. Statistica", [("E_test_contro_S0", "Test contro S0")], []),
     ("F. Affidabilità del giudice e robustezza", [("F_referto_giudice", "Referto del giudice"),
                                                   ("F_distribuzione_voti", "Distribuzione dei voti"),
@@ -731,7 +807,7 @@ def main(argv=None) -> int:
     ap.add_argument("--modelli", help="solo questi modelli (nomi brevi, separati da virgola)")
     args = ap.parse_args(argv)
     cfg = configurazione.carica(args.config)
-    res = cfg.percorso(cfg["esecuzione"]["cartella_risultati"]) / cfg["esecuzione"]["nome"]
+    res = cartella_esecuzione(cfg)
     p_meta = res / "esecuzione.json"
     if not p_meta.exists():
         sys.exit(f"nessun risultato in {res}")
@@ -757,16 +833,24 @@ def main(argv=None) -> int:
         voluti = {x.strip() for x in args.modelli.split(",") if x.strip()}
         modelli = [m for m in modelli if m in voluti]
     st = Stat(cfg["elaborazione"])
+    # fasce di turni: dell'intero dataset (per i pesi) e di ogni conversazione del run
+    tutte = dati.conversazioni_ordinate(cfg)
+    limiti = list(cfg["esecuzione"]["fasce_turni"])
+    ordine_fasce = [dati.nome_fascia(i, limiti) for i in range(len(limiti))]
+    nel_dataset = {x: sum(1 for c in tutte if c.meta["fascia"] == x) for x in ordine_fasce}
+    fasce = {"di": {c.id: c.meta["fascia"] for c in tutte}, "ordine": ordine_fasce, "dataset": nel_dataset,
+             "pesi": {x: n / len(tutte) for x, n in nel_dataset.items()}}
     analisi = []
     for m in modelli:
         print(f"[{m}] elaborazione...")
         p_trig = res / "trigger" / f"{m}.json"
         trig = json.loads(p_trig.read_text(encoding="utf-8")) if p_trig.exists() else {}
-        a = Analisi(cfg, m, rich, giud, trig, st, out)
+        a = Analisi(cfg, m, rich, giud, trig, st, out, fasce)
         a.quadro(modelli_jsonl)
         a.energia()
         a.qualita()
         a.compromesso()
+        a.per_fascia()
         a.statistica()
         a.referto(sess_g)
         analisi.append(a)

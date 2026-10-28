@@ -15,6 +15,10 @@ Cartella di un'esecuzione: <cartella_risultati>/<nome>/
 
 Le righe di un'unità si scrivono tutte insieme a unità conclusa, poi la riga di completamento: un'unità
 interrotta a metà non lascia righe e si rifà da capo.
+
+Allungamento: il numero di conversazioni del run (le prime N nell'ordine a giri) si può aumentare riusando
+tutto il già fatto; diminuirlo è rifiutato. Se la configurazione del benchmark cambia (per esempio fasce o
+seed, quindi l'ordine), i risultati vanno in una cartella nuova <nome>_<impronta>, senza mescolarsi.
 """
 from __future__ import annotations
 
@@ -33,6 +37,21 @@ def chiave_unita(modello: str, conversazione: str, strategia: str) -> str:
     return f"{modello}|{conversazione}|{strategia}"
 
 
+def leggi_meta(cartella: Path) -> dict | None:
+    p = cartella / "esecuzione.json"
+    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
+
+
+def cartella_esecuzione(cfg) -> Path:
+    """La cartella dei risultati di questa configurazione del benchmark: <nome>, oppure <nome>_<impronta> se
+    <nome> contiene già un'esecuzione con una configurazione del benchmark diversa."""
+    base = cfg.percorso(cfg["esecuzione"]["cartella_risultati"]) / cfg["esecuzione"]["nome"]
+    meta = leggi_meta(base)
+    if meta is None or meta.get("config_benchmark_sha256") == cfg["_sha256_benchmark"]:
+        return base
+    return base.with_name(f"{base.name}_{cfg['_sha256_benchmark'][:12]}")
+
+
 class Registro:
     def __init__(self, cartella: Path, meta: dict):
         self.cartella = cartella
@@ -42,10 +61,20 @@ class Registro:
         p = cartella / "esecuzione.json"
         if p.exists():
             vecchio = json.loads(p.read_text(encoding="utf-8"))
-            diversi = [k for k in ("config_benchmark_sha256", "input") if vecchio.get(k) != meta.get(k)]
-            if diversi:
-                sys.exit(f"la cartella {cartella} contiene un'esecuzione con {', '.join(diversi)} diversi: "
+            if vecchio.get("config_benchmark_sha256") != meta.get("config_benchmark_sha256"):
+                sys.exit(f"la cartella {cartella} contiene un'esecuzione con un'altra configurazione del benchmark")
+            v_in, n_in = dict(vecchio.get("input") or {}), dict(meta.get("input") or {})
+            n_vecchio, n_nuovo = v_in.pop("conversazioni_del_run", None), n_in.pop("conversazioni_del_run", None)
+            if v_in != n_in:
+                sys.exit(f"la cartella {cartella} contiene un'esecuzione con file di input diversi: "
                          "per non mescolare i risultati usa un altro esecuzione.nome nella configurazione")
+            if n_vecchio is not None and n_nuovo is not None and n_nuovo < n_vecchio:
+                sys.exit(f"l'esecuzione ha già {n_vecchio} conversazioni: si può allungare, non accorciare "
+                         f"(richieste {n_nuovo})")
+            if n_nuovo != n_vecchio:
+                vecchio["input"]["conversazioni_del_run"] = n_nuovo
+                vecchio.setdefault("allungamenti", []).append({"da": n_vecchio, "a": n_nuovo, "quando": adesso()})
+                p.write_text(json.dumps(vecchio, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
             self.meta = vecchio
         else:
             self.meta = {**meta, "creata": adesso()}

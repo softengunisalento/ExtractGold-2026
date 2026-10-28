@@ -30,7 +30,7 @@ import configurazione
 import dati
 from avanzamento import Avanzamento
 from client_misura import ClientMisura, ErroreServizio
-from risultati import adesso, chiave_unita
+from risultati import adesso, cartella_esecuzione, chiave_unita
 
 VOTI = {"A": ("relative_correctness", "relative_coherence"),
         "B": ("absolute_correctness", "absolute_coherence")}
@@ -307,7 +307,7 @@ def main(argv=None) -> int:
 
     cfg = configurazione.carica(args.config)
     nome = cfg["esecuzione"]["nome"]
-    res = cfg.percorso(cfg["esecuzione"]["cartella_risultati"]) / nome
+    res = cartella_esecuzione(cfg)
     p_meta = res / "esecuzione.json"
     if not p_meta.exists():
         sys.exit(f"nessun risultato del benchmark in {res}: lancia prima runner.py")
@@ -315,10 +315,8 @@ def main(argv=None) -> int:
     if meta.get("config_benchmark_sha256") != cfg["_sha256_benchmark"]:
         sys.exit("i risultati del benchmark sono stati prodotti con una configurazione diversa da questa")
     inp = cfg["input"]
-    conversazioni = dati.carica_conversazioni(cfg.percorso(inp["conversazioni"]), inp.get("sha256_conversazioni") or None)
-    n_max = (meta.get("input") or {}).get("max_conversazioni")
-    if n_max:
-        conversazioni = conversazioni[:n_max]
+    # le stesse conversazioni del benchmark: le prime N nell'ordine a giri
+    conversazioni = dati.conversazioni_ordinate(cfg)[:(meta.get("input") or {}).get("conversazioni_del_run")]
     per_id = {c.id: c for c in conversazioni}
     modelli = [m["nome"] for m in dati.carica_modelli(cfg.percorso(inp["modelli"]), cfg.percorso(inp["selezione"]))]
     if args.modelli:

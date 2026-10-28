@@ -54,8 +54,9 @@ modalità machine misura l'intera macchina.
 ```bash
 cd benchmark
 pip install -r requirements_runner.txt        # una volta (librerie dell'elaborazione)
-python catena.py --modelli qwen2.5-coder-32b-instruct   # pilota: tutta la catena per un modello
-python catena.py                              # tutti i modelli della lista
+python catena.py --modelli qwen2.5-coder-32b-instruct --max-conversazioni 10   # pilota: primi 2 giri
+python catena.py --modelli qwen2.5-coder-32b-instruct --max-conversazioni 20   # allunga: giri 3 e 4
+python catena.py                              # tutti i modelli della lista, tutte le conversazioni
 python catena.py --misura http://<ip-di-M1>:9100 --modelli ...
 ```
 
@@ -72,6 +73,16 @@ python elabora.py [--modelli ...]                     # elaborazione
 con la percentuale, i turni o i giudizi fatti sul totale, il tempo trascorso e una stima del tempo residuo; alla
 ripresa il lavoro già concluso conta come fatto. Il run vive nella finestra in cui è stato lanciato: se si chiude
 la finestra o il PC va in sospensione si ferma, e si riprende rilanciando lo stesso comando.
+
+**Ordine a giri e allungamento.** Le conversazioni si dividono in fasce di turni (`esecuzione.fasce_turni`:
+10–11, 12–14, 15–19, 20–29, ≥30); ogni fascia si mescola con `esecuzione.seed` e ogni giro prende una
+conversazione per fascia, dalla più corta alla più lunga (una fascia esaurita si salta). `--max-conversazioni N`
+prende le prime N conversazioni di questa sequenza: con N = 5 un giro, con N = 10 due giri. Rilanciando con un N
+più grande il run si allunga: le conversazioni già fatte non si rifanno, giudice ed elaborazione si aggiornano.
+Diminuire N è rifiutato. Senza `--max-conversazioni`, un'esecuzione nuova usa tutte le conversazioni e una già
+avviata mantiene il suo N. Se cambiano fasce o seed (cioè l'ordine), i risultati vanno in una cartella nuova
+`<nome>_<impronta>`. Il rapporto riporta i risultati per fascia, le medie semplici e le medie pesate secondo la
+quota di ogni fascia nell'intero dataset.
 
 **Ripresa.** Se qualcosa si interrompe, si rilancia lo stesso comando. Benchmark: le unità (modello,
 conversazione, strategia) concluse si saltano, quella interrotta si rifà da capo. Giudice: i giudizi già

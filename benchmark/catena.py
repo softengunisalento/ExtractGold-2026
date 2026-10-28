@@ -25,7 +25,9 @@ def main() -> int:
     ap.add_argument("--config", default=str(QUI / "config.toml"))
     ap.add_argument("--misura", help="indirizzo del servizio di misura (sostituisce rete.indirizzo_misura)")
     ap.add_argument("--modelli", help="solo questi modelli (nomi brevi, separati da virgola); senza: tutti")
-    ap.add_argument("--max-conversazioni", type=int, default=0, help="solo le prime N conversazioni (prove)")
+    ap.add_argument("--max-conversazioni", type=int, default=None,
+                    help="le prime N conversazioni nell'ordine a giri; rilanciando con un N più grande si allunga "
+                         "riusando il già fatto. Senza: tutte per un'esecuzione nuova, lo stesso N per una già avviata")
     args = ap.parse_args()
 
     mancanti = [m for m in LIBRERIE_ELABORAZIONE if importlib.util.find_spec(m) is None]
@@ -40,7 +42,7 @@ def main() -> int:
         comune += ["--modelli", args.modelli]
     fasi = [
         ("1/3 benchmark", ["runner.py", *comune] + (["--max-conversazioni", str(args.max_conversazioni)]
-                                                   if args.max_conversazioni else [])),
+                                                   if args.max_conversazioni is not None else [])),
         ("2/3 giudice", ["giudice.py", *comune]),
         ("3/3 elaborazione", ["elabora.py", "--config", args.config] + (["--modelli", args.modelli] if args.modelli else [])),
     ]

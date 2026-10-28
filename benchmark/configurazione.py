@@ -20,7 +20,7 @@ import tomllib
 
 # Chiavi obbligatorie, per sezione: un errore di battitura si scopre subito, non dopo ore di benchmark.
 OBBLIGATORIE = {
-    "esecuzione": ["nome", "seed", "cartella_risultati"],
+    "esecuzione": ["nome", "seed", "cartella_risultati", "fasce_turni"],
     "input": ["conversazioni", "selezione", "modelli"],
     "rete": ["host", "porta", "indirizzo_misura"],
     "llama": ["sorgenti", "repository", "commit", "eseguibile", "porta", "contesto", "argomenti",
@@ -109,6 +109,9 @@ def controlla(cfg: dict) -> None:
         sys.exit("strategie.quota_token_tenuti deve essere tra 0 e 1 (es. 0.5 = si tiene il 50% dei token)")
     if cfg["misura"]["metodo_finestre"] not in ("auto", "task", "tracker"):
         sys.exit("misura.metodo_finestre deve essere auto, task o tracker")
+    f = cfg["esecuzione"]["fasce_turni"]
+    if not f or not all(isinstance(x, int) and x > 0 for x in f) or list(f) != sorted(set(f)):
+        sys.exit("esecuzione.fasce_turni: servono interi positivi in ordine crescente, senza ripetizioni")
     g = cfg["giudice"]
     attesi = {"prompt_relativo": {"storia", "messaggio", "riferimento", "risposta"},
               "prompt_assoluto": {"storia", "messaggio", "risposta"}}

@@ -9,6 +9,7 @@ Parte C: giudice vero sullo stesso servizio (il llama-server finto fa anche da g
 giudicati, non giudicabili, controlli, parametri, nuovi tentativi, ripresa.
 Parte D: elaborazione vera (tabelle, grafici, rapporto Word). Parte E: comando unico catena.py.
 """
+import csv
 import json
 import os
 import shutil
@@ -156,6 +157,33 @@ def parte_a():
               "S7 turno 7: 2 turni recuperati (il 2 più simile, poi l'1 a parità), in ordine cronologico, + ultimi 3 (4–6) + U7")
     controlla(serv.intermedi[0][0] == "s7_recuperati" and [v["turno"] for v in serv.intermedi[0][1]] == [1, 2],
               "S7: turni recuperati registrati (1, 2)")
+    # ordine a giri
+    import dati
+    def finta(cid, n):
+        return Conversazione(id=cid, fonte="prova", messaggi=[{"role": r, "content": "x"} for _ in range(n)
+                                                                  for r in ("user", "assistant")])
+    convs = [finta(f"a{i}", 10) for i in range(4)] + [finta(f"b{i}", 13) for i in range(3)] + [finta("c0", 40)]
+    o = dati.ordina_a_giri(list(convs), [10, 12, 15, 20, 30], 42)
+    fasce = [c.meta["fascia"] for c in o]
+    controlla(fasce == ["10–11", "12–14", "≥30", "10–11", "12–14", "10–11", "12–14", "10–11"],
+              f"ordine a giri: una per fascia dalla più corta, fasce esaurite saltate ({' '.join(fasce)})")
+    o2 = dati.ordina_a_giri(list(reversed(convs)), [10, 12, 15, 20, 30], 42)
+    controlla([c.id for c in o2] == [c.id for c in o], "ordine a giri: stesso seed, stesso ordine (anche con il file in ordine diverso)")
+    controlla([c.meta["giro"] for c in o] == [1, 1, 1, 2, 2, 3, 3, 4], "ordine a giri: numeri di giro")
+    # cartella dei risultati: una configurazione del benchmark diversa va in una cartella nuova
+    from risultati import cartella_esecuzione
+    tmp = Path(tempfile.mkdtemp(prefix="cartella_"))
+    cfg_finta = {"esecuzione": {"cartella_risultati": str(tmp), "nome": "v1"}, "_sha256_benchmark": "a" * 64}
+    cfg_finta = type("C", (dict,), {"percorso": lambda self, v: Path(v)})(cfg_finta)
+    c1 = cartella_esecuzione(cfg_finta)
+    (tmp / "v1").mkdir()
+    (tmp / "v1" / "esecuzione.json").write_text(json.dumps({"config_benchmark_sha256": "a" * 64}))
+    c2 = cartella_esecuzione(cfg_finta)
+    cfg_finta["_sha256_benchmark"] = "b" * 64
+    c3 = cartella_esecuzione(cfg_finta)
+    controlla(c1 == c2 == tmp / "v1" and c3 == tmp / ("v1_" + "b" * 12),
+              "configurazione del benchmark diversa (es. fasce o seed): cartella nuova <nome>_<impronta>")
+    shutil.rmtree(tmp, ignore_errors=True)
     voci = serv.embedding_voci[0]
     controlla(voci[-1] == {"testo": "U7", "tipo": "query"} and len(voci) == 4,
               "S7: embedding dei 3 turni candidati (1–3) + query")
@@ -261,14 +289,40 @@ def parte_b(d, env, config):
     print("\nParte B: servizio di misura + runner (llama-server, CodeCarbon e ausiliari finti)")
     if True:
         runner = [sys.executable, str(BENCH / "runner.py"), "--config", str(config)]
-        r1 = subprocess.run(runner, cwd=d, env=env, capture_output=True, text=True)
+        # primo passo: le prime 2 conversazioni nell'ordine a giri (un giro: una per fascia)
+        r0 = subprocess.run(runner + ["--max-conversazioni", "2"], cwd=d, env=env, capture_output=True, text=True)
+        if r0.returncode:
+            print(r0.stdout[-2000:], r0.stderr[-3000:])
+        res0 = d / "risultati" / "v1"
+        comp0 = leggi(res0 / "completate.jsonl")
+        conv0 = sorted({c["unita"].split("|")[1] for c in comp0})
+        controlla(r0.returncode == 0 and len(comp0) == 2 * 2 * 8 and "fino al giro 1" in r0.stdout,
+                  f"primo passo: 2 conversazioni (giro 1), {len(comp0)} unità")
+        controlla(len(conv0) == 2 and any(c in conv0 for c in ("prova:corta", "prova:trigger1"))
+                  and any(c in conv0 for c in ("prova:normale", "prova:lunghissima")),
+                  f"giro 1: una conversazione per fascia di turni ({', '.join(conv0)})")
+        av0 = [x for x in r0.stdout.splitlines() if "[modello-a]" in x and "%" in x]
+        controlla(av0 and pct(av0[0]) == 0 and pct(av0[-1]) == 100, "avanzamento del primo passo da 0,0% a 100,0%")
+        # allungamento: da 2 a 4 conversazioni, riusando il già fatto
+        r1 = subprocess.run(runner + ["--max-conversazioni", "4"], cwd=d, env=env, capture_output=True, text=True)
         print("  --- uscita del runner ---\n" + "\n".join("  | " + x for x in r1.stdout.splitlines()[-12:]))
         if r1.returncode:
             print(r1.stderr[-3000:])
         controlla(r1.returncode == 0, "runner concluso senza errori")
         av = [x for x in r1.stdout.splitlines() if "[modello-a]" in x and "%" in x]
-        controlla(av and pct(av[0]) == 0 and pct(av[-1]) == 100 and "turni" in av[-1]
-                  and "stima residua" in av[-1], f"avanzamento del benchmark da 0,0% a 100,0% ({len(av)} righe)")
+        controlla(av and 0 < pct(av[0]) < 100 and pct(av[-1]) == 100 and "turni" in av[-1]
+                  and "stima residua" in av[-1] and "giro" in av[-1],
+                  f"allungamento: avanzamento riparte da {pct(av[0]) if av else '?'}% e arriva al 100,0%")
+        comp1 = leggi(d / "risultati" / "v1" / "completate.jsonl")
+        controlla(len(comp1) == len({c["unita"] for c in comp1}) and
+                  all(c["unita"] in {x["unita"] for x in comp1[:len(comp0)]} for c in comp0),
+                  "allungamento: le unità del primo passo non si rifanno")
+        meta = json.loads((d / "risultati" / "v1" / "esecuzione.json").read_text())
+        controlla(meta["input"]["conversazioni_del_run"] == 4 and meta["allungamenti"][-1]["da"] == 2,
+                  "allungamento registrato in esecuzione.json (da 2 a 4)")
+        r_meno = subprocess.run(runner + ["--max-conversazioni", "3"], cwd=d, env=env, capture_output=True, text=True)
+        controlla(r_meno.returncode != 0 and "non accorciare" in (r_meno.stderr + r_meno.stdout),
+                  "accorciare (da 4 a 3) è rifiutato")
         # totale atteso: S0 tutti i turni, le altre strategie dal trigger alla fine
         tr_a = json.loads((d / "risultati" / "v1" / "trigger" / "modello-a.json").read_text())["conversazioni"]
         atteso = sum(v["turni"] + (7 * (v["turni"] - v["turno_trigger"] + 1) if v["turno_trigger"] else 0)
@@ -277,7 +331,8 @@ def parte_b(d, env, config):
         res = d / "risultati" / "v1"
         mod = leggi(res / "modelli.jsonl")
         controlla(any(m["modello"] == "modello-fail" and m.get("esito") == "FAIL" for m in mod), "modello-fail: FAIL registrato")
-        controlla(sum(m.get("evento") == "riposo" for m in mod) == 2, "consumo a riposo misurato per i 2 modelli caricati")
+        controlla(sum(m.get("evento") == "riposo" for m in mod) == 4,
+                  "consumo a riposo misurato per i 2 modelli caricati, in ognuna delle 2 sessioni")
         rich = leggi(res / "richieste.jsonl")
         comp = leggi(res / "completate.jsonl")
         controlla(len(comp) == 2 * 4 * 8, "64 unità concluse (2 modelli x 4 conversazioni x 8 strategie)")
@@ -443,8 +498,17 @@ def parte_d(d, env, config):
     mancano = [n for n in nomi if not (tab / f"modello-a__{n}.csv").exists()]
     controlla(not mancano, f"tabelle A–F per modello-a ({'mancano ' + ', '.join(mancano) if mancano else 'tutte'})")
     controlla((tab / "G_punteggio_medio_per_modello.csv").exists(), "tabella G di confronto tra modelli")
+    pesate = list(csv.DictReader(open(tab / "modello-a__D_medie_pesate.csv", encoding="utf-8")))
+    per_f = list(csv.DictReader(open(tab / "modello-a__D_per_fascia.csv", encoding="utf-8")))
+    comp_f = list(csv.DictReader(open(tab / "modello-a__A_fasce.csv", encoding="utf-8")))
+    controlla(len(pesate) == 8 and all(k in pesate[1] for k in ("risparmio_semplice", "risparmio_pesata",
+                                                              "punteggio_semplice", "punteggio_pesata"))
+              and pesate[1]["punteggio_pesata"] not in ("", "nan"),
+              "medie semplici e pesate per strategia (risparmio, punteggio, voti assoluti)")
+    controlla({x["fascia"] for x in per_f} >= {"10–11", "12–14"} and len(comp_f) == 5
+              and abs(sum(float(x["quota_dataset"]) for x in comp_f) - 1) < 1e-9,
+              "risultati per fascia di turni e composizione dataset/run (5 fasce)")
     controlla(len(list((el / "grafici").glob("modello-a__*.png"))) >= 8, "grafici PNG scritti")
-    import csv
     ref = list(csv.DictReader(open(tab / "modello-a__F_referto_giudice.csv", encoding="utf-8")))
     stati = {}
     for x in ref:

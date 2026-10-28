@@ -4,8 +4,12 @@
 
 [esecuzione]
 nome = "v1"                      # cartella dei risultati: <cartella_risultati>/<nome>; un nome nuovo per ogni esecuzione
-seed = 42                        # ordine delle strategie, mescolato per ogni conversazione
+seed = 42                        # ordine delle strategie (per conversazione) e ordine a giri delle conversazioni
 cartella_risultati = "risultati"
+# Ordine a giri: le conversazioni si dividono in fasce di turni (qui il turno minimo di ogni fascia: 10–11,
+# 12–14, 15–19, 20–29, ≥30); ogni fascia si mescola con il seed e ogni giro prende una conversazione per fascia,
+# dalla più corta alla più lunga. --max-conversazioni N = le prime N conversazioni di questa sequenza.
+fasce_turni = [10, 12, 15, 20, 30]
 
 [input]                          # file congelati
 conversazioni = "../replay_set/conversazioni.jsonl"

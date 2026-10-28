@@ -27,7 +27,7 @@ import dati
 import strategie
 from avanzamento import Avanzamento
 from client_misura import ClientMisura, ErroreServizio
-from risultati import Registro, adesso, chiave_unita
+from risultati import Registro, adesso, cartella_esecuzione, chiave_unita, leggi_meta
 
 COMPONENTI = ("gpu", "cpu", "ram", "totale")
 
@@ -198,15 +198,21 @@ def main() -> int:
     ap.add_argument("--modelli", help="solo questi modelli (nomi brevi, separati da virgola)")
     ap.add_argument("--solo-verifiche", action="store_true",
                     help="carica i modelli e calcola solo trigger e verifiche, senza misure")
-    ap.add_argument("--max-conversazioni", type=int, default=0, help="solo le prime N conversazioni (prove)")
+    ap.add_argument("--max-conversazioni", type=int, default=None,
+                    help="le prime N conversazioni nell'ordine a giri; si può aumentare in un rilancio. Senza: per "
+                         "un'esecuzione nuova tutte, per una già avviata lo stesso numero di prima")
     args = ap.parse_args()
 
     cfg = configurazione.carica(args.config)
     inp = cfg["input"]
     p_conv, p_sel, p_mod = (cfg.percorso(inp[k]) for k in ("conversazioni", "selezione", "modelli"))
-    conversazioni = dati.carica_conversazioni(p_conv, inp.get("sha256_conversazioni") or None)
-    if args.max_conversazioni:
-        conversazioni = conversazioni[: args.max_conversazioni]
+    tutte = dati.conversazioni_ordinate(cfg)
+    cartella = cartella_esecuzione(cfg)
+    precedente = ((leggi_meta(cartella) or {}).get("input") or {}).get("conversazioni_del_run")
+    if args.max_conversazioni is not None and args.max_conversazioni < 1:
+        sys.exit("--max-conversazioni deve essere almeno 1")
+    n_run = min(len(tutte), args.max_conversazioni if args.max_conversazioni is not None else (precedente or len(tutte)))
+    conversazioni = tutte[:n_run]
     modelli = dati.carica_modelli(p_mod, p_sel)
     if args.modelli:
         voluti = [x.strip() for x in args.modelli.split(",") if x.strip()]
@@ -214,7 +220,9 @@ def main() -> int:
         if ignoti:
             sys.exit(f"modelli sconosciuti: {ignoti}")
         modelli = [m for m in modelli if m["nome"] in voluti]
-    print(f"{len(conversazioni)} conversazioni, {len(modelli)} modelli, strategie {cfg['strategie']['elenco']}")
+    giri = conversazioni[-1].meta["giro"] if conversazioni else 0
+    print(f"{len(conversazioni)} conversazioni su {len(tutte)} (ordine a giri, fino al giro {giri}), "
+          f"{len(modelli)} modelli, strategie {cfg['strategie']['elenco']}")
 
     client = ClientMisura(args.misura or cfg["rete"]["indirizzo_misura"], cfg["rete"].get("chiave", ""))
     try:
@@ -229,8 +237,8 @@ def main() -> int:
     nome = cfg["esecuzione"]["nome"]
     meta = {"nome": nome, "config_benchmark_sha256": cfg["_sha256_benchmark"],
             "input": {"conversazioni": dati.sha256_file(p_conv), "selezione": dati.sha256_file(p_sel),
-                      "modelli": dati.sha256_file(p_mod), "max_conversazioni": args.max_conversazioni or None}}
-    reg = Registro(cfg.percorso(cfg["esecuzione"]["cartella_risultati"]) / nome, meta)
+                      "modelli": dati.sha256_file(p_mod), "conversazioni_del_run": n_run}}
+    reg = Registro(cartella, meta)
     sessione = adesso()
     reg.scrivi("sessioni.jsonl", {"sessione": sessione, "stato_servizio": stato, "python": sys.version,
                                   "modelli": [m["nome"] for m in modelli], "solo_verifiche": args.solo_verifiche})
@@ -255,7 +263,11 @@ def main() -> int:
             client.chat([{"role": "user", "content": cfg["misura"]["riscaldamento_messaggio"]}], misura=False,
                         etichetta=f"{nm}|riscaldamento")
         trig = calcola_trigger(client, conversazioni, int(par["soglia_token"]), reg, nm, int(par["turni_recenti"]))
-        v = verifiche(trig, int(par["turni_recenti"]))
+        # il file del trigger può contenere più conversazioni (per esempio da un --solo-verifiche su tutte):
+        # le verifiche stampate riguardano solo quelle del run
+        ids = {c.id for c in conversazioni}
+        v = verifiche({**trig, "conversazioni": {k: x for k, x in trig["conversazioni"].items() if k in ids}},
+                      int(par["turni_recenti"]))
         print(f"  trigger: {v['con_trigger']}/{v['conversazioni']} conversazioni; turni misurati dopo il trigger "
               f"{v['turni_misurati_dopo_il_trigger']}")
         if args.solo_verifiche:
@@ -273,7 +285,7 @@ def main() -> int:
         etichetta = f"  [{nm}]" + (f" modello {n_modello}/{len(modelli)}" if len(modelli) > 1 else "")
         avanz = Avanzamento(etichetta, totale, fatti, "turni")
         for i, c in enumerate(conversazioni, 1):
-            avanz.imposta_dettaglio(f"conversazione {i}/{len(conversazioni)}")
+            avanz.imposta_dettaglio(f"giro {c.meta['giro']}, conversazione {i}/{len(conversazioni)}")
             ordine = list(elenco)
             random.Random(f"{seed}|{nm}|{c.id}").shuffle(ordine)
             for s in ordine:

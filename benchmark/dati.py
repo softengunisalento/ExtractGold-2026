@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import random
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -89,6 +90,42 @@ def carica_conversazioni(percorso: Path, sha_atteso: str | None = None) -> list[
                 sys.exit(f"{percorso}, riga {n}: conversazione {c.id} senza messaggi dell'utente")
             conversazioni.append(c)
     return conversazioni
+
+
+def fascia_di(turni: int, limiti: list[int]) -> int:
+    """Indice della fascia di turni: l'ultima il cui minimo non supera i turni (sotto il primo minimo: la prima)."""
+    return max([i for i, l in enumerate(limiti) if turni >= l] or [0])
+
+
+def nome_fascia(i: int, limiti: list[int]) -> str:
+    return f"{limiti[i]}–{limiti[i + 1] - 1}" if i + 1 < len(limiti) else f"≥{limiti[i]}"
+
+
+def ordina_a_giri(conversazioni: list[Conversazione], limiti: list[int], seed) -> list[Conversazione]:
+    """Ordine a giri: ogni fascia di turni si mescola con il seed; ogni giro prende la conversazione successiva di
+    ogni fascia, dalla più corta alla più lunga; una fascia esaurita si salta. Scrive in meta "giro" e "fascia"."""
+    code: list[list[Conversazione]] = [[] for _ in limiti]
+    for c in conversazioni:
+        code[fascia_di(c.n_turni, limiti)].append(c)
+    for i, coda in enumerate(code):
+        coda.sort(key=lambda c: c.id)          # indipendente dall'ordine del file
+        random.Random(f"{seed}|fascia|{i}").shuffle(coda)
+    out, giro = [], 0
+    while any(code):
+        giro += 1
+        for i, coda in enumerate(code):
+            if coda:
+                c = coda.pop(0)
+                c.meta["giro"], c.meta["fascia"] = giro, nome_fascia(i, limiti)
+                out.append(c)
+    return out
+
+
+def conversazioni_ordinate(cfg) -> list[Conversazione]:
+    """Tutte le conversazioni congelate, controllate e nell'ordine a giri della configurazione."""
+    inp = cfg["input"]
+    tutte = carica_conversazioni(cfg.percorso(inp["conversazioni"]), inp.get("sha256_conversazioni") or None)
+    return ordina_a_giri(tutte, list(cfg["esecuzione"]["fasce_turni"]), cfg["esecuzione"]["seed"])
 
 
 def _kwargs_da_interruttori(interruttori: list[str]) -> dict:

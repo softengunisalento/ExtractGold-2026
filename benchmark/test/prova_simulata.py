@@ -12,6 +12,7 @@ Parte D: elaborazione vera (tabelle, grafici, rapporto Word). Parte E: comando u
 import csv
 import json
 import os
+import re
 import shutil
 import socket
 import subprocess
@@ -203,6 +204,18 @@ def parole(n, tema="word"):
     return " ".join(f"{tema}{i}" for i in range(n))
 
 
+def imposta(cfg: str, sezione: str, chiave: str, valore: str) -> str:
+    """Sostituisce il valore di una chiave dentro una sezione [sezione] di config.toml (senza toccare il resto)."""
+    righe, dentro = cfg.split("\n"), False
+    for i, riga in enumerate(righe):
+        if riga.startswith("["):
+            dentro = riga.split("]")[0] + "]" == f"[{sezione}]"
+        elif dentro and re.match(rf"{re.escape(chiave)}\s*=", riga):
+            righe[i] = f"{chiave} = {valore}"
+            return "\n".join(righe)
+    raise AssertionError(f"chiave {chiave} non trovata nella sezione [{sezione}] di config.toml")
+
+
 def crea_dati(d: Path):
     def conv(cid, turni):
         msgs = []
@@ -242,34 +255,38 @@ def crea_dati(d: Path):
     eseguibile.chmod(0o755)
     cfg = (BENCH / "config.toml").read_text(encoding="utf-8")
     porta = porta_libera()
-    sostituzioni = {
-        'conversazioni = "../replay_set/conversazioni.jsonl"': f'conversazioni = "{d / "conversazioni.jsonl"}"',
-        'selezione = "../replay_set/selezione.json"': f'selezione = "{d / "selezione.json"}"',
-        'modelli = "../selezioni/candidati_2026-10-19.json"': f'modelli = "{d / "candidati.json"}"',
-        'sha256_conversazioni = "44b790a91ac4fc903da8282fafd444d13835ec3a8a707f16df3bacde386a276d"': 'sha256_conversazioni = ""',
-        'cartella_risultati = "risultati"': f'cartella_risultati = "{d / "risultati"}"',
-        'host = "0.0.0.0"': 'host = "127.0.0.1"',
-        "porta = 9100": f"porta = {porta}",
-        'indirizzo_misura = "http://127.0.0.1:9100"': f'indirizzo_misura = "http://127.0.0.1:{porta}"',
-        'sorgenti = "../llama.cpp"': f'sorgenti = "{d / "llama.cpp"}"',
-        'eseguibile = "../llama.cpp/build/bin/llama-server"': f'eseguibile = "{eseguibile}"',
-        "porta = 8080": f"porta = {porta_libera()}",
-        "contesto = 32768": "contesto = 2500",
-        'cartella_modelli = "../models"': f'cartella_modelli = "{d / "models"}"',
-        "riposo_secondi = 120": "riposo_secondi = 0.3",
-        "riscaldamento_richieste = 3": "riscaldamento_richieste = 1",
-        "soglia_token = 3500": "soglia_token = 500",
-        "contesto = 65536 ": "contesto = 2400 ",
-        "campione_stabilita = 0.05": "campione_stabilita = 0.3",
-        "campione_identita = 0.05": "campione_identita = 0.3",
-        "campione_degrado = 0.05": "campione_degrado = 0.3",
-        "# degrado_media_max, bias_lunghezza_max, coerenza_interna_min":
-            "# degrado_media_max, bias_lunghezza_max, coerenza_interna_min\nnon_validi_max = 0.5",
-        "min_conversazioni_per_punto = 20": "min_conversazioni_per_punto = 1",
+    # Valori della prova impostati per sezione e chiave: funziona anche con un config.toml già personalizzato
+    # (per esempio nome dell'esecuzione e host cambiati sulla macchina di misura).
+    valori = {
+        ("esecuzione", "nome"): '"v1"',
+        ("esecuzione", "seed"): "42",
+        ("esecuzione", "cartella_risultati"): f'"{d / "risultati"}"',
+        ("esecuzione", "fasce_turni"): "[10, 12, 15, 20, 30]",
+        ("input", "conversazioni"): f'"{d / "conversazioni.jsonl"}"',
+        ("input", "selezione"): f'"{d / "selezione.json"}"',
+        ("input", "modelli"): f'"{d / "candidati.json"}"',
+        ("input", "sha256_conversazioni"): '""',
+        ("rete", "host"): '"127.0.0.1"',
+        ("rete", "porta"): str(porta),
+        ("rete", "indirizzo_misura"): f'"http://127.0.0.1:{porta}"',
+        ("rete", "chiave"): '""',
+        ("llama", "sorgenti"): f'"{d / "llama.cpp"}"',
+        ("llama", "eseguibile"): f'"{eseguibile}"',
+        ("llama", "porta"): str(porta_libera()),
+        ("llama", "contesto"): "2500",
+        ("llama", "cartella_modelli"): f'"{d / "models"}"',
+        ("misura", "riposo_secondi"): "0.3",
+        ("misura", "riscaldamento_richieste"): "1",
+        ("strategie", "soglia_token"): "500",
+        ("giudice", "contesto"): "2400",
+        ("giudice", "campione_stabilita"): "0.3",
+        ("giudice", "campione_identita"): "0.3",
+        ("giudice", "campione_degrado"): "0.3",
+        ("elaborazione", "min_conversazioni_per_punto"): "1",
     }
-    for a, b in sostituzioni.items():
-        assert cfg.count(a) == 1, a
-        cfg = cfg.replace(a, b)
+    for (sezione, chiave), valore in valori.items():
+        cfg = imposta(cfg, sezione, chiave, valore)
+    cfg = re.sub(r"(?m)^\[giudice\.soglie\].*$", lambda m: m.group(0) + "\nnon_validi_max = 0.5", cfg, count=1)
     (d / "config.toml").write_text(cfg, encoding="utf-8")
     return d / "config.toml", porta
 

@@ -657,9 +657,22 @@ def esegui(cfg: configurazione.Configurazione) -> int:
 # Preparazione (una volta, con internet)
 # ---------------------------------------------------------------------------
 
-def _esegui_comando(cmd: list[str], cwd: Path | None = None) -> None:
+def _esegui_comando(cmd: list[str], cwd: Path | None = None, env: dict | None = None) -> None:
     print("  $ " + " ".join(cmd))
-    subprocess.run(cmd, cwd=cwd, check=True)
+    subprocess.run(cmd, cwd=cwd, check=True, env=env)
+
+
+def _cmake() -> str:
+    """Il comando cmake: quello di sistema, o quello del venv; se manca lo installa nel venv con pip (non servono
+    permessi di amministratore)."""
+    trovato = shutil.which("cmake")
+    nel_venv = Path(sys.executable).parent / "cmake"
+    if trovato:
+        return trovato
+    if not nel_venv.exists():
+        print("  cmake non trovato: lo installo nell'ambiente Python (pip)")
+        _esegui_comando([sys.executable, "-m", "pip", "install", "cmake>=3.28,<4"])
+    return str(nel_venv)
 
 
 def prepara_llama(cfg: configurazione.Configurazione) -> dict:
@@ -681,8 +694,9 @@ def prepara_llama(cfg: configurazione.Configurazione) -> dict:
     if stampa.exists() and stampa.read_text().strip() == c["commit"] and eseguibile.exists():
         print("  llama.cpp già compilato a questo commit.")
     else:
-        _esegui_comando(["cmake", "-B", "build", *c.get("opzioni_cmake", [])], cwd=sorgenti)
-        _esegui_comando(["cmake", "--build", "build", "--config", "Release", "-j"], cwd=sorgenti)
+        cmake = _cmake()
+        _esegui_comando([cmake, "-B", "build", *c.get("opzioni_cmake", [])], cwd=sorgenti)
+        _esegui_comando([cmake, "--build", "build", "--config", "Release", "-j"], cwd=sorgenti)
         if not eseguibile.exists():
             raise SystemExit(f"compilazione finita ma {eseguibile} non esiste: controlla le opzioni di CMake")
         stampa.write_text(c["commit"] + "\n")
@@ -721,6 +735,9 @@ def prepara(cfg: configurazione.Configurazione, passi: set[str], modelli: list[s
         print("3. Librerie Python")
         req = cfg.percorso(p.get("requisiti", "requirements_misura.txt"))
         _esegui_comando([sys.executable, "-m", "pip", "install", "-r", str(req)])
+        senza_dip = cfg.percorso(p.get("requisiti_senza_dipendenze", "requirements_misura_nodeps.txt"))
+        if senza_dip.exists():
+            _esegui_comando([sys.executable, "-m", "pip", "install", "--no-deps", "-r", str(senza_dip)])
         bloccato = cfg.cartella / "requirements_misura.lock.txt"
         if bloccato.exists():
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
@@ -744,9 +761,18 @@ def prepara(cfg: configurazione.Configurazione, passi: set[str], modelli: list[s
         print("5. Modelli ausiliari")
         from huggingface_hub import snapshot_download
         a = cfg["ausiliari"]
-        for repo in (a["llmlingua2"], a["embedding"], a["selective_context_modello"]):
+        for repo in (a["llmlingua2"], a["embedding"]):
             print(f"  {repo}")
             snapshot_download(repo_id=repo)
+        # Selective Context carica il modello per nome (es. "gpt2"): si scaricano solo configurazione, tokenizer e
+        # pesi safetensors (gpt2 completo è 5,6 GB di formati inutili). Il nome "gpt2" è un alias di
+        # openai-community/gpt2 e con il trasferimento Xet di Hugging Face risponde 404: lo si scarica senza Xet,
+        # in un processo a parte perché l'impostazione vale solo all'avvio della libreria.
+        repo = a["selective_context_modello"]
+        print(f"  {repo} (solo i file necessari, senza Xet)")
+        codice = ("import sys; from huggingface_hub import snapshot_download; "
+                  "print(snapshot_download(sys.argv[1], allow_patterns=['*.json', '*.txt', '*.safetensors']))")
+        _esegui_comando([sys.executable, "-c", codice, repo], env={**os.environ, "HF_HUB_DISABLE_XET": "1"})
         _esegui_comando([sys.executable, "-m", "spacy", "download", p.get("spacy_modello", "en_core_web_sm")])
     destinazione = cfg.cartella / "preparazione.json"
     destinazione.write_text(json.dumps(esito, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

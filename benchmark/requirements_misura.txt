@@ -4,6 +4,11 @@ codecarbon==3.3.1
 huggingface_hub>=0.20.0
 requests>=2.31.0
 llmlingua
-selective-context
 sentence-transformers
 spacy
+# Dipendenze reali di selective-context, che si installa a parte senza dipendenze
+# (requirements_misura_nodeps.txt): la libreria dichiara spacy==3.2.0 e click==8.0.4, versioni che non si
+# installano su Python 3.12; funziona con le versioni recenti (provato su M1 con spaCy 3.8).
+nltk
+numpy
+click

@@ -18,6 +18,7 @@ elaborazione dei risultati in tabelle, grafici e un rapporto Word. Le scelte son
 | `strategie.py` | PC di controllo | le strategie S0–S7 |
 | `configurazione.py`, `dati.py`, `client_misura.py`, `risultati.py`, `avanzamento.py` | moduli comuni | configurazione, file di input, comunicazione con M1, risultati, riga di avanzamento |
 | `requirements_misura.txt` | M1 | librerie della macchina di misura |
+| `requirements_misura_nodeps.txt` | M1 | librerie installate senza dipendenze (selective-context) |
 | `requirements_runner.txt` | PC di controllo | librerie dell'elaborazione |
 | `test/` | qualsiasi | prova simulata (llama-server, CodeCarbon e modelli ausiliari finti) |
 
@@ -27,6 +28,7 @@ Runner e giudice usano solo la libreria standard; l'elaborazione richiede le lib
 ## Macchina di misura (M1)
 
 ```bash
+python3 -m venv venv          # una volta, dalla radice del repository (Python 3.11 o superiore; M1 ha la 3.12)
 source venv/bin/activate
 cd benchmark
 python misura.py prepara      # una volta, con internet (HF_TOKEN impostato per i modelli ad accesso condizionato)
@@ -37,6 +39,12 @@ python misura.py esegui       # servizio di misura; funziona anche senza interne
 `prepara` si può ripetere a pezzi: `--solo llama`, `--solo librerie`, `--solo modelli`, `--solo giudice`,
 `--solo ausiliari`. Il giudice è il file `giudice.file` del repository `giudice.repository`, al commit
 `giudice.commit`, salvato in `<cartella_modelli>/<giudice.nome>/`.
+Servono `gcc`/`g++`, `make` e il CUDA toolkit (`nvcc`); se `cmake` manca, `prepara` lo installa nell'ambiente
+Python con pip. `selective-context` si installa senza dipendenze (`requirements_misura_nodeps.txt`) perché
+dichiara `spacy==3.2.0` e `click==8.0.4`, che non si installano su Python 3.12: `pip check` segnala questi due
+vincoli, ed è atteso (la libreria è stata provata su M1 con spaCy 3.8). Del modello di Selective Context (gpt2)
+si scaricano solo configurazione, tokenizer e pesi safetensors, senza il trasferimento Xet di Hugging Face
+(con l'alias `gpt2` risponde 404).
 Scrive `preparazione.json` e `requirements_misura.lock.txt` (le versioni effettivamente installate).
 Il lock non è ignorato da Git: conservarlo con la configurazione e i risultati del benchmark.
 Se esiste già, una nuova preparazione salva un lock con timestamp invece di sovrascrivere quello

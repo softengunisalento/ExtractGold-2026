@@ -1,0 +1,4 @@
+# Installate da "python misura.py prepara" con pip --no-deps, dopo requirements_misura.txt.
+# selective-context (S6) dichiara spacy==3.2.0 e click==8.0.4, troppo vecchi per Python 3.12: le sue dipendenze
+# reali sono in requirements_misura.txt. pip check segnalerà questi due vincoli: è atteso.
+selective-context==0.1.4

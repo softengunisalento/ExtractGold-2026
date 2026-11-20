@@ -316,6 +316,29 @@ class Ausiliari:
             self.info["selective_context_unita"] = self.c["selective_context_unita"]
         else:
             self.info["selective_context_unita"] = "parametro reduce_level assente: unità predefinita della libreria"
+        # Selective Context calcola la self-information frase per frase con GPT-2, che ha 1024 posizioni: una
+        # "frase" più lunga (un tratto senza ". " o "? ") farebbe uscire gli indici dall'intervallo. Solo per
+        # queste frasi la self-information si calcola a finestre consecutive; le altre restano identiche.
+        originale = self.sc.get_self_information
+        tok_sc = self.sc.tokenizer
+        massimo = int(self.sc.max_token_length)
+        finestra = massimo - 1 - 24        # 1 posto per <|endoftext|>, 24 di margine per la ritokenizzazione
+        self.info["selective_context_finestre"] = (f"frasi oltre {massimo} token GPT-2: self-information "
+                                                   f"a finestre di {finestra} token")
+
+        def a_finestre(testo):
+            ids = tok_sc(testo, add_special_tokens=False)["input_ids"]
+            if len(ids) + 1 <= massimo:
+                return originale(testo)
+            sys.stderr.write(f"{adesso()} selective_context: frase di {len(ids)} token divisa in finestre\n")
+            parole, info = [], []
+            for a in range(0, len(ids), finestra):
+                w, s = originale(tok_sc.decode(ids[a:a + finestra]))
+                parole += w
+                info += s
+            return parole, info
+
+        self.sc.get_self_information = a_finestre
         from sentence_transformers import SentenceTransformer
         self.st = SentenceTransformer(self.c["embedding"], device=self.c["dispositivo"])
         self.st.max_seq_length = int(self.c["embedding_max_token"])
@@ -340,6 +363,8 @@ class Ausiliari:
             except Errore:
                 raise
             except Exception as exc:  # un testo che il compressore non gestisce resta intero, e si registra
+                if "CUDA" in str(exc) or "Accelerator" in type(exc).__name__:
+                    raise  # un errore della GPU rende inutilizzabile il processo: si ferma tutto
                 out.append(t)
                 errori.append(f"{type(exc).__name__}: {str(exc)[:200]}")
         return out, errori

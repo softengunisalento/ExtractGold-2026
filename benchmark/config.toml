@@ -3,7 +3,7 @@
 # I percorsi sono relativi alla cartella di questo file.
 
 [esecuzione]
-nome = "v1"                      # cartella dei risultati: <cartella_risultati>/<nome>; un nome nuovo per ogni esecuzione
+nome = "pilota_2026-10-27"                      # cartella dei risultati: <cartella_risultati>/<nome>; un nome nuovo per ogni esecuzione
 seed = 42                        # ordine delle strategie (per conversazione) e ordine a giri delle conversazioni
 cartella_risultati = "risultati"
 # Ordine a giri: le conversazioni si dividono in fasce di turni (qui il turno minimo di ogni fascia: 10–11,
@@ -18,7 +18,7 @@ modelli = "../selezioni/candidati_2026-10-19.json"
 sha256_conversazioni = "44b790a91ac4fc903da8282fafd444d13835ec3a8a707f16df3bacde386a276d"
 
 [rete]
-host = "0.0.0.0"                 # dove ascolta il servizio di misura (su M1)
+host = "127.0.0.1"                 # dove ascolta il servizio di misura (su M1)
 porta = 9100
 indirizzo_misura = "http://127.0.0.1:9100"   # indirizzo di M1 visto dal PC di controllo: da cambiare
 chiave = ""                      # facoltativa: se impostata, ogni richiesta al servizio deve portarla

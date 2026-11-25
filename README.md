@@ -75,6 +75,7 @@ Linux/Python 3.11 setup environment. To update dependencies, install the pinned 
 with `pip install -r requirements-dev.txt`, then regenerate and review the lock with
 `pip-compile requirements.txt --output-file requirements.lock.txt`. Experimental runs should install
 from the lock.
+
 **3. MongoDB.** Chat UI keeps the conversations.
 
 ```bash
@@ -104,6 +105,7 @@ DISABLE_CONVERSATION_MEMORY=false
 LLM_SUMMARIZATION=false
 MONGODB_URL=mongodb://127.0.0.1:27017/chatui
 ```
+
 **5. llama.cpp.** Build it with CUDA support:
 
 ```bash
@@ -111,17 +113,14 @@ git clone https://github.com/ggml-org/llama.cpp
 cd llama.cpp
 git checkout <commit-or-tag>          # pin the llama.cpp revision used in the experiment
 nvcc --version
-# If CUDA is installed in a non-standard location:
+# If CUDA is installed in a non-standard location, add it to PATH:
 export PATH=/usr/local/cuda/bin:$PATH
 cmake -B build -DGGML_CUDA=ON
 cmake --build build --config Release -j
 cd ..
 ```
 
-Check `docs/build.md` at the pinned revision for its build options. Without CUDA support,
-`-ngl 99` has no effect; the server log must list the GPUs.
-
-The option names change between versions: check `docs/build.md` of the version in use. Without CUDA support the build runs on the CPU and `-ngl 99` has no effect: when the server starts, its log must list the GPUs.
+Check `docs/build.md` at the pinned revision for its build options. Without CUDA support the build runs on the CPU and `-ngl 99` has no effect: when the server starts, its log must list the GPUs.
 
 **6. Models.** Check the free disk space first.
 
@@ -233,7 +232,7 @@ python build_replay_set.py verify
 
 Output:
 
-- `dataset_cache/` (ignored by Git): normalized corpus, token counts and the `prepare.json`/`tokenize` manifests;
+- `dataset_cache/` (ignored by Git): normalized corpus, token counts, the `prepare.json` manifest and one manifest per model written by `tokenize`;
 - `replay_set/conversazioni.jsonl`: the frozen conversations with `messages`, per-model `token_prompt`, turn/token band and content hash;
 - `replay_set/selezione.json`: dataset and tokenizer revisions, script SHA-256, thresholds, per-source and per-model funnel, strata, output SHA-256;
 - `replay_set/strati.csv`: counts per stratum.

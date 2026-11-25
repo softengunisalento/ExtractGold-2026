@@ -28,7 +28,7 @@ File di configurazione di Chat UI:
 | File | Scopo |
 |---|---|
 | `download_models.py` | Seleziona i modelli dai metadati Hugging Face, congela la selezione in documenti datati, scarica GGUF e registra un manifest. |
-| `conversation_stats.py` / `export_conversations.py` | Analizzano i dataset e generano un campione legacy per il replay. L'export scrive in `replay_export/` e protegge i file già esistenti. |
+| `conversation_stats.py` / `export_conversations.py` | Analizzano i dataset e generano un campione legacy per il replay. L'export scrive per impostazione predefinita in `replay_export/` e protegge i file già esistenti. |
 | `build_replay_set.py` | Costruisce e verifica il replay set congelato dai dataset selezionati. |
 | `energy_api.py` | Proxy tra Chat UI e llama-server: misura l'energia (CodeCarbon) e registra le conversazioni. |
 | [`benchmark/README.md`](benchmark/README.md) | Documentazione del benchmark autonomo delle strategie S0–S7, del servizio di misura e del test simulato. |
@@ -233,7 +233,7 @@ python build_replay_set.py verify
 
 Output:
 
-- `dataset_cache/` (ignorata da Git): corpus normalizzato, conteggi dei token e manifest di `prepare`/`tokenize`;
+- `dataset_cache/` (ignorata da Git): corpus normalizzato, conteggi dei token, il manifest `prepare.json` e un manifest per modello scritto da `tokenize`;
 - `replay_set/conversazioni.jsonl`: le conversazioni congelate con `messages`, `token_prompt` per modello, fascia turni/token e hash del contenuto;
 - `replay_set/selezione.json`: revisioni di dataset e tokenizer, SHA-256 dello script, soglie, imbuto per fonte e per modello, strati, SHA-256 dell'output;
 - `replay_set/strati.csv`: conteggi per strato.
@@ -288,4 +288,3 @@ curl -X POST http://127.0.0.1:9000/experiment/session/end -H "Content-Type: appl
 
 - Perimetro della misura. L'impostazione predefinita è `machine`: CodeCarbon misura l'intera workstation, comprese le attività di fondo; mantenere la macchina inattiva e misurare/sottrarre il consumo a riposo. `process` misura il processo proxy, non il processo separato di llama-server, quindi non è adatto all'esperimento principale.
 - Riconoscimento della richiesta GE. Si basa su `GE_MARKER`: va verificato che il prompt standardizzato fornito ai partecipanti lo contenga.
-s

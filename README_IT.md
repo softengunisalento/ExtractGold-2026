@@ -75,6 +75,7 @@ Linux/Python 3.11. Per aggiornare le dipendenze, installare lo strumento di lock
 `pip install -r requirements-dev.txt`, poi rigenerare e rivedere il lock con
 `pip-compile requirements.txt --output-file requirements.lock.txt`. Per gli esperimenti installare
 dal lock.
+
 **3. MongoDB.** Chat UI conserva le conversazioni.
 
 ```bash
@@ -104,6 +105,7 @@ DISABLE_CONVERSATION_MEMORY=false
 LLM_SUMMARIZATION=false
 MONGODB_URL=mongodb://127.0.0.1:27017/chatui
 ```
+
 **5. llama.cpp.** Si compila con il supporto CUDA:
 
 ```bash
